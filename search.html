@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Listings - RentAnything</title>
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <style>
+        .search-page {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .filters-sidebar {
+            width: 280px;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--glass-border);
+            position: sticky;
+            top: 2rem;
+        }
+
+        .filter-group {
+            margin-bottom: 2rem;
+        }
+
+        .filter-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            color: var(--gray);
+            cursor: pointer;
+        }
+
+        .price-inputs {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .price-input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .results-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .results-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+        }
+
+        .active-filters {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-chip {
+            background: #e0f2fe;
+            color: #0284c7;
+            padding: 0.3rem 0.8rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-chip i {
+            cursor: pointer;
+        }
+
+        /* Mobile Filter Toggle */
+        .filter-toggle {
+            display: none;
+        }
+
+        .no-results {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 4rem;
+            color: var(--gray);
+            background: white;
+            border-radius: 1rem;
+        }
+
+        @media (max-width: 900px) {
+            .search-page {
+                flex-direction: column;
+            }
+
+            .suggestions-dropdown {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: white;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                z-index: 10;
+                max-height: 200px;
+                overflow-y: auto;
+                margin-top: 5px;
+            }
+
+            .suggestion-item {
+                padding: 0.75rem 1rem;
+                cursor: pointer;
+                transition: background 0.2s;
+                font-size: 0.9rem;
+                color: var(--dark);
+                border-bottom: 1px solid #f1f5f9;
+            }
+
+            .suggestion-item:last-child {
+                border-bottom: none;
+            }
+
+            .suggestion-item:hover {
+                background: #f8fafc;
+                color: var(--primary);
+            }
+
+            .filters-sidebar {
+                width: 100%;
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                z-index: 2000;
+                overflow-y: auto;
+                border-radius: 0;
+                display: none;
+                animation: slideInLeft 0.3s ease-out;
+            }
+
+            .filters-sidebar.active {
+                display: block;
+            }
+
+            /* Overlay backdrop */
+            .filters-sidebar.active::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: -1;
+            }
+        }
+
+        /* Input Styling Enhancements -- Added based on user request */
+        .form-control,
+        .price-input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .form-control:focus,
+        .price-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: white;
+        }
+
+        /* Date specific icon */
+        #date-filter {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b' width='18px' height='18px'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+        }
+
+        #search-input {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b' width='18px' height='18px'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 3 13.09 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">RentAnything</a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+
+                <!-- Auth block reused via JS -->
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem;" title="Messages"><i
+                            class="fa-regular fa-paper-plane"></i></a>
+                    <a href="my-bookings.html" class="btn btn-primary"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Rentals"><i
+                            class="fa-solid fa-basket-shopping"></i></a>
+                    <a href="my-listings.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem;"
+                        title="Selling"><i class="fa-solid fa-store"></i></a>
+                    <img id="user-avatar" src="" referrerpolicy="no-referrer"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                </div>
+            </div>
+            <button class="mobile-menu-btn"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+
+    <main class="container" style="min-height: 80vh; padding-top: 2rem;">
+        <h1 class="section-title">Search Results</h1>
+
+        <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+            <button class="btn btn-outline filter-toggle"
+                onclick="document.querySelector('.filters-sidebar').classList.toggle('active')">
+                <i class="fa-solid fa-filter"></i> Filters
+            </button>
+            <button class="btn btn-outline" id="map-toggle-btn" onclick="toggleMapView()">
+                <i class="fa-solid fa-map"></i> Tower Map
+            </button>
+        </div>
+
+        <div class="search-page">
+            <!-- Sidebar -->
+            <aside class="filters-sidebar">
+                <div class="filter-group">
+                    <div class="filter-title">Search</div>
+                    <input type="text" id="search-input" class="form-control" placeholder="Keywords...">
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">Society / Location</div>
+                    <div style="position: relative;">
+                        <input type="text" id="society-filter" class="form-control" placeholder="Type to search..."
+                            autocomplete="off">
+                        <div id="society-suggestions" class="suggestions-dropdown" style="display: none;"></div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">Availability</div>
+                    <input type="text" id="date-filter" class="form-control" placeholder="Select Dates">
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">Price Range (Daily)</div>
+                    <div class="price-inputs">
+                        <input type="number" id="min-price" class="price-input" placeholder="Min" min="0">
+                        <span>-</span>
+                        <input type="number" id="max-price" class="price-input" placeholder="Max">
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">Trust & Safety</div>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" id="verified-only">
+                            <span><i class="fa-solid fa-circle-check" style="color:#22c55e;"></i> Verified Neighbors
+                                Only</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">Categories</div>
+                    <div class="checkbox-group" id="category-filters">
+                        <label class="checkbox-item"><input type="checkbox" value="party"> Party Essentials</label>
+                        <label class="checkbox-item"><input type="checkbox" value="electronics"> Electronics</label>
+                        <label class="checkbox-item"><input type="checkbox" value="tools"> Tools & DIY</label>
+                        <label class="checkbox-item"><input type="checkbox" value="camping"> Camping</label>
+                        <label class="checkbox-item"><input type="checkbox" value="kids"> Kids Gear</label>
+                        <label class="checkbox-item"><input type="checkbox" value="mobility"> Mobility</label>
+                        <label class="checkbox-item"><input type="checkbox" value="other"> Other</label>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="window.applyFilters()" style="width: 100%;">Apply
+                    Filters</button>
+                <button class="btn btn-outline" onclick="window.clearFilters()"
+                    style="width: 100%; margin-top:0.5rem; border:none; color:var(--gray);">Clear All</button>
+            </aside>
+
+            <!-- Results -->
+            <div style="flex:1;">
+                <div class="active-filters" id="active-filters"></div>
+
+                <!-- LIST VIEW -->
+                <div id="results-grid" class="results-grid">
+                    <!-- Loaded via JS -->
+                    <div class="listing-card skeleton"></div>
+                    <div class="listing-card skeleton"></div>
+                    <div class="listing-card skeleton"></div>
+                </div>
+
+                <!-- MAP VIEW (Initially Hidden) -->
+                <div id="map-view"
+                    style="display: none; height: 500px; background: #e2e8f0; border-radius: 1rem; position: relative; overflow: hidden;">
+                    <!-- Simple CSS Map Visualization -->
+                    <div style="position: absolute; top: 10%; left: 10%; width: 20%; height: 40%; background: #3b82f6; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                        onclick="filterByTower('A')">
+                        Tower A <br> <span id="count-a" style="font-size: 0.8rem; margin-top: 5px;">(0)</span>
+                    </div>
+                    <div style="position: absolute; top: 10%; right: 10%; width: 20%; height: 40%; background: #10b981; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                        onclick="filterByTower('B')">
+                        Tower B <br> <span id="count-b" style="font-size: 0.8rem; margin-top: 5px;">(0)</span>
+                    </div>
+                    <div style="position: absolute; bottom: 10%; left: 35%; width: 30%; height: 30%; background: #f59e0b; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);"
+                        onclick="filterByTower('C')">
+                        Tower C <br> <span id="count-c" style="font-size: 0.8rem; margin-top: 5px;">(0)</span>
+                    </div>
+
+                    <div
+                        style="position: absolute; top: 1rem; left: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <i class="fa-solid fa-location-arrow"></i> Megapolis Society Map
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer" style="margin-top: auto;"></footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/search.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

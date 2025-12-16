@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentAnything - Messages</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2563EB">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <style>
+        /* Page Specific Overrides (if any, otherwise all in style.css) */
+        body {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Chat app feel */
+        }
+
+        main {
+            flex: 1;
+            padding-top: 0;
+            /* Override default */
+            display: flex;
+            height: calc(100vh - 70px);
+            /* Adjust for header */
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container" style="max-width: 100%; padding: 0 1.5rem;">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <button class="btn btn-outline" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i>
+                    Back</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="chat-app" class="chat-container">
+        <!-- Sidebar: Conversation List -->
+        <aside class="chat-sidebar">
+            <div class="sidebar-header">
+                <h2>Messages</h2>
+            </div>
+            <div id="conversations-list" class="conversations-list">
+                <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading chats...</div>
+                <!-- Dynamic Content -->
+            </div>
+        </aside>
+
+        <!-- Main: Chat Window -->
+        <section class="chat-window">
+            <!-- Empty State -->
+            <div id="no-chat-selected" class="empty-state">
+                <i class="fa-regular fa-comments" style="font-size: 4rem; color: var(--gray-light);"></i>
+                <h3>Select a conversation</h3>
+                <p>Choose a chat from the left to start messaging.</p>
+            </div>
+
+            <!-- Active Chat View -->
+            <div id="active-chat-view" class="active-chat" style="display: none;">
+                <div class="chat-header">
+                    <div class="chat-user-info">
+                        <img id="chat-img" src="" alt="User" class="avatar-small">
+                        <div>
+                            <h3 id="chat-name">User Name</h3>
+                            <span id="chat-item" class="chat-item-badge">Item Name</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="messages-container" class="messages-container">
+                    <!-- Messages go here -->
+                </div>
+
+                <form id="message-form" class="message-input-area">
+                    <input type="text" id="message-input" placeholder="Type a message..." autocomplete="off">
+                    <button type="submit" class="btn btn-primary btn-icon">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer" style="margin-top: auto;"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/chat.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

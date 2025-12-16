@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rent Agreement - RentAnything.shop</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <style>
+        .agreement-paper {
+            background: white;
+            padding: 3rem;
+            max-width: 800px;
+            margin: 2rem auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+
+        .legal-text {
+            font-family: 'Times New Roman', serif;
+            line-height: 1.8;
+            color: #334155;
+            margin-bottom: 2rem;
+            font-size: 1.05rem;
+        }
+
+        .signature-box {
+            border: 2px dashed #cbd5e1;
+            padding: 2rem;
+            text-align: center;
+            background: #f8fafc;
+        }
+
+        .signed-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #dcfce7;
+            color: #166534;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 600;
+        }
+
+        @media print {
+
+            .app-header,
+            .app-footer,
+            .no-print {
+                display: none;
+            }
+
+            .agreement-paper {
+                box-shadow: none;
+                border: none;
+                margin: 0;
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <!-- User Profile / Login Placeholder -->
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                        title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Listings">
+                        <i class="fa-solid fa-list-check"></i>
+                    </a>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; margin-left: auto;"
+                    aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="agreement-paper">
+            <div style="text-align: center; margin-bottom: 2rem; border-bottom: 2px solid #000; padding-bottom: 1rem;">
+                <h1 style="text-transform: uppercase; letter-spacing: 2px; font-size: 2rem;">Rental Agreement</h1>
+                <p style="color: #64748b;">Generated on <span id="current-date"></span></p>
+            </div>
+
+            <div class="legal-text">
+                <p>This Rental Agreement ("Agreement") is made this day between:</p>
+
+                <p><strong>OWNER:</strong> <span id="owner-name"
+                        style="border-bottom: 1px dotted #000;">[Loading...]</span><br>
+                    (Hereinafter referred to as the "Lessor")</p>
+
+                <p>AND</p>
+
+                <p><strong>RENTER:</strong> <span id="renter-name"
+                        style="border-bottom: 1px dotted #000;">[Loading...]</span><br>
+                    (Hereinafter referred to as the "Lessee")</p>
+
+                <h3>1. PROPERTY</h3>
+                <p>The Lessor agrees to rent to the Lessee the following item:<br>
+                    <strong>Item Name:</strong> <span id="item-name">[Loading...]</span><br>
+                    <strong>Agreement ID:</strong> <span id="agreement-id">[Loading...]</span>
+                </p>
+
+                <h3>2. TERM</h3>
+                <p>The rental period shall begin on <strong><span id="start-date">...</span></strong> and end on
+                    <strong><span id="end-date">...</span></strong>.
+                </p>
+
+                <h3>3. RENT</h3>
+                <p>The Lessee agrees to pay the Lessor a total sum of <strong>₹<span
+                            id="total-amount">...</span></strong> for the rental period.</p>
+
+                <h3>4. SECURITY DEPOSIT & LIABILITY</h3>
+                <p>
+                    <strong>Security Deposit:</strong> ₹<span id="deposit-amount">0</span> (Refundable upon safe
+                    return).<br>
+                    <strong>Total Application Liability:</strong> The Lessee is liable for the full replacement value of
+                    the item in case of total loss, theft, or irreparable damage. The Security Deposit shall be adjusted
+                    against such liability.
+                </p>
+
+                <h3>5. DIGITAL IDENTITY & AUTHORIZATION</h3>
+                <p>This agreement is digitally signed and tracked. Both parties acknowledge the following digital
+                    footprint as binding evidence of their physical location and identity at the time of signing:</p>
+
+                <table style="width:100%; border-collapse: collapse; margin-top:1rem; font-size:0.9rem;">
+                    <tr style="background:#f1f5f9; text-align:left;">
+                        <th style="padding:0.5rem; border:1px solid #cbd5e1;">Party</th>
+                        <th style="padding:0.5rem; border:1px solid #cbd5e1;">Logged IP Address</th>
+                        <th style="padding:0.5rem; border:1px solid #cbd5e1;">Timestamp</th>
+                    </tr>
+                    <tr>
+                        <td style="padding:0.5rem; border:1px solid #cbd5e1;"><strong>Lessor (Owner)</strong></td>
+                        <td style="padding:0.5rem; border:1px solid #cbd5e1;"><span
+                                id="owner-ip-display">Pending...</span></td>
+                        <td style="padding:0.5rem; border:1px solid #cbd5e1;"><span
+                                id="owner-time-display">Pending...</span></td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0.5rem; border:1px solid #cbd5e1;"><strong>Lessee (Renter)</strong></td>
+                        <td style="padding:0.5rem; border:1px solid #cbd5e1;"><span
+                                id="renter-ip-display">Pending...</span></td>
+                        <td style="padding:0.5rem; border:1px solid #cbd5e1;"><span
+                                id="renter-time-display">Pending...</span></td>
+                    </tr>
+                </table>
+
+                <h3 style="margin-top:2rem;">6. TERMS & CONDITIONS</h3>
+                <p>Both parties confirm they have verified each other's Government ID. The Lessee agrees to return the
+                    item in the same condition as received.</p>
+            </div>
+
+            <!-- SIGNATURE & EVIDENCE AREA -->
+            <div class="evidence-log"
+                style="margin: 2rem 0; padding: 1rem; background: #f1f5f9; border-radius: 0.5rem; font-size: 0.8rem; color: #475569;">
+                <h4>📝 Audit Trail (Metadata)</h4>
+                <p><strong>Tracking ID:</strong> <span id="meta-track-id">Not yet generated</span></p>
+                <p><strong>IP Address:</strong> <span id="meta-ip">Wait...</span></p>
+                <p><strong>Device:</strong> <span id="meta-device">Checking...</span></p>
+            </div>
+
+            <div class="signatures" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                <!-- Owner Signature -->
+                <div id="owner-sig-block">
+                    <h4>Owner Signature</h4>
+                    <div id="owner-status" class="signature-box">
+                        <img id="owner-sig-img" style="display:none; max-width:100%; height:80px;"
+                            alt="Owner Signature">
+                        <p id="owner-placeholder" style="color: #94a3b8; font-style: italic;">Waiting for Owner...</p>
+                    </div>
+                </div>
+
+                <!-- Renter Signature -->
+                <div id="renter-sig-block">
+                    <h4>Renter Signature</h4>
+                    <div id="renter-status" class="signature-box">
+                        <img id="renter-sig-img" style="display:none; max-width:100%; height:80px;"
+                            alt="Renter Signature">
+                        <p id="renter-placeholder" style="color: #94a3b8; font-style: italic;">Waiting for Renter...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACTIVE SIGNING UI -->
+            <div id="signing-ui" class="no-print"
+                style="margin-top: 3rem; border: 1px solid #cbd5e1; padding: 2rem; border-radius: 1rem; text-align:center; display:none;">
+                <h3>✍️ Digital Signature</h3>
+                <p style="margin-bottom: 1rem; color: #64748b;">Please sign below using your finger or mouse.</p>
+
+                <canvas id="sig-canvas" width="500" height="200"
+                    style="border: 1px solid #94a3b8; background: #fff; touch-action: none; max-width:100%;"></canvas>
+
+                <div style="margin-top: 1rem; display:flex; justify-content:center; gap:1rem;">
+                    <button class="btn btn-outline" id="clear-sig">Clear</button>
+                    <button class="btn btn-primary" id="final-sign-btn" disabled>Confirm Signature & data</button>
+                </div>
+                <div style="margin-top:0.5rem; font-size:0.75rem; color:#94a3b8;">
+                    By signing, you agree to the Terms above and verify your identity via Login Session.
+                </div>
+            </div>
+
+            <div id="action-area" class="no-print" style="margin-top: 3rem; text-align: center;">
+                <label
+                    style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; cursor: pointer;">
+                    <input type="checkbox" id="agree-checkbox" style="width: 20px; height: 20px;">
+                    <span style="font-size: 1.1rem;">I verified the ID and Item condition.</span>
+                </label>
+                <button id="sign-btn" class="btn btn-primary btn-large" disabled>
+                    <i class="fa-solid fa-file-signature"></i> Digitally Sign Agreement
+                </button>
+            </div>
+
+            <div id="success-msg"
+                style="display: none; text-align: center; margin-top: 2rem; background: #f0fdf4; padding: 1rem; border-radius: 1rem; color: #166534;">
+                <i class="fa-solid fa-circle-check fa-2x"></i>
+                <h3>Agreement Active!</h3>
+                <p>Both parties have signed. You can now proceed with the handover.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/agreement.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

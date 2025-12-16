@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - RentAnything</title>
+    <meta name="description"
+        content="Learn about RentAnything's mission to build a sustainable, sharing community in Hinjewadi.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <style>
+        .page-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            color: white;
+            padding: 6rem 1rem;
+            text-align: center;
+            border-radius: 0 0 3rem 3rem;
+            margin-bottom: 4rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Subtle pattern overlay */
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .page-header h1 {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            z-index: 1;
+            /* Override global h1 gradient styles */
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            background-clip: initial !important;
+            -webkit-text-fill-color: white !important;
+            color: white !important;
+        }
+
+        .page-header p {
+            font-size: 1.25rem;
+            opacity: 0.95;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-section {
+            margin-bottom: 4rem;
+        }
+
+        .value-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s;
+        }
+
+        .value-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .value-icon {
+            width: 60px;
+            height: 60px;
+            background: #eff6ff;
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i
+                            class="fa-regular fa-paper-plane"></i></a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i></a>
+                    <img id="user-avatar" src=""
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='create-listing.html'"><i
+                        class="fa-solid fa-plus" style="margin-right: 0.5rem;"></i> List Item</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;"><i
+                        class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i></a>
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"><i
+                        class="fa-regular fa-bell" style="font-size: 1.2rem;"></i><span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem;">0</span></button>
+                <button class="mobile-menu-btn"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-header">
+            <div class="container">
+                <h1>Connecting Neighbors, One Item at a Time</h1>
+                <p>We believe in the power of sharing to build a stronger, more sustainable community in Megapolis.</p>
+            </div>
+        </div>
+
+        <div class="container">
+            <section class="content-section">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <div class="value-card">
+                        <div class="value-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <h3>Save Money</h3>
+                        <p style="color: var(--gray);">Why buy expensive gear you only use once? Rent it for a fraction
+                            of the cost from someone nearby.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon"><i class="fa-solid fa-box-open"></i></div>
+                        <h3>Save Space</h3>
+                        <p style="color: var(--gray);">Declutter your home without losing access to the things you need.
+                            Rent only when you need it.</p>
+                    </div>
+                    <div class="value-card">
+                        <div class="value-icon"><i class="fa-solid fa-leaf"></i></div>
+                        <h3>Save the Planet</h3>
+                        <p style="color: var(--gray);">Every rental prevents unnecessary manufacturing and waste.
+                            Sharing is the greenest choice.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="content-section" style="max-width: 800px; margin: 0 auto; text-align: center;">
+                <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">Our Mission</h2>
+                <p style="font-size: 1.1rem; line-height: 1.8; color: var(--dark); margin-bottom: 2rem;">
+                    RentAnything was born out of a simple observation: we all have things gathering dust that others
+                    need, and we all need things we don't want to buy.
+                    In a vibrant community like Hinjewadi Phase 3, we saw an opportunity to bridge this gap. Our mission
+                    is to create a safe, reliable, and hyper-local marketplace that fosters trust and sustainability.
+                </p>
+                <img src="https://placehold.co/800x400/eff6ff/4f46e5?text=Building+Community+Together" alt="Community"
+                    style="width: 100%; border-radius: 1rem; margin-bottom: 2rem;">
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initMobileMenu } from './js/navigation.js';
+        import { initHeader } from './js/header-manager.js';
+        import { initFooter } from './js/footer-manager.js';
+        import { initAuth } from './js/auth.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMobileMenu();
+            initHeader();
+            initFooter();
+            initAuth();
+        });
+    </script>
+</body>
+
+</html>

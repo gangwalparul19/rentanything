@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist - RentAnything</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <!-- Firebase Import Map (Required for bare module imports) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
+        "firebase/storage": "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js",
+        "firebase/analytics": "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js"
+      }
+    }
+    </script>
+    <style>
+        .wishlist-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .wishlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: var(--gray);
+        }
+
+        .filter-tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .wishlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .wishlist-card {
+            background: white;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .wishlist-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15);
+        }
+
+        .wishlist-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .priority-badge {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .priority-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .priority-low {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .wishlist-content {
+            padding: 1.25rem;
+        }
+
+        .wishlist-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .wishlist-notes {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+            font-style: italic;
+            min-height: 2.5rem;
+        }
+
+        .wishlist-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-book {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-book:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-remove {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-remove:hover {
+            background: #fecaca;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .wishlist-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-tabs {
+                width: 100%;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header (reuse from index.html) -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                    RentAnything
+                </a>
+
+                <nav class="nav-links" id="nav-links">
+                    <a href="/">Browse</a>
+                    <a href="search.html">Search</a>
+                    <a href="create-listing.html">List Item</a>
+                    <a href="wishlist.html" class="active">Wishlist</a>
+                </nav>
+
+                <div class="header-actions">
+                    <div id="auth-button"></div>
+                    <!-- Mobile Icons Group -->
+                    <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                        <!-- Mobile Chat Button -->
+                        <a href="chat.html" id="mobile-chat-btn" class="btn-icon mobile-only"
+                            style="display: none; border:none; background:transparent; padding: 0.5rem; margin-right: 0.5rem;"
+                            aria-label="Messages">
+                            <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                        </a>
+                        <!-- Mobile Notification Bell -->
+                        <button id="mobile-notification-btn" class="btn-icon mobile-only"
+                            style="display: none; border:none; background:transparent; padding: 0.5rem; margin-right: 0.5rem; color: var(--dark); cursor:pointer; position: relative;"
+                            aria-label="Notifications">
+                            <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                            <span class="notif-badge"
+                                style="display:none; position:absolute; top:0; right:0; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                        </button>
+                        <button class="btn-icon mobile-menu-toggle" id="mobile-menu-toggle">
+                            <i class="fa-solid fa-bars"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="wishlist-container">
+        <div class="wishlist-header">
+            <div>
+                <h1 style="margin: 0 0 0.5rem 0;">My Wishlist 💖</h1>
+                <p style="color: var(--gray); margin: 0;">Save items for later and plan your rentals</p>
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="high">High Priority</button>
+                <button class="filter-tab" data-filter="medium">Medium</button>
+                <button class="filter-tab" data-filter="low">Low</button>
+            </div>
+        </div>
+
+        <!-- Wishlist Grid -->
+        <div id="wishlist-grid" class="wishlist-grid">
+            <!-- Loading skeleton -->
+            <div class="card-skeleton"></div>
+            <div class="card-skeleton"></div>
+            <div class="card-skeleton"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer"></footer>
+
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/wishlist.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

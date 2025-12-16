@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentAnything - Hyper-Local Rental Marketplace</title>
+    <meta name="description"
+        content="Rent anything from your neighbors in Hinjewadi Phase 3. Kids gear, party essentials, and more.">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links">
+                <!-- Links injected by js/header-manager.js -->
+            </nav>
+            <div class="user-actions">
+                <!-- Login Button -->
+                <button id="login-btn" class="btn btn-outline" aria-label="Login to your account">Login</button>
+
+                <!-- User Profile (Hidden by default) -->
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                        title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Listings">
+                        <i class="fa-solid fa-list-check"></i>
+                    </a>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+
+                <button class="btn btn-primary" onclick="window.location.href='create-listing.html'"><i
+                        class="fa-solid fa-plus" style="margin-right: 0.5rem;"></i> List
+                    Item</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main id="app">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1>Don't Buy. <span class="highlight">Just Rent.</span></h1>
+                    <p>The trusted rental marketplace for Hinjewadi Phase 3 (Megapolis).</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Platform Impact Stats -->
+        <section class="section" id="environmental-impact-section" style="display: none;">
+            <div class="container">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <h2 class="section-title">🌍 Our Environmental Impact</h2>
+                    <p style="color: var(--gray); max-width: 600px; margin: 0 auto;">Together, we're making a difference
+                        by renting instead of buying</p>
+                </div>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; max-width: 800px; margin: 0 auto;">
+                    <div class="stat-card eco-stat">
+                        <i class="fa-solid fa-globe"
+                            style="font-size: 2.5rem; color: #22c55e; margin-bottom: 1rem;"></i>
+                        <div class="stat-number" id="platform-co2" style="color: #22c55e;">0</div>
+                        <div class="stat-label">kg CO2 Prevented</div>
+                    </div>
+                    <div class="stat-card eco-stat">
+                        <i class="fa-solid fa-seedling"
+                            style="font-size: 2.5rem; color: #22c55e; margin-bottom: 1rem;"></i>
+                        <div class="stat-number" id="platform-trees" style="color: #22c55e;">0</div>
+                        <div class="stat-label">Trees Worth of Impact</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Categories Section -->
+        <div class="search-section">
+            <div class="container">
+                <div class="search-bar">
+                    <div class="input-group">
+                        <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="home-search-input" placeholder="Search for Party speakers, Ladder...">
+                    </div>
+                    <button class="btn btn-search"
+                        onclick="window.location.href='search.html?q=' + document.getElementById('home-search-input').value">Search</button>
+                    <!-- Allow Enter Key -->
+                    <script>
+                        document.getElementById('home-search-input').addEventListener('keypress', function (e) {
+                            if (e.key === 'Enter') window.location.href = 'search.html?q=' + this.value;
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories -->
+        <section id="categories" class="section">
+            <div class="container">
+                <h2 class="section-title">Browse Categories</h2>
+                <div class="categories-grid">
+                    <div class="category-card" onclick="window.location.href='search.html?cat=party'">
+                        <div class="cat-icon"><i class="fa-solid fa-champagne-glasses"></i></div>
+                        <h3>Party Essentials</h3>
+                    </div>
+                    <div class="category-card" onclick="window.location.href='search.html?cat=kids'">
+                        <div class="cat-icon"><i class="fa-solid fa-baby-carriage"></i></div>
+                        <h3>Kids Gear</h3>
+                    </div>
+                    <div class="category-card" onclick="window.location.href='search.html?cat=tools'">
+                        <div class="cat-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                        <h3>Tools & DIY</h3>
+                    </div>
+                    <div class="category-card" onclick="window.location.href='search.html?cat=camping'">
+                        <div class="cat-icon"><i class="fa-solid fa-campground"></i></div>
+                        <h3>Camping</h3>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Listings -->
+        <section id="featured" class="section">
+            <div class="container">
+                <h2 class="section-title">Trending Near You</h2>
+                <div class="listings-grid" id="listings-container">
+                    <!-- Listings will be injected via JS -->
+                    <div class="listing-card skeleton"></div>
+                    <div class="listing-card skeleton"></div>
+                    <div class="listing-card skeleton"></div>
+                </div>
+                <!-- View All Button -->
+                <div style="text-align: center; margin-top: 2.5rem;">
+                    <a href="search.html" class="btn btn-outline">View All Products <i class="fa-solid fa-arrow-right"
+                            style="margin-left: 0.5rem;"></i></a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Trust & Safety Banner -->
+        <div style="background: #fffbeb; border-bottom: 1px solid #fcd34d; padding: 0.75rem 0;">
+            <div class="container"
+                style="display: flex; align-items: center; justify-content: center; gap: 1rem; flex-wrap: wrap; text-align: center;">
+                <span style="font-size: 1.5rem;">🛡️</span>
+                <p style="color: #92400e; font-size: 0.95rem; margin: 0;">
+                    <strong>Trust & Safety Update:</strong> Mandatory Govt ID Verification & Legal Agreement for all
+                    rentals with a Security Deposit above <strong>₹10,000</strong>.
+                </p>
+            </div>
+        </div>
+
+        <!-- How It Works CTA -->
+        <section class="section" id="how-it-works"
+            style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);">
+            <div class="container" style="text-align: center;">
+                <h2 style="font-size: 2rem; margin-bottom: 1rem; color: var(--dark);">New to RentAnything?</h2>
+                <p
+                    style="color: var(--gray); font-size: 1.1rem; margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                    Discover how easy it is to borrow what you need and earn from what you own within your society.
+                </p>
+                <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <div
+                            style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem; box-shadow: var(--shadow-sm);">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                        <span style="font-weight: 500;">Find</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <div
+                            style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem; box-shadow: var(--shadow-sm);">
+                            <i class="fa-regular fa-calendar-check"></i>
+                        </div>
+                        <span style="font-weight: 500;">Book</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <div
+                            style="width: 60px; height: 60px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 1.5rem; box-shadow: var(--shadow-sm);">
+                            <i class="fa-regular fa-handshake"></i>
+                        </div>
+                        <span style="font-weight: 500;">Collect</span>
+                    </div>
+                </div>
+                <a href="how-it-works.html" class="btn btn-primary btn-large">See How It Works</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                        RentAnything
+                    </a>
+                    <p>Hyper-local rentals for the Megapolis community. Save money, save space, and build trust with
+                        your neighbors.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="about.html">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <ul>
+                        <li><a href="help-center.html">Help Center</a></li>
+                        <li><a href="safety.html">Safety Center</a></li>
+                        <li><a href="community-guidelines.html">Community Guidelines</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms of Service</a></li>
+                        <li><a href="rental-agreement.html">Rental Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>Designed by Parul Gangwal</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram fa-lg"></i></a>
+                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter fa-lg"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <!-- Firebase configuration logic will be added here -->
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>

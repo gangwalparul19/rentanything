@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - RentAnything.shop</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+
+                <!-- User Profile / Login Placeholder -->
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                        title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Listings">
+                        <i class="fa-solid fa-list-check"></i>
+                    </a>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+
+                <button class="btn btn-primary" onclick="window.location.href='create-listing.html'"><i
+                        class="fa-solid fa-plus" style="margin-right: 0.5rem;"></i> List
+                    Item</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container page-content">
+        <div class="profile-page-wrapper">
+            <h1 class="page-title">Edit Profile</h1>
+            <p class="page-subtitle">Update your personal details and trust information.</p>
+
+            <form id="profile-form" class="profile-form">
+
+                <!-- Profile Image Section -->
+                <div class="profile-image-section">
+                    <div class="image-preview-wrapper" id="image-upload-wrapper">
+                        <img id="profile-preview" src="https://placehold.co/150" alt="Profile Preview">
+                        <div class="image-overlay">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>Change</span>
+                        </div>
+                        <input type="file" id="profile-image-input" accept="image/*" style="display: none;">
+                    </div>
+                    <p class="help-text">Click to upload a new profile picture</p>
+                </div>
+
+                <!-- Form Fields -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="displayName">Full Name</label>
+                        <input type="text" id="displayName" placeholder="Your Name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="phoneNumber">Phone Number <span class="badge-trust">Trust</span></label>
+                        <input type="tel" id="phoneNumber" placeholder="+91 99999 99999" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="society">Society / Apartment <span class="badge-trust">Required</span></label>
+                        <select id="society" required>
+                            <option value="" disabled selected>Select your Society</option>
+                            <option value="" disabled selected>Select your Society</option>
+                            <!-- Options populated dynamically from Firestore -->
+
+                            <option value="Other Hinjewadi Phase 3">Other (Hinjewadi Phase 3)</option>
+                        </select>
+                        <!-- Dynamic "Other" Input -->
+                        <div id="other-society-wrapper" style="display: none; margin-top: 0.5rem;">
+                            <input type="text" id="otherSocietyName"
+                                placeholder="Enter Township Name (e.g. Tinsel Town)">
+                            <p class="help-text" style="margin-top:0.2rem; font-size:0.8rem;">* This will be sent for
+                                admin approval.</p>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="flatNumber">Building & Flat No.</label>
+                        <input type="text" id="flatNumber" placeholder="e.g. C-1204" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender">
+                            <option value="prefer-not">Prefer not to say</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Non-binary">Non-binary</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="bio">Bio</label>
+                        <textarea id="bio" rows="3"
+                            placeholder="Tell us a bit about yourself (e.g. 'Avid trekker', 'Love cooking')"></textarea>
+                    </div>
+
+                    <!-- Badges Section (V3 Gamification) -->
+                    <div class="form-group full-width" style="margin-top: 1rem;">
+                        <label>Your Trust Badges 🏆</label>
+                        <div
+                            style="display: flex; gap: 1rem; flex-wrap: wrap; background: #f8fafc; padding: 1rem; border-radius: 0.75rem; border: 1px solid #e2e8f0;">
+
+                            <!-- Static Badges for Demo -->
+                            <div class="badge-item" style="text-align: center; width: 80px; opacity: 0.5;"
+                                title="Verify ID to unlock" id="badge-verified">
+                                <div style="font-size: 2rem; margin-bottom: 0.2rem;">🛡️</div>
+                                <div style="font-size: 0.7rem; font-weight: 600; color: #64748b;">Verified</div>
+                            </div>
+
+                            <div class="badge-item" style="text-align: center; width: 80px;" title="You joined early!">
+                                <div style="font-size: 2rem; margin-bottom: 0.2rem;">🚀</div>
+                                <div style="font-size: 0.7rem; font-weight: 600; color: var(--primary);">Early Bird
+                                </div>
+                            </div>
+
+                            <div class="badge-item" style="text-align: center; width: 80px; opacity: 0.5;"
+                                title="Complete 5 Rentals">
+                                <div style="font-size: 2rem; margin-bottom: 0.2rem;">⭐</div>
+                                <div style="font-size: 0.7rem; font-weight: 600; color: #64748b;">Super Lender</div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Govt ID Section -->
+                    <div class="form-group full-width"
+                        style="border-top: 1px solid #e2e8f0; padding-top: 1.5rem; margin-top: 1rem;">
+                        <label style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>Govt ID Verification <span class="badge-trust"
+                                    style="background:var(--primary); color:white;">Secure</span></span>
+                            <span id="id-status-badge"
+                                style="font-size: 0.8rem; background: #e2e8f0; padding: 0.2rem 0.5rem; border-radius: 4px;">Not
+                                Uploaded</span>
+                        </label>
+                        <p class="help-text" style="margin-bottom: 1rem;">Upload Aadhaar/DL/Voter ID. This is required
+                            for high-value rentals and safety.</p>
+
+                        <div id="id-upload-area"
+                            style="border: 2px dashed #cbd5e1; padding: 1.5rem; border-radius: 0.75rem; text-align: center; cursor: pointer; background: #f8fafc;">
+                            <i class="fa-solid fa-id-card"
+                                style="font-size: 1.5rem; color: var(--gray); margin-bottom: 0.5rem;"></i>
+                            <p style="margin: 0; font-size: 0.9rem; color: var(--text-dark);">Click to upload ID
+                                (Image/PDF)</p>
+                            <input type="file" id="id-file-input" accept="image/*,application/pdf"
+                                style="display: none;">
+                        </div>
+                        <div id="id-preview-container"
+                            style="margin-top: 0.5rem; display: none; align-items: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-file-shield" style="color: var(--primary);"></i>
+                            <span id="id-filename" style="font-size: 0.9rem;">filename.jpg</span>
+                            <i class="fa-solid fa-check-circle" style="color: #10b981;"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" onclick="window.history.back()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="save-profile-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/profile.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

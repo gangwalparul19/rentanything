@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RentAnything - Community Requests</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <style>
+        .request-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid var(--primary);
+            transition: transform 0.2s;
+        }
+
+        .request-card:active {
+            transform: scale(0.99);
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .requester-info {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .requester-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .request-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0.5rem 0;
+        }
+
+        .request-meta {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .fab-add {
+            position: fixed;
+            bottom: 80px;
+            /* Above bottom nav on mobile */
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+            cursor: pointer;
+            z-index: 100;
+            transition: transform 0.2s;
+        }
+
+        .fab-add:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Modal specific */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: slideUp 0.3s ease-out;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <button class="btn btn-outline" onclick="window.history.back()"><i class="fa-solid fa-arrow-left"></i>
+                    Back</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="padding-top: 2rem; padding-bottom: 80px;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1>Community Board 🏘️</h1>
+            <p style="color: var(--gray);">Can't find what you need? Ask your neighbors!</p>
+        </div>
+
+        <div id="requests-container">
+            <div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> Loading requests...</div>
+        </div>
+
+    </main>
+
+    <!-- FAB -->
+    <div class="fab-add" id="fab-add-request" title="Post a Request">
+        <i class="fa-solid fa-plus"></i>
+    </div>
+
+    <!-- Add Request Modal -->
+    <div id="request-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 1.5rem;">What do you need?</h2>
+            <form id="request-form">
+                <div class="form-group">
+                    <label>I am looking for...</label>
+                    <input type="text" id="req-title" placeholder="e.g. Ladder for 2 hours, Drill machine..." required>
+                </div>
+                <div class="form-group">
+                    <label>Description & Urgency</label>
+                    <textarea id="req-desc" rows="3" placeholder="Need it this Sunday for some home repairs..."
+                        required></textarea>
+                </div>
+                <div class="form-actions" style="margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Post Request</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/requests.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+    <script>
+        // Simple Modal Logic inlin for speed
+        const modal = document.getElementById('request-modal');
+        document.getElementById('fab-add-request').onclick = () => modal.style.display = 'flex';
+        window.closeModal = () => modal.style.display = 'none';
+        window.onclick = (e) => { if (e.target == modal) closeModal(); }
+    </script>
+</body>
+
+</html>

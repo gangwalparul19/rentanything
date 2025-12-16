@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rental Agreement Policy - RentAnything</title>
+    <meta name="description"
+        content="Standard Rental Agreement Policy for RentAnything. Terms binding Owner and Renter during a focused transaction.">
+
+    <!-- Same core head elements -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <style>
+        .legal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .legal-content h1 {
+            color: var(--dark);
+            font-size: 2.25rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 1rem;
+        }
+
+        .legal-content h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .legal-content h3 {
+            color: var(--dark);
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .legal-content p,
+        .legal-content li {
+            color: var(--gray);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .legal-content ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <button id="login-btn" class="btn btn-outline">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem;" title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="my-listings.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem;"
+                        title="My Listings">
+                        <i class="fa-solid fa-list-check"></i>
+                    </a>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    <button id="logout-btn" class="btn btn-outline" style="padding: 0.4rem 0.8rem;">Logout</button>
+                </div>
+            </div>
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 2rem;">
+        <div class="legal-content">
+            <h1>Rental Agreement Policy</h1>
+            <p>This page outlines the standard terms that form the digital contract generated for every rental
+                transaction on RentAnything.</p>
+
+            <h2>1. Role of the Platform</h2>
+            <p>RentAnything is a facilitator only. We provide the tools to create this agreement, but we are
+                <strong>NOT</strong> a party to it. This agreement is strictly between the Owner (Lessor) and the Renter
+                (Lessee).
+            </p>
+
+            <h2>2. Agreement Scope</h2>
+            <p>When an Owner accepts a "Rental Request" and a Renter proceeds with booking, a binding agreement is
+                formed directly between the two parties. This agreement includes:</p>
+            <ul>
+                <li>The specific item(s) being rented.</li>
+                <li>The duration of the rental (Start Date & Time to End Date & Time).</li>
+                <li>The total rental fee and any applicable security deposit.</li>
+            </ul>
+
+            <h2>2. Item Condition & Use</h2>
+            <p>The Renter acknowledges receiving the item in good working condition (unless preexisting damages are
+                noted at handover) and agrees to return it in the same condition, ordinary wear and tear excepted.</p>
+
+            <h2>3. Liability & Indemnification</h2>
+            <p><strong>Renter Liability:</strong> The Renter assumes all risk of loss, theft, or damage to the item
+                during the rental period. The Renter agrees to pay the full replacement cost if the item is lost or
+                irreparably damaged.</p>
+            <p><strong>Indemnification:</strong> The Renter agrees to indemnify and hold harmless the Owner and
+                RentAnything from any claims, damages, or injuries arising from the use or misuse of the rented item.
+            </p>
+
+            <h2>4. Default & Remedies</h2>
+            <p>If the Renter fails to return the item on the due date, the Owner may:</p>
+            <ul>
+                <li>Charge additional daily rental fees (up to 2x the standard rate).</li>
+                <li>Retain the Security Deposit.</li>
+                <li>Report the item as stolen to local law enforcement if not returned within 48 hours of the due date
+                    without contact.</li>
+            </ul>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initMobileMenu } from './js/navigation.js';
+        import { initHeader } from './js/header-manager.js';
+        import { initFooter } from './js/footer-manager.js';
+        import { initAuth } from './js/auth.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+
+            initMobileMenu();
+
+            document.getElementById('login-btn').addEventListener('click', () => {
+                window.location.href = '/?login=true';
+            });
+
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                auth.signOut().then(() => window.location.reload());
+            });
+        });
+    </script>
+</body>
+
+</html>

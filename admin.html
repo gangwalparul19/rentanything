@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - RentAnything</title>
+    <link rel="manifest" href="admin-manifest.json">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #64748b;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--dark);
+            color: white;
+            padding: 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            transition: transform 0.3s;
+            z-index: 100;
+            display: none;
+            /* Hidden by default, shown when logged in */
+            flex-direction: column;
+            /* Ensure vertical layout when display becomes flex */
+        }
+
+        .brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #94a3b8;
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .nav-item i {
+            width: 1.25rem;
+            text-align: center;
+        }
+
+        /* Sidebar divider */
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 1rem 0;
+        }
+
+        /* Logout styling */
+        .nav-logout {
+            margin-top: auto;
+            color: #fca5a5;
+        }
+
+        .nav-logout:hover {
+            background: rgba(248, 113, 113, 0.1);
+            color: #f87171;
+        }
+
+        /* Mobile close button */
+        .sidebar-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .sidebar-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2rem;
+            width: calc(100% - var(--sidebar-width));
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kpi-info h3 {
+            font-size: 0.9rem;
+            color: var(--secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        .kpi-info .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .bg-blue {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .bg-green {
+            background: #dcfce7;
+            color: var(--success);
+        }
+
+        .bg-orange {
+            background: #fff7ed;
+            color: var(--warning);
+        }
+
+        .bg-purple {
+            background: #f3e8ff;
+            color: #9333ea;
+        }
+
+        /* Sections */
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Tables & Charts */
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            font-weight: 600;
+            color: var(--secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            padding: 0.2rem 0.6rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge.verified {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.pending {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .badge.open {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-sm {
+            padding: 0.3rem 0.7rem;
+            border-radius: 0.4rem;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            margin-right: 0.3rem;
+        }
+
+        .btn-approve {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .btn-view {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 280px;
+            max-width: 400px;
+            opacity: 0;
+            transform: translateX(400px);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: auto;
+            font-size: 0.95rem;
+            border-left: 4px solid;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast i {
+            font-size: 1.25rem;
+        }
+
+        .toast-success {
+            border-left-color: #22c55e;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+
+        .toast-success i {
+            color: #22c55e;
+        }
+
+        .toast-error {
+            border-left-color: #ef4444;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        }
+
+        .toast-error i {
+            color: #ef4444;
+        }
+
+        .toast-info {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        }
+
+        .toast-info i {
+            color: #3b82f6;
+        }
+
+        .toast-warning {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+        }
+
+        .toast-warning i {
+            color: #f59e0b;
+        }
+
+        /* ===== GRID UTILITIES ===== */
+        .charts-grid-main {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .charts-grid-halves {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+
+        /* Tablet (1024px and below) */
+        @media (max-width: 1024px) {
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .charts-grid-main,
+            .charts-grid-halves {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Mobile (768px and below) */
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 0px;
+            }
+
+            /* Sidebar - Overlay slide-in menu */
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                width: 280px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                display: flex !important;
+                /* Override JS hiding */
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            /* Show close button on mobile */
+            .sidebar-close {
+                display: flex !important;
+            }
+
+            /* Hide brand on mobile to save space */
+            .brand {
+                display: none;
+            }
+
+            /* Adjust nav for mobile - add top padding */
+            .sidebar nav {
+                padding-top: 3.5rem;
+                /* Space for close button */
+            }
+
+            /* Main content */
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            /* Show hamburger button */
+            #mobile-toggle {
+                display: inline-flex !important;
+                background: var(--dark);
+                color: white;
+                padding: 0.5rem 0.75rem;
+                border-radius: 0.5rem;
+                align-items: center;
+                justify-content: center;
+            }
+
+            /* Header */
+            .header {
+                flex-wrap: wrap;
+            }
+
+            .page-title {
+                font-size: 1.4rem;
+            }
+
+            /* KPI Grid - 2 cards per row on mobile */
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+
+            .kpi-card {
+                padding: 1.25rem;
+            }
+
+            /* Tables - horizontal scroll */
+            .card {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                min-width: 600px;
+                font-size: 0.85rem;
+            }
+
+            table th,
+            table td {
+                padding: 0.5rem 0.75rem;
+                white-space: nowrap;
+            }
+
+            /* Toasts */
+            #toast-container {
+                right: 10px;
+                left: 10px;
+                top: 10px;
+            }
+
+            .toast {
+                min-width: auto;
+                width: 100%;
+            }
+
+            /* Buttons */
+            .btn-sm {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            /* Analytics grid */
+            .analytics-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        /* Small mobile (480px and below) */
+        @media (max-width: 480px) {
+            .main-content {
+                padding: 0.75rem;
+            }
+
+            .page-title {
+                font-size: 1.2rem;
+            }
+
+            /* KPI Grid - still 2 columns but more compact */
+            .kpi-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+            }
+
+            .kpi-card {
+                padding: 0.875rem;
+            }
+
+            .kpi-value {
+                font-size: 1.5rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+                min-width: 500px;
+            }
+
+            .btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Sidebar overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+        }
+
+        /* ===== MODAL STYLES ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 1rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748b;
+            cursor: pointer;
+            width: 2.5rem;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #f1f5f9;
+            color: var(--dark);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Modal content styling */
+        .modal-info-grid {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .modal-info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .modal-info-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .modal-info-value {
+            font-size: 1rem;
+            color: var(--dark);
+        }
+
+        .modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* Button secondary style */
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Mobile modal */
+        @media (max-width: 768px) {
+            .modal-container {
+                width: 95%;
+                max-height: 90vh;
+            }
+
+            .modal-header h2 {
+                font-size: 1.25rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+        }
+
+        /* Notification Badge */
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Mobile close button -->
+        <button class="sidebar-close" id="sidebar-close">
+            <i class="fa-solid fa-times"></i>
+        </button>
+
+        <div class="brand">
+            <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+            RentAnything
+        </div>
+        <nav>
+            <div class="nav-item active" onclick="showSection('dashboard', this)">
+                <i class="fa-solid fa-chart-line"></i> Dashboard
+            </div>
+            <div class="nav-item" onclick="showSection('users', this)">
+                <i class="fa-solid fa-users"></i> Users
+            </div>
+            <div class="nav-item" onclick="showSection('listings', this)">
+                <i class="fa-solid fa-list"></i> Listings
+            </div>
+            <div class="nav-item" onclick="showSection('bookings', this)">
+                <i class="fa-solid fa-receipt"></i> Orders
+            </div>
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+            <div class="nav-item" onclick="showSection('verifications', this)">
+                <i class="fa-solid fa-id-card"></i> Verifications <span id="badge-verif-count" class="badge pending"
+                    style="margin-left:auto; display:none;">0</span>
+            </div>
+            <div class="nav-item" onclick="showSection('disputes', this)">
+                <i class="fa-solid fa-gavel"></i> Disputes
+            </div>
+            <div class="nav-item" onclick="showSection('reports', this)">
+                <i class="fa-solid fa-flag"></i> Reports <span id="badge-report-count" class="badge open"
+                    style="margin-left:auto; display:none;">0</span>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="nav-item nav-logout" onclick="logout()">
+                <i class="fa-solid fa-sign-out-alt"></i> Logout
+            </div>
+        </nav>
+    </aside>
+
+    <!-- CONTENT -->
+    <main class="main-content">
+        <!-- Header -->
+        <div class="header">
+            <div>
+
+                <span class="page-title" id="page-title">Dashboard</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:1rem;">
+                <!-- Notification Bell -->
+                <button class="btn-sm" id="notification-bell" title="Enable notifications" style="position: relative;">
+                    <i class="fa-regular fa-bell"></i>
+                    <span id="notification-badge" class="notification-badge" style="display:none;">0</span>
+                </button>
+
+                <!-- Mobile Toggle Button -->
+                <button class="btn-sm" style="display:none;" id="mobile-toggle"><i
+                        class="fa-solid fa-bars"></i></button>
+
+                <!-- PWA Install Button -->
+                <button class="btn-sm" id="pwa-install-btn" style="background:#2563eb; color:white; display:none;">
+                    <i class="fa-solid fa-download"></i> Install App
+                </button>
+
+                <div style="width:35px; height:35px; background:#cbd5e1; border-radius:50%;"></div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD SECTION -->
+        <section id="dashboard" class="section active">
+            <!-- KPIs -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Total Revenue</h3>
+                        <div class="value">₹<span id="stat-revenue">0</span></div>
+                    </div>
+                    <div class="kpi-icon bg-green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Active Bookings</h3>
+                        <div class="value" id="stat-bookings">0</div>
+                    </div>
+                    <div class="kpi-icon bg-blue"><i class="fa-solid fa-calendar-check"></i></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Total Listings</h3>
+                        <div class="value" id="stat-listings">0</div>
+                    </div>
+                    <div class="kpi-icon bg-purple"><i class="fa-solid fa-box-open"></i></div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Total Users</h3>
+                        <div class="value" id="stat-users">0</div>
+                    </div>
+                    <div class="kpi-icon bg-orange"><i class="fa-solid fa-users"></i></div>
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="card" style="margin-bottom: 2rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <h3 style="margin: 0;">Analytics Period</h3>
+                    <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                        <div>
+                            <label
+                                style="font-size: 0.85rem; color: var(--secondary); margin-right: 0.5rem;">From:</label>
+                            <input type="date" id="date-from"
+                                style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                        </div>
+                        <div>
+                            <label
+                                style="font-size: 0.85rem; color: var(--secondary); margin-right: 0.5rem;">To:</label>
+                            <input type="date" id="date-to"
+                                style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem;">
+                        </div>
+                        <button class="btn-sm" style="background: var(--primary); color: white; padding: 0.5rem 1rem;"
+                            onclick="window.applyDateFilter()">Apply Filter</button>
+                        <button class="btn-sm"
+                            style="background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1rem;"
+                            onclick="window.clearDateFilter()">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-grid-main">
+                <div class="card">
+                    <h3>Revenue Analytics</h3>
+                    <canvas id="revenueChart" style="max-height: 300px;"></canvas>
+                </div>
+                <div class="card">
+                    <h3>Category Distribution</h3>
+                    <canvas id="categoryChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+
+            <!-- New Analytics Charts -->
+            <div class="charts-grid-halves">
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">User Growth Trends</h3>
+                        <button class="btn-sm" style="background: var(--success); color: white;"
+                            onclick="window.exportToCSV('users')">📥 Export CSV</button>
+                    </div>
+                    <canvas id="userGrowthChart" style="max-height: 300px;"></canvas>
+                </div>
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">Booking Trends</h3>
+                        <button class="btn-sm" style="background: var(--success); color: white;"
+                            onclick="window.exportToCSV('bookings')">📥 Export CSV</button>
+                    </div>
+                    <canvas id="bookingTrendsChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Top Performers -->
+            <div class="charts-grid-halves">
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">🏆 Top 10 Listings</h3>
+                        <button class="btn-sm" style="background: var(--success); color: white;"
+                            onclick="window.exportToCSV('topListings')">📥 Export CSV</button>
+                    </div>
+                    <table id="table-top-listings">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Listing</th>
+                                <th>Bookings</th>
+                                <th>Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="card">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="margin: 0;">⭐ Most Active Users</h3>
+                        <button class="btn-sm" style="background: var(--success); color: white;"
+                            onclick="window.exportToCSV('activeUsers')">📥 Export CSV</button>
+                    </div>
+                    <table id="table-active-users">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>User</th>
+                                <th>Listings</th>
+                                <th>Bookings</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- USERS SECTION -->
+        <section id="users" class="section">
+            <div class="card">
+                <h3>All Registered Users</h3>
+                <table id="table-users">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Verify Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+        </div>
+        </section>
+
+        <!-- LISTINGS SECTION -->
+        <section id="listings" class="section">
+            <div class="card">
+                <h3>Platform Listings</h3>
+                <table id="table-listings">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Price/Day</th>
+                            <th>Owner</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- BOOKINGS/ORDERS SECTION -->
+        <section id="bookings" class="section">
+            <div class="card">
+                <h3>Recent Orders</h3>
+                <table id="table-bookings">
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Renter</th>
+                            <th>Dates</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+        </div>
+        </section>
+
+        <!-- VERIFICATIONS SECTION -->
+        <section id="verifications" class="section">
+            <div class="card">
+                <h3>Pending ID Verifications</h3>
+                <table id="table-verifications">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Document</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="verify-list-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- DISPUTES SECTION -->
+        <section id="disputes" class="section" style="display: none;">
+            <div class="section-header">
+                <h2>⚖️ Dispute Management</h2>
+                <div style="display: flex; gap: 1rem;">
+                    <select id="dispute-status-filter" onchange="filterDisputes()"
+                        style="padding: 0.5rem; border-radius: 0.5rem; border: 1px solid #e2e8f0;">
+                        <option value="all">All Status</option>
+                        <option value="open">Open</option>
+                        <option value="under_review">Under Review</option>
+                        <option value="awaiting_info">Awaiting Info</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="dismissed">Dismissed</option>
+                    </select>
+                    <button class="btn-secondary" onclick="loadDisputes()">
+                        <i class="fa-solid fa-rotate"></i> Refresh
+                    </button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Booking</th>
+                            <th>Reporter</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Date</th>
+                            <th>Evidence</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="disputes-table">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 2rem;">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Loading disputes...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- REPORTS SECTION -->
+        <section id="reports" class="section">
+            <div class="card">
+                <h3>Dispute Center</h3>
+                <table id="table-reports">
+                    <thead>
+                        <tr>
+                            <th>Report By</th>
+                            <th>Issue</th>
+                            <th>Details</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report-list-body"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Image Modal -->
+    <div id="image-modal"
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center;">
+        <img id="modal-img" src="" style="max-width:90%; max-height:90%; border-radius:0.5rem;">
+    </div>
+
+    <!-- Details Modal (Reusable) -->
+    <div id="details-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="modal-title">Details</h2>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-content">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script type="module" src="js/admin.js"></script>
+    <script>
+        // ===== MODAL FUNCTIONS =====
+        function openModal(title, content) {
+            const modal = document.getElementById('details-modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalContent = document.getElementById('modal-content');
+
+            modalTitle.textContent = title;
+            modalContent.innerHTML = content;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('details-modal');
+            modal.classList.remove('active');
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'details-modal') {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        // Section Navigation
+        // UI Logic
+        function showSection(id, el) {
+            // Safety check
+            const targetSection = document.getElementById(id);
+            if (!targetSection) {
+                console.error(`Section with ID '${id}' not found!`);
+                return;
+            }
+
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            targetSection.classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            if (el) el.classList.add('active'); // Added check for el too
+
+            const title = id.charAt(0).toUpperCase() + id.slice(1);
+            const pageTitle = document.getElementById('page-title');
+            if (pageTitle) pageTitle.innerText = title;
+        }
+
+        // Logout function - calls the exported function from admin.js
+        function logout() {
+            if (window.logoutAdmin) {
+                window.logoutAdmin(); // Calls the exported function
+            } else {
+                console.error('Logout function not available');
+            }
+        }
+
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileToggle = document.getElementById('mobile-toggle');
+            const sidebarClose = document.getElementById('sidebar-close');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+
+            // Open sidebar
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', () => {
+                    sidebar.classList.toggle('active');
+                    overlay.classList.toggle('active');
+                });
+            }
+
+            // Close button click
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+
+            // Close sidebar when overlay clicked
+            if (overlay) {
+                overlay.addEventListener('click', () => {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+
+            // Close sidebar when clicking a nav item on mobile
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    if (window.innerWidth <= 768) {
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    }
+                });
+            });
+
+            // Show close button on mobile
+            if (window.innerWidth <= 768 && sidebarClose) {
+                sidebarClose.style.display = 'flex';
+            }
+        });
+
+        // ===== PWA INSTALL FUNCTIONALITY =====
+        let deferredPrompt;
+        const installBtn = document.getElementById('pwa-install-btn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show install button
+            if (installBtn) {
+                installBtn.style.display = 'inline-flex';
+            }
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                if (!deferredPrompt) {
+                    return;
+                }
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                // Clear the deferredPrompt
+                deferredPrompt = null;
+                // Hide the install button
+                installBtn.style.display = 'none';
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA was installed');
+            deferredPrompt = null;
+            if (installBtn) {
+                installBtn.style.display = 'none';
+            }
+        });
+
+        // ===== NOTIFICATION BELL HANDLER =====
+        const notificationBell = document.getElementById('notification-bell');
+
+        if (notificationBell) {
+            // Check initial permission status
+            import('./js/notification-manager.js').then(module => {
+                const status = module.getNotificationPermissionStatus();
+
+                if (status === 'granted') {
+                    notificationBell.querySelector('i').classList.remove('fa-regular');
+                    notificationBell.querySelector('i').classList.add('fa-solid');
+                    notificationBell.title = 'Notifications enabled';
+
+                    // Setup foreground message handler
+                    module.setupForegroundMessageHandler();
+                }
+            });
+
+            notificationBell.addEventListener('click', async () => {
+                try {
+                    const { subscribeToPushNotifications, getNotificationPermissionStatus, setupForegroundMessageHandler } = await import('./js/notification-manager.js');
+
+                    const status = getNotificationPermissionStatus();
+
+                    if (status === 'granted') {
+                        showToast('Notifications are already enabled', 'info');
+                        return;
+                    }
+
+                    if (status === 'unsupported') {
+                        showToast('Push notifications not supported in this browser', 'warning');
+                        return;
+                    }
+
+                    if (status === 'denied') {
+                        showToast('Notifications blocked. Please enable in browser settings.', 'error');
+                        return;
+                    }
+
+                    // Request permission and subscribe
+                    const token = await subscribeToPushNotifications();
+
+                    if (token) {
+                        // Update bell icon to solid
+                        notificationBell.querySelector('i').classList.remove('fa-regular');
+                        notificationBell.querySelector('i').classList.add('fa-solid');
+                        notificationBell.title = 'Notifications enabled';
+
+                        // Setup foreground message handler
+                        setupForegroundMessageHandler();
+
+                        console.log('FCM Token:', token);
+                    }
+                } catch (error) {
+                    console.error('Error enabling notifications:', error);
+                    showToast('Failed to enable notifications', 'error');
+                }
+            });
+        }
+
+        // ===== SERVICE WORKER REGISTRATION =====
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/admin-sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+
+                        // Check for updates
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    // New version available
+                                    showToast('New version available! Refresh to update.', 'info');
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+
+</html>

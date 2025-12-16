@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - RentAnything</title>
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <style>
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+
+                <!-- Authenticated User Profile -->
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                        title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Listings">
+                        <i class="fa-solid fa-list-check"></i> <span class="desktop-only"
+                            style="margin-left: 0.3rem;">Dashboard</span>
+                    </a>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+
+                <a href="create-listing.html" class="btn btn-primary"><i class="fa-solid fa-plus"
+                        style="margin-right: 0.5rem;"></i> List Item</a>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="min-height: 80vh; padding-top: 2rem;">
+        <h1 class="section-title">Seller Dashboard</h1>
+
+        <!-- Stats Section -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #ecfdf5; color: #10b981;">
+                    <i class="fa-solid fa-indian-rupee-sign"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--gray); font-weight: 500;">Total Earnings</h3>
+                    <p id="total-earnings" style="font-size: 1.5rem; font-weight: 700;">₹0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #eff6ff; color: #3b82f6;">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--gray); font-weight: 500;">Total Bookings</h3>
+                    <p id="total-bookings" style="font-size: 1.5rem; font-weight: 700;">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background: #fdf2f8; color: #db2777;">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 0.9rem; color: var(--gray); font-weight: 500;">Top Item</h3>
+                    <p id="top-item" style="font-size: 1.1rem; font-weight: 600;">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking Requests -->
+        <div style="margin-bottom: 3rem;">
+            <h2 class="section-title" style="font-size: 1.3rem; margin-bottom: 1rem;">Booking Requests</h2>
+            <div id="booking-requests-container" style="max-width: 600px;">
+                <!-- Loaded dynamically -->
+                <div style="text-align: center; padding: 1rem; color: var(--gray); font-style: italic;">Loading...</div>
+            </div>
+        </div>
+
+        <h2 class="section-title" style="font-size: 1.3rem; margin-bottom: 1.5rem;">Your Listings</h2>
+        <div id="my-listings-container" class="listings-grid">
+            <!-- Loaded dynamically -->
+            <div style="grid-column: 1/-1; text-align: center; padding: 4rem;">
+                <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/my-listings.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

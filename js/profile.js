@@ -1,0 +1,374 @@
+
+import { db, auth, storage } from './firebase-config.js';
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
+import { updateProfile, onAuthStateChanged } from 'firebase/auth';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { initMobileMenu } from './navigation.js';
+import { initTheme } from './theme.js';
+import { initAuth } from './auth.js';
+import { initHeader } from './header-manager.js';
+// Duplicate import removed
+import { showToast } from './toast.js';
+
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    initMobileMenu();
+    initTheme();
+
+    initAuth(); // Initialize header state
+    loadSocieties(); // Fetch dynamic list
+});
+
+const profileForm = document.getElementById('profile-form');
+const displayNameInput = document.getElementById('displayName');
+const phoneNumberInput = document.getElementById('phoneNumber');
+const societySelect = document.getElementById('society');
+const otherSocietyWrapper = document.getElementById('other-society-wrapper');
+const otherSocietyInput = document.getElementById('otherSocietyName');
+const flatNumberInput = document.getElementById('flatNumber');
+const genderSelect = document.getElementById('gender');
+const bioInput = document.getElementById('bio');
+const profileImageInput = document.getElementById('profile-image-input');
+const profilePreview = document.getElementById('profile-preview');
+const imageUploadWrapper = document.getElementById('image-upload-wrapper');
+const saveBtn = document.getElementById('save-profile-btn');
+
+let currentUser = null;
+let newImageFile = null;
+
+// Auth Listener
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        currentUser = user;
+        loadProfile(user.uid);
+    } else {
+        // Redirect if not logged in
+        setTimeout(() => {
+            if (!auth.currentUser) window.location.href = '/?login=true';
+        }, 1000);
+    }
+});
+
+// Load Societies from Firestore
+async function loadSocieties() {
+    try {
+        const q = query(collection(db, "societies"), where("isActive", "!=", false));
+        const querySnapshot = await getDocs(q);
+        const approvedSocieties = [];
+        querySnapshot.forEach((doc) => {
+            approvedSocieties.push(doc.data().name);
+        });
+
+        // Insert before "Other" option
+        const otherOption = societySelect.querySelector('option[value="Other Hinjewadi Phase 3"]');
+
+        approvedSocieties.sort().forEach(name => {
+            // Check if already exists (hardcoded)
+            if (!societySelect.querySelector(`option[value="${name}"]`)) {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                societySelect.insertBefore(opt, otherOption);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error loading societies:", error);
+    }
+}
+
+// Load Profile Data
+async function loadProfile(uid) {
+    try {
+        const docRef = doc(db, "users", uid);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            displayNameInput.value = data.displayName || currentUser.displayName || '';
+            phoneNumberInput.value = data.phoneNumber || '';
+            phoneNumberInput.value = data.phoneNumber || '';
+
+            // Handle Pending Approval or Existing "Other" logic
+            // If data.society matches one of the options, select it.
+            // If data.society is custom OR we have a flag 'isPendingSociety', handle it.
+            // For MVP: If data.societyRequest, show it in the text box and select "Other".
+
+            if (data.societyRequest) {
+                societySelect.value = "Other Hinjewadi Phase 3";
+                otherSocietyWrapper.style.display = 'block';
+                otherSocietyInput.value = data.societyRequest;
+            } else {
+                societySelect.value = data.society || '';
+            }
+            flatNumberInput.value = data.flatNumber || '';
+            genderSelect.value = data.gender || 'prefer-not';
+            bioInput.value = data.bio || '';
+
+            if (data.photoURL) {
+                profilePreview.src = data.photoURL;
+            } else if (currentUser.photoURL) {
+                profilePreview.src = currentUser.photoURL;
+            }
+        } else {
+            // First time, pre-fill from Auth
+            displayNameInput.value = currentUser.displayName || '';
+            if (currentUser.photoURL) profilePreview.src = currentUser.photoURL;
+        }
+    } catch (error) {
+        console.error("Error loading profile:", error);
+        showToast("Failed to load profile", "error");
+    }
+}
+
+// Image Selection
+imageUploadWrapper.addEventListener('click', () => {
+    profileImageInput.click();
+});
+
+// Helper: Compress Image using Canvas
+async function compressImage(file) {
+    return new Promise((resolve, reject) => {
+        const maxWidth = 800; // Resize to max 800px width/height
+        const maxHeight = 800;
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Compress to JPEG at 0.7 quality
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(blob);
+                    } else {
+                        reject(new Error("Compression failed"));
+                    }
+                }, 'image/jpeg', 0.7);
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+}
+
+profileImageInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        // Validate Type
+        if (!file.type.startsWith('image/')) {
+            showToast("Please select an image file", "error");
+            return;
+        }
+
+        // Show loading state (optonal UI, but for now we just process)
+        // Preview Original immediately for better UX
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            profilePreview.src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        try {
+            console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
+            const compressedBlob = await compressImage(file);
+            console.log(`Compressed size: ${(compressedBlob.size / 1024).toFixed(2)} KB`);
+
+            // Allow slightly larger files if compressed is still big, but usually 0.7 jpeg is small.
+            // No strict 2MB limit on *upload* because we compressed it.
+            // But we can check compressed size if we want.
+
+            newImageFile = compressedBlob;
+        } catch (error) {
+            console.error("Compression error:", error);
+            showToast("Failed to process image. Try another.", "error");
+            newImageFile = null; // Reset
+        }
+    }
+});
+
+// Toggle "Other" Society Input
+societySelect.addEventListener('change', () => {
+    if (societySelect.value === "Other Hinjewadi Phase 3") {
+        otherSocietyWrapper.style.display = 'block';
+        otherSocietyInput.setAttribute('required', 'true');
+    } else {
+        otherSocietyWrapper.style.display = 'none';
+        otherSocietyInput.removeAttribute('required');
+        otherSocietyInput.value = ''; // Clear if hidden
+    }
+});
+
+// --- GOVT ID LOGIC ---
+const idInput = document.getElementById('id-file-input');
+const idArea = document.getElementById('id-upload-area');
+const idPreview = document.getElementById('id-preview-container');
+const idFilename = document.getElementById('id-filename');
+const idStatusBadge = document.getElementById('id-status-badge');
+let newIdFile = null;
+
+if (idArea) {
+    idArea.addEventListener('click', () => idInput.click());
+    idInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            newIdFile = file;
+            idPreview.style.display = 'flex';
+            idFilename.textContent = file.name;
+            showToast("ID selected. Click Save to upload.", "info");
+        }
+    });
+}
+
+// Load ID Status helper
+async function checkIdStatus(uid, data) {
+    if (data.idVerificationStatus) {
+        idStatusBadge.textContent = data.idVerificationStatus.toUpperCase();
+        if (data.idVerificationStatus === 'verified') {
+            idStatusBadge.style.background = '#dcfce7';
+            idStatusBadge.style.color = '#166534';
+            idArea.style.display = 'none'; // Hide upload if already verified
+
+            // Unlock Badge
+            const badge = document.getElementById('badge-verified');
+            if (badge) {
+                badge.style.opacity = '1';
+                badge.querySelector('div:last-child').style.color = '#166534';
+            }
+        } else if (data.idVerificationStatus === 'pending') {
+            idStatusBadge.style.background = '#fff7ed';
+            idStatusBadge.style.color = '#c2410c';
+            idFilename.textContent = "Document Uploaded (Pending Review)";
+            idPreview.style.display = 'flex';
+        }
+    }
+}
+// Hook into loadProfile to call this (requires editing loadProfile, skipping for now, relying on submit update)
+
+
+// Form Submission
+profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    saveBtn.disabled = true;
+    saveBtn.innerText = 'Saving...';
+
+    try {
+        let photoURL = profilePreview.src;
+
+        // 1. Upload Profile Image
+        if (newImageFile) {
+            const storageRef = ref(storage, `profile_images/${currentUser.uid}_${Date.now()}`);
+            await uploadBytes(storageRef, newImageFile);
+            photoURL = await getDownloadURL(storageRef);
+        }
+
+        // 2. Upload Govt ID (New)
+        let idDocUrl = null;
+        if (newIdFile) {
+            const ext = newIdFile.name.split('.').pop();
+            const idRef = ref(storage, `private_docs/${currentUser.uid}/govt_id.${ext}`);
+            await uploadBytes(idRef, newIdFile);
+            idDocUrl = await getDownloadURL(idRef);
+        }
+
+        // Sanitize
+        const sanitize = (str) => {
+            if (!str) return str;
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        };
+
+        // 3. Update Firestore
+        const profileData = {
+            displayName: sanitize(displayNameInput.value),
+            phoneNumber: sanitize(phoneNumberInput.value),
+            society: sanitize(societySelect.value),
+            flatNumber: sanitize(flatNumberInput.value),
+            gender: sanitize(genderSelect.value),
+            bio: sanitize(bioInput.value),
+            photoURL: photoURL,
+            email: currentUser.email,
+            updatedAt: serverTimestamp()
+        };
+
+        if (idDocUrl) {
+            profileData.idDocumentUrl = idDocUrl;
+            profileData.idVerificationStatus = 'pending';
+        }
+
+        // Handle Other Society
+        if (societySelect.value === "Other Hinjewadi Phase 3") {
+            const customSociety = otherSocietyInput.value.trim();
+            if (customSociety) {
+                profileData.societyRequest = customSociety;
+                profileData.society = "Pending: " + customSociety;
+                // Add to admin requests
+                try {
+                    await addDoc(collection(db, "society_requests"), {
+                        userId: currentUser.uid,
+                        userName: displayNameInput.value,
+                        requestedSociety: customSociety,
+                        status: 'pending',
+                        createdAt: serverTimestamp()
+                    });
+                } catch (e) { console.error(e); }
+            }
+        } else {
+            profileData.society = societySelect.value;
+            profileData.societyRequest = null;
+        }
+
+        const userRef = doc(db, "users", currentUser.uid);
+        await setDoc(userRef, profileData, { merge: true });
+
+        // 4. Update Auth
+        await updateProfile(currentUser, {
+            displayName: displayNameInput.value,
+            photoURL: photoURL
+        });
+
+        // 5. Update Header
+        const headerAvatar = document.getElementById('user-avatar');
+        if (headerAvatar) headerAvatar.src = photoURL;
+
+        // Update ID Badge UI immediately
+        if (idDocUrl) {
+            idStatusBadge.textContent = "PENDING";
+            idStatusBadge.style.background = '#fff7ed';
+            idStatusBadge.style.color = '#c2410c';
+        }
+
+        showToast("Profile updated successfully!", "success");
+
+    } catch (error) {
+        console.error("Error saving profile:", error);
+        showToast("Failed to save: " + error.message, "error");
+    } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = 'Save Changes';
+    }
+});

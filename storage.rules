@@ -1,0 +1,61 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper: Auth check
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper: Size limit (e.g. 5MB)
+    function isImageBelowSize(sizeMB) {
+      return request.resource.size < sizeMB * 1024 * 1024;
+    }
+
+    // LISTINGS: User can only upload to their OWN folder
+    match /listings/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() 
+                   && request.auth.uid == userId
+                   && isImageBelowSize(5); 
+    }
+
+    // ID DOCUMENTS: PRIVATE! Only Owner or Admin can read.
+    match /id_docs/{userId}/{fileName} {
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+      // Read: Only the user themselves. (Admin logic via Admin SDK usually, or add admin check here if using client SDK)
+      // For this app's Admin Panel (client-side), we need Admin Read access.
+      // We'll trust the path structure for now or add metadata checks.
+      allow read: if isAuthenticated() && (request.auth.uid == userId || firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid)));
+    }
+
+    // PROFILES
+    match /profiles/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // DISPUTES: Evidence files
+    match /disputes/{userId}/{fileName} {
+      // Reporter can upload evidence for their disputes
+      allow write: if isAuthenticated() && request.auth.uid == userId && isImageBelowSize(5);
+      
+      // Involved parties and admins can read
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == userId || 
+         firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid)));
+    }
+
+    // SIGNATURES (For Agreements)
+    match /signatures/{fileName} {
+      allow read: if isAuthenticated(); // Parties need to see it
+      allow write: if isAuthenticated() && isImageBelowSize(1); // Small files only
+    }
+    
+
+    // DEFAULT
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

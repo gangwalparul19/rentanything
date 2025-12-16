@@ -1,0 +1,19 @@
+{
+    "name": "rent-anything-shop",
+    "version": "1.0.0",
+    "description": "Hyper-local rental marketplace",
+    "scripts": {
+        "dev": "vite",
+        "build": "node scripts/generate-env.js",
+        "preview": "vite preview"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "vite": "^5.0.0"
+    },
+    "dependencies": {
+        "firebase": "^12.6.0"
+    }
+}

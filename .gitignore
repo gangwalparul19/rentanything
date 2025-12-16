@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment files (IMPORTANT - Contains sensitive keys!)
+js/env.js
+env.js
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build output
+dist/
+build/
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Logs
+*.log
+logs/

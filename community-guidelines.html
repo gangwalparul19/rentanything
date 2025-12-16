@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Guidelines - RentAnything</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <style>
+        .guideline-section {
+            padding: 3rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .guideline-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .do-card,
+        .dont-card {
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid;
+        }
+
+        .do-card {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+        .dont-card {
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+
+        .list-header {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        ul {
+            padding-left: 1.5rem;
+            margin: 0;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        @media(max-width: 768px) {
+            .guideline-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i
+                            class="fa-regular fa-paper-plane"></i></a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i></a>
+                    <img id="user-avatar" src=""
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='create-listing.html'"><i
+                        class="fa-solid fa-plus" style="margin-right: 0.5rem;"></i> List Item</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;"><i
+                        class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i></a>
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"><i
+                        class="fa-regular fa-bell" style="font-size: 1.2rem;"></i><span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem;">0</span></button>
+                <button class="mobile-menu-btn"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="padding-top: 3rem;">
+        <div style="text-align: center; max-width: 800px; margin: 0 auto 3rem;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Community Guidelines</h1>
+            <p style="font-size: 1.1rem; color: var(--gray);">RentAnything is built on trust, respect, and good
+                neighbors. Here is how we keep it that way.</p>
+        </div>
+
+        <section class="guideline-section">
+            <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-handshake"
+                    style="color: var(--primary); margin-right: 0.5rem;"></i> Being a Good Neighbor</h2>
+            <div class="guideline-grid">
+                <div class="do-card">
+                    <div class="list-header" style="color: #166534;"><i class="fa-solid fa-check"></i> DO</div>
+                    <ul>
+                        <li>Treat rented items as if they were your own.</li>
+                        <li>Communicate clearly and effectively.</li>
+                        <li>Be punctual for pickups and returns.</li>
+                        <li>Return items clean and in the condition you received them.</li>
+                    </ul>
+                </div>
+                <div class="dont-card">
+                    <div class="list-header" style="color: #991b1b;"><i class="fa-solid fa-xmark"></i> DON'T</div>
+                    <ul>
+                        <li>Keep an item longer than the agreed booking period.</li>
+                        <li>Ignore messages from owners or renters.</li>
+                        <li>Lend the rented item to a third party.</li>
+                        <li>Return items dirty or damaged without reporting it.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="guideline-section">
+            <h2 style="margin-bottom: 1rem;"><i class="fa-solid fa-box-open"
+                    style="color: var(--primary); margin-right: 0.5rem;"></i> Listing Items</h2>
+            <div class="guideline-grid">
+                <div class="do-card">
+                    <div class="list-header" style="color: #166534;"><i class="fa-solid fa-check"></i> DO</div>
+                    <ul>
+                        <li>Provide accurate and detailed descriptions.</li>
+                        <li>Upload clear, recent photos of the actual item.</li>
+                        <li>Disclose any existing defects or quirks.</li>
+                        <li>Set a fair price and reasonable security deposit.</li>
+                    </ul>
+                </div>
+                <div class="dont-card">
+                    <div class="list-header" style="color: #991b1b;"><i class="fa-solid fa-xmark"></i> DON'T</div>
+                    <ul>
+                        <li>List prohibited items (weapons, illegal substances, etc.).</li>
+                        <li>Use misleading stock photos.</li>
+                        <li>Cancel bookings last minute without a valid reason.</li>
+                        <li>Ask for payments outside the platform (except deposit if agreed).</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section class="guideline-section" style="border: none;">
+            <h2>🚫 Prohibited Items</h2>
+            <p style="color: var(--gray); margin-bottom: 1rem;">To ensure safety, the following items are rarely allowed
+                or strictly prohibited:</p>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <span style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.9rem;">Weapons
+                    & Firearms</span>
+                <span style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.9rem;">Adult
+                    Content</span>
+                <span
+                    style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.9rem;">Hazardous
+                    Materials</span>
+                <span
+                    style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.9rem;">Counterfeit
+                    Goods</span>
+                <span style="background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 99px; font-size: 0.9rem;">Medical
+                    Devices (Prescription only)</span>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initMobileMenu } from './js/navigation.js';
+        import { initHeader } from './js/header-manager.js';
+        import { initFooter } from './js/footer-manager.js';
+        import { initAuth } from './js/auth.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMobileMenu();
+            initHeader();
+            initFooter();
+            initAuth();
+        });
+    </script>
+</body>
+
+</html>

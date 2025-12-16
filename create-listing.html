@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List an Item - RentAnything.shop</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <style>
+        .form-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            background: var(--white);
+            padding: 3rem;
+            border-radius: 1.5rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--glass-border);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: white;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .image-upload-area {
+            border: 2px dashed #94a3b8;
+            border-radius: 1rem;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: #eff6ff;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            height: 200px;
+            object-fit: contain;
+            display: none;
+            margin-top: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        @media(max-width: 768px) {
+            .form-container {
+                padding: 1.5rem;
+                margin: 2rem 1rem;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+
+                <!-- User Profile / Login Placeholder -->
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                        title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Listings">
+                        <i class="fa-solid fa-list-check"></i>
+                    </a>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="form-container animate-in">
+            <h1 class="section-title">List Your Item</h1>
+            <p style="margin-bottom: 2rem; color: var(--gray);">Share your item with the community and start earning.
+            </p>
+
+            <form id="create-listing-form">
+                <div class="form-group">
+                    <label class="form-label">Item Title</label>
+                    <input type="text" class="form-control" id="title" placeholder="e.g. Sony Party Speaker" required>
+                </div>
+
+                <div class="form-group">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label class="form-label" style="margin-bottom: 0;">Description</label>
+                        <button type="button" id="magic-ai-btn" class="btn btn-outline"
+                            style="padding: 0.2rem 0.6rem; font-size: 0.8rem; border-color: var(--primary); color: var(--primary);">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Magic Write
+                        </button>
+                    </div>
+                    <textarea class="form-control" id="description" rows="4"
+                        placeholder="Describe the condition, features, and pickup instructions..." required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-control" id="category" required>
+                            <option value="">Select Category</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="party">Party Essentials</option>
+                            <option value="tools">Tools & DIY</option>
+                            <option value="camping">Camping & Outdoors</option>
+                            <option value="mobility">Mobility</option>
+                            <option value="kids">Kids Gear</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location (Megapolis)</label>
+                        <input type="text" class="form-control" id="location" placeholder="e.g. Splendour, Mystic"
+                            required>
+                    </div>
+                </div>
+
+                <!-- Rental Rates -->
+                <label class="form-label">Rental Rates (₹)</label>
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 1rem;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Daily</label>
+                            <button type="button" id="ai-price-btn"
+                                style="border:none; background:none; color:var(--primary); font-size:0.8rem; cursor:pointer;"
+                                title="Suggest Price based on category">
+                                🤖 AI Suggest
+                            </button>
+                        </div>
+                        <input type="number" class="form-control" id="price-day" placeholder="500" min="1">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Weekly</label>
+                        <input type="number" class="form-control" id="price-week" placeholder="2500" min="1">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Monthly</label>
+                        <input type="number" class="form-control" id="price-month" placeholder="8000" min="1">
+                    </div>
+                </div>
+
+                <div class="form-group"
+                    style="background: #fff7ed; padding: 1rem; border-radius: 0.75rem; border: 1px solid #fed7aa;">
+                    <label class="form-label" style="color: #9a3412;">🛡️ Security Deposit (Refundable)</label>
+                    <p style="font-size: 0.85rem; color: #c2410c; margin-bottom: 0.5rem;">Protect your item! Renters pay
+                        this upfront and get it back if returned safe.</p>
+                    <input type="number" class="form-control" id="deposit" placeholder="e.g. 5000" min="0"
+                        style="border-color: #fdba74;">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Item Images (Max 5)</label>
+                    <div class="image-upload-area" id="upload-area">
+                        <i class="fa-solid fa-cloud-arrow-up"
+                            style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                        <p>Click to upload or drag and drop<br><span style="font-size: 0.8rem; color: var(--gray);">Up
+                                to 5 photos</span></p>
+                        <input type="file" id="image-file" accept="image/*" multiple style="display: none;" required>
+                    </div>
+                    <div id="preview-container" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+                    </div>
+                </div>
+
+                <div style="margin-top: 3rem;">
+                    <button type="submit" class="btn btn-primary"
+                        style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                        <i class="fa-solid fa-paper-plane" style="margin-right: 0.5rem;"></i> Publish Listing
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        // Importing original script to maintain functionality, but ensuring footer is init
+        import './js/create-listing.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

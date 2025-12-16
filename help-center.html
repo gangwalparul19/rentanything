@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center - RentAnything</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <style>
+        .faq-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 1.5rem;
+            width: 100%;
+            text-align: left;
+            background: none;
+            border: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        .faq-question:hover {
+            background: #f8fafc;
+        }
+
+        .faq-answer {
+            padding: 0 1.5rem;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            color: var(--gray);
+            line-height: 1.6;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            max-height: 500px;
+        }
+
+        .faq-icon {
+            transition: transform 0.3s;
+        }
+
+        .faq-item.active .faq-icon {
+            transform: rotate(180deg);
+        }
+
+        .contact-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i
+                            class="fa-regular fa-paper-plane"></i></a>
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i></a>
+                    <img id="user-avatar" src=""
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                    <button id="logout-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+                </div>
+                <button class="btn btn-primary" onclick="window.location.href='create-listing.html'"><i
+                        class="fa-solid fa-plus" style="margin-right: 0.5rem;"></i> List Item</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;"><i
+                        class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i></a>
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"><i
+                        class="fa-regular fa-bell" style="font-size: 1.2rem;"></i><span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem;">0</span></button>
+                <button class="mobile-menu-btn"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="padding: 4rem 1.5rem; max-width: 800px;">
+        <h1 style="text-align: center; margin-bottom: 2rem; font-size: 2.5rem;">How can we help?</h1>
+        <div class="search-bar" style="max-width: 600px; margin: 0 auto 3rem;">
+            <div class="input-group">
+                <span class="icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" placeholder="Search for answers (e.g., 'refund', 'booking')...">
+            </div>
+        </div>
+
+        <h2 style="margin-bottom: 1.5rem;">Frequently Asked Questions</h2>
+
+        <div class="faq-accordion">
+            <div class="faq-item">
+                <button class="faq-question">
+                    How does the booking process work?
+                    <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Simply find an item you like, select your dates, and send a booking request. The owner has 24
+                        hours to accept. Once accepted, you can coordinate pickup via our secure chat.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    Is my security deposit safe?
+                    <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Yes. The security deposit is held securely by RentAnything (or the owner, depending on the
+                        arrangement) and is fully refundable upon the safe return of the item, usually within 24 hours.
+                    </p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    What if the item is damaged?
+                    <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="faq-answer">
+                    <p>Please report any damage immediately. Minor wear and tear is expected, but significant damage may
+                        result in a deduction from your security deposit as per our Rental Agreement Policy.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question">
+                    How do I get verified?
+                    <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="faq-answer">
+                    <p>To ensure safety, we require government ID verification (Aadhar/Passport) for high-value
+                        transactions. You can upload your ID securely in your Profile settings.</p>
+                </div>
+            </div>
+            <div class="faq-item">
+                <button class="faq-question">
+                    How do I cancel a booking?
+                    <span class="faq-icon"><i class="fa-solid fa-chevron-down"></i></span>
+                </button>
+                <div class="faq-answer">
+                    <p>You can cancel a booking from your "My Bookings" page. Cancellations made 24 hours before pickup
+                        are fully refundable. Late cancellations may incur a small fee.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="contact-box">
+            <i class="fa-solid fa-headset" style="font-size: 3rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            <h3>Still need help?</h3>
+            <p style="margin-bottom: 1.5rem;">Our support team is just an email away.</p>
+            <a href="mailto:rentanythingindia@gmail.com" class="btn btn-primary">Contact Support</a>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initMobileMenu } from './js/navigation.js';
+        import { initHeader } from './js/header-manager.js';
+        import { initFooter } from './js/footer-manager.js';
+        import { initAuth } from './js/auth.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMobileMenu();
+            initHeader();
+            initFooter();
+            initAuth();
+            items.forEach(i => i.classList.remove('active'));
+            // Toggle Clicked
+            if (!isActive) {
+                item.classList.add('active');
+            }
+        });
+    </script>
+</body>
+
+</html>

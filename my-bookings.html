@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - RentAnything.shop</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Firebase Import Map (Required for bare module imports) -->
+    <script type="importmap">
+    {
+      "imports": {
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js",
+        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
+        "firebase/storage": "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js",
+        "firebase/analytics": "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js"
+      }
+    }
+    </script>
+    <style>
+        .booking-card {
+            background: var(--white);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .booking-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 0.5rem;
+            object-fit: cover;
+        }
+
+        .booking-info {
+            flex: 1;
+        }
+
+        .booking-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-details {
+            color: var(--gray);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-completed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-pending {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .status-confirmed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-cancelled {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        @media (max-width: 768px) {
+            .booking-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .booking-img {
+                width: 100%;
+                height: 150px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+
+                <!-- Authenticated User Profile -->
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <!-- Chat -->
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem;" title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+
+                    <!-- My Bookings (Active) -->
+                    <a href="my-bookings.html" class="btn btn-primary"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Rentals">
+                        <i class="fa-solid fa-basket-shopping"></i> <span class="desktop-only"
+                            style="margin-left: 0.3rem;">My Rentals</span>
+                    </a>
+
+                    <!-- Seller Dashboard -->
+                    <a href="my-listings.html" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="Seller Dashboard">
+                        <i class="fa-solid fa-store"></i> <span class="desktop-only"
+                            style="margin-left: 0.3rem;">Selling</span>
+                    </a>
+
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                </div>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <!-- Mobile Notification Bell -->
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="min-height: 80vh; padding-top: 2rem;">
+        <h1 class="section-title">My Rental History</h1>
+        <p style="color:var(--gray); margin-bottom: 2rem;">Items you have rented or requested.</p>
+
+        <div id="bookings-container">
+            <div style="text-align: center; padding: 4rem;">
+                <i class="fa-solid fa-spinner fa-spin fa-2x" style="color:var(--primary)"></i>
+            </div>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- REVIEW MODAL -->
+    <div id="review-modal" class="modal"
+        style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content"
+            style="background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 500px;">
+            <h2 style="margin-bottom: 1rem;">Write a Review</h2>
+            <p id="review-item-title" style="color:var(--gray); margin-bottom: 1.5rem;"></p>
+            <input type="hidden" id="review-booking-id">
+            <input type="hidden" id="review-listing-id">
+            <input type="hidden" id="review-owner-id">
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Rating</label>
+                <div class="star-rating" style="font-size: 2rem; color: #e2e8f0; cursor: pointer;">
+                    <i class="fa-solid fa-star" data-rating="1"></i>
+                    <i class="fa-solid fa-star" data-rating="2"></i>
+                    <i class="fa-solid fa-star" data-rating="3"></i>
+                    <i class="fa-solid fa-star" data-rating="4"></i>
+                    <i class="fa-solid fa-star" data-rating="5"></i>
+                </div>
+                <input type="hidden" id="rating-value" value="0">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Your Experience</label>
+                <textarea id="review-comment" class="input-field" rows="4"
+                    placeholder="How was the item? Was the owner helpful?"
+                    style="width: 100%; padding: 0.8rem; border: 1px solid #ddd; border-radius: 0.5rem; resize: none;"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <button class="btn btn-outline" onclick="closeReviewModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import './js/my-bookings.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+</body>
+
+</html>

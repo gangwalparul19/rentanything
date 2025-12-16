@@ -1,0 +1,45 @@
+{
+    "name": "RentAnything Admin",
+    "short_name": "Admin",
+    "description": "Admin panel for RentAnything platform",
+    "start_url": "/admin.html",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#2563eb",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/logo.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/logo.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "productivity",
+        "business"
+    ],
+    "shortcuts": [
+        {
+            "name": "Dashboard",
+            "url": "/admin.html#dashboard",
+            "description": "View admin dashboard"
+        },
+        {
+            "name": "Users",
+            "url": "/admin.html#users",
+            "description": "Manage users"
+        },
+        {
+            "name": "Listings",
+            "url": "/admin.html#listings",
+            "description": "Manage listings"
+        }
+    ]
+}

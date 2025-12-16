@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - RentAnything</title>
+    <meta name="description"
+        content="Terms and conditions for renting items on RentAnything, the hyper-local rental marketplace for Hinjewadi Phase 3.">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <style>
+        .legal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .legal-content h1 {
+            color: var(--dark);
+            font-size: 2.25rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 1rem;
+        }
+
+        .legal-content h2 {
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .legal-content h3 {
+            color: var(--dark);
+            font-size: 1.25rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .legal-content p,
+        .legal-content li {
+            color: var(--gray);
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .legal-content ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links">
+                <!-- Links injected by js/header-manager.js -->
+            </nav>
+            <div class="user-actions">
+                <button id="login-btn" class="btn btn-outline">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem;" title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                    </a>
+                    <a href="my-listings.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem;"
+                        title="My Listings">
+                        <i class="fa-solid fa-list-check"></i>
+                    </a>
+                    <img id="user-avatar" src="" alt="Profile"
+                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    <button id="logout-btn" class="btn btn-outline" style="padding: 0.4rem 0.8rem;">Logout</button>
+                </div>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <button class="mobile-menu-btn" aria-label="Toggle Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="margin-top: 2rem;">
+        <div class="legal-content">
+            <h1>Terms of Service</h1>
+
+            <div class="alert alert-info"
+                style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 1rem; margin-bottom: 2rem; border-radius: 0.5rem;">
+                <p style="margin: 0; color: #1e40af;"><i class="fa-solid fa-circle-info"
+                        style="margin-right: 0.5rem;"></i> <strong>Note:</strong> These terms are designed to ensure a
+                    safe and trusted community for everyone in Megapolis.</p>
+            </div>
+
+            <h2>1. Platform Disclaimer</h2>
+            <div class="alert alert-warning"
+                style="background: #fffbeb; border-left: 4px solid #f59e0b; padding: 1rem; margin-bottom: 2rem; border-radius: 0.5rem;">
+                <p style="margin: 0; color: #92400e;"><strong>IMPORTANT:</strong> RentAnything is purely a technology
+                    platform facilitating connections between neighbors. We are <strong>NOT</strong> a party to any
+                    rental agreement and constitute a venue only.</p>
+            </div>
+            <p><strong>RentAnything is not liable for:</strong></p>
+            <ul>
+                <li>The quality, safety, or legality of any items listed.</li>
+                <li>The truth or accuracy of any user content or listings.</li>
+                <li>Any loss, damage, or injury resulting from a transaction.</li>
+            </ul>
+            <p><strong>User Responsibility:</strong> It is the sole responsibility of the Owner (Lessor) and Renter
+                (Lessee) to:</p>
+            <ul>
+                <li>Verify each other's identity (Government ID, etc.).</li>
+                <li>Document the item's condition (take photos/videos) before and after the rental.</li>
+                <li>Resolve any disputes directly between themselves.</li>
+            </ul>
+
+            <h2>2. Rental Rules & Policies</h2>
+            <p>By accessing or using our platform, you agree to these terms.</p>
+
+            <h3>No Cancellations</h3>
+            <p>Once a rental request is accepted and payment (if applicable) is made, it cannot be cancelled or refunded
+                unless explicitly agreed upon by the Owner.</p>
+
+            <h3>Fixed Duration</h3>
+            <p>The rental duration is fixed as per the agreement. Extensions must be requested and approved by the Owner
+                through the platform before the original rental period expires.</p>
+
+            <h3>Security Deposit</h3>
+            <ul>
+                <li>A refundable security deposit may be required by the Owner.</li>
+                <li>This deposit is held to cover potential damages or loss.</li>
+                <li>The deposit will be released within 24-48 hours after the item is returned in good condition.</li>
+            </ul>
+
+            <h2>2. Responsibilities</h2>
+            <h3>For Renter (Lessee)</h3>
+            <ul>
+                <li><strong>Identity Verification:</strong> You must provide valid Government ID to the Owner if
+                    requested.</li>
+                <li><strong>Care & Use:</strong> Use the item responsibly and according to its intended purpose.</li>
+                <li><strong>Condition:</strong> Return the item in the same condition as received.</li>
+                <li><strong>Timeliness:</strong> Collect and return the item at the agreed time and location.</li>
+            </ul>
+
+            <h3>For Owner (Lessor/Purchaser)</h3>
+            <ul>
+                <li><strong>Due Diligence:</strong> You are responsible for verifying the Renter's ID and suitability.
+                </li>
+                <li><strong>Documentation:</strong> You must take clear photos/videos of the item before handover to
+                    prove its condition.</li>
+                <li><strong>Safety:</strong> Ensure the item is safe to use and clean before handover.</li>
+            </ul>
+
+            <h2>3. Damaged or Lost Items</h2>
+            <p><strong>Damage Liability:</strong> The Renter is liable for damages beyond normal wear and tear. If the
+                item is returned damaged, the Owner reserves the right to deduct repair costs from the Security Deposit.
+            </p>
+            <p><strong>Total Loss:</strong> In case of theft or irreparable damage, the Renter is liable for the full
+                replacement value of the item.</p>
+
+            <h2>4. Prohibited Uses</h2>
+            <p>You may not use the platform for any unlawful purpose, to solicit others to perform unlawful acts, or to
+                violate any community guidelines.</p>
+
+            <h2>5. Disclaimer</h2>
+            <p>RentAnything is a marketplace connecting neighbors. We do not own the items listed (unless specified) and
+                are not a party to the rental transaction itself. We facilitate the connection and trust-building tools
+                (identity verification, agreement generation).</p>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { initMobileMenu } from './js/navigation.js';
+        import { initHeader } from './js/header-manager.js';
+        import { initFooter } from './js/footer-manager.js';
+        import { initAuth } from './js/auth.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+
+            // Mobile Menu Toggle (Basic)
+            initMobileMenu();
+
+            // Login redirect
+            document.getElementById('login-btn').addEventListener('click', () => {
+                // Simple redirect to auth logic if needed, or trigger auth modal. 
+                // Since this is a static page, we assume standard auth flow availability or just redirect home usually.
+                // Ideally we should import the auth logic or redirect to a page that handles it.
+                // For now, redirect to index with login param or just simple alert if auth.js not fully loaded.
+                window.location.href = '/?login=true';
+            });
+
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                auth.signOut().then(() => window.location.reload());
+            });
+        });
+    </script>
+</body>
+
+</html>

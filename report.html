@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Issue - RentAnything</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <style>
+        .report-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            max-width: 700px;
+            margin: 2rem auto;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            font-size: 0.95rem;
+            background: #f8fafc;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            background: white;
+        }
+
+        .required-mark {
+            color: #ef4444;
+            margin-left: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+        </div>
+    </header>
+
+    <main class="container page-content">
+        <div class="report-card">
+            <h1 class="page-title" style="text-align: center; margin-bottom: 0.5rem;">Report an Issue</h1>
+            <p class="page-subtitle" style="text-align: center; margin-bottom: 2rem;">Help us resolve your dispute
+                fairly.</p>
+
+            <form id="report-form">
+
+                <div class="form-group">
+                    <label class="form-label">Booking Reference <span class="required-mark">*</span></label>
+                    <div style="position: relative;">
+                        <select id="booking-select" class="form-select" required>
+                            <option value="" disabled selected>Loading your bookings...</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down"
+                            style="position: absolute; right: 1rem; top: 1rem; color: #94a3b8; pointer-events: none;"></i>
+                    </div>
+                    <p class="help-text">Select the transaction you are disputing.</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Issue Type <span class="required-mark">*</span></label>
+                    <select id="reason" class="form-select" required>
+                        <option value="" disabled selected>Select a reason...</option>
+                        <option value="item_damaged">Item Damaged / Not Working</option>
+                        <option value="not_as_described">Item not as described</option>
+                        <option value="owner_noshow">Owner/Renter didn't show up</option>
+                        <option value="scam">Potential Fraud / Scam</option>
+                        <option value="harassment">Harassment / Unsafe Behavior</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label class="form-label">Description & Evidence <span class="required-mark">*</span></label>
+                    <textarea id="description" class="form-textarea" rows="6"
+                        placeholder="Please describe what happened in detail. Include times, damages, or specific discrepancies."
+                        required></textarea>
+                </div>
+
+                <div class="form-actions" style="margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" onclick="window.history.back()">Cancel</button>
+                    <button type="submit" class="btn btn-primary"
+                        style="background: #ef4444; border-color: #ef4444; width: 100%;">
+                        <i class="fa-solid fa-circle-exclamation"></i> Submit Report
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+        });
+    </script>
+    <script type="module">
+        import { db, auth } from './js/firebase-config.js';
+        import { collection, addDoc, serverTimestamp, query, where, getDocs, or } from 'firebase/firestore';
+        import { onAuthStateChanged } from 'firebase/auth';
+        import { showToast } from './js/toast.js';
+        import { initHeader } from './js/header-manager.js';
+
+        initHeader();
+
+        const bookingSelect = document.getElementById('booking-select');
+        const urlParams = new URLSearchParams(window.location.search);
+        const preSelectedId = urlParams.get('bookingId');
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                bookingSelect.innerHTML = '<option disabled selected>Please login first</option>';
+                showToast("Please login to report an issue", "error");
+                setTimeout(() => window.location.href = '/?login=true', 2000);
+                return;
+            }
+
+            // Fetch User's Bookings (As Renter OR Owner)
+            // Using two queries and merging because 'or' query might require specific index setup sometimes, 
+            // but let's try parallel fetches for robustness if index isn't ready.
+            bookingSelect.innerHTML = '<option disabled selected>Loading...</option>';
+
+            try {
+                const q1 = query(collection(db, "bookings"), where("renterId", "==", user.uid));
+                const q2 = query(collection(db, "bookings"), where("ownerId", "==", user.uid));
+
+                const [snap1, snap2] = await Promise.all([getDocs(q1), getDocs(q2)]);
+
+                const bookings = new Map();
+                snap1.forEach(doc => bookings.set(doc.id, { id: doc.id, ...doc.data(), role: 'Renter' }));
+                snap2.forEach(doc => bookings.set(doc.id, { id: doc.id, ...doc.data(), role: 'Owner' }));
+
+                if (bookings.size === 0) {
+                    bookingSelect.innerHTML = '<option disabled selected>No bookings found</option>';
+                    return;
+                }
+
+                bookingSelect.innerHTML = '<option value="" disabled selected>Select a booking...</option>';
+
+                // Sort by date desc
+                const sorted = Array.from(bookings.values()).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+                sorted.forEach(b => {
+                    const date = b.startDate ? new Date(b.startDate.seconds * 1000).toLocaleDateString() : 'N/A';
+                    const option = document.createElement('option');
+                    option.value = b.id;
+                    option.textContent = `${b.listingTitle} (${date}) - ${b.role}`;
+                    if (b.id === preSelectedId) option.selected = true;
+                    bookingSelect.appendChild(option);
+                });
+
+            } catch (e) {
+                console.error("Error fetching bookings:", e);
+                bookingSelect.innerHTML = '<option disabled>Error loading bookings</option>';
+            }
+        });
+
+        // Form Submit
+        document.getElementById('report-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const bookingId = bookingSelect.value;
+            if (!bookingId) {
+                showToast("Please select a valid booking", "error");
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "reports"), {
+                    reporterId: user.uid,
+                    reporterName: user.displayName || 'User',
+                    reason: document.getElementById('reason').value,
+                    bookingId: bookingId,
+                    description: document.getElementById('description').value,
+                    status: 'open',
+                    createdAt: serverTimestamp()
+                });
+
+                alert("Report submitted successfully. We will contact you.");
+                window.location.href = 'my-bookings.html';
+
+            } catch (err) {
+                console.error("Report error:", err);
+                showToast("Failed to submit report", "error");
+            }
+        });
+    </script>
+</body>
+
+</html>

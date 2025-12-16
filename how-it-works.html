@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How it Works - RentAnything.shop</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <style>
+        /* Specific Styles for How It Works */
+        .hero-section {
+            text-align: center;
+            padding: 4rem 1rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .step-card {
+            background: var(--white);
+            padding: 2.5rem 2rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--glass-border);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            border: 4px solid white;
+        }
+
+        .step-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--glass);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .step-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+
+        .step-card p {
+            color: var(--gray);
+            line-height: 1.6;
+            margin-bottom: 0;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            max-width: 800px;
+            margin: 0 auto 4rem;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem 0;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-answer {
+            margin-top: 1rem;
+            color: var(--gray);
+            display: none;
+            line-height: 1.6;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .faq-item.active .fa-chevron-down {
+            transform: rotate(180deg);
+        }
+
+        /* Mobile Optimization: 2 Cards per row */
+        @media (max-width: 768px) {
+            .steps-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .step-card {
+                padding: 1.5rem 1rem;
+            }
+
+            .step-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .step-number {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+                top: -15px;
+                border-width: 2px;
+            }
+
+            .step-card h3 {
+                font-size: 1.2rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .step-card p {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+            <nav class="nav-links"></nav>
+            <div class="user-actions">
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                    <!-- Injected by auth.js -->
+                </div>
+                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
+            </div>
+            <!-- Mobile Icons Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
+                <!-- Mobile Chat Button -->
+                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
+                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
+                </a>
+                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
+                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
+                    aria-label="Notifications">
+                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
+                    <span class="notif-badge"
+                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                </button>
+                <button class="mobile-menu-btn"><span></span><span></span><span></span></button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container" style="padding-top: 2rem;">
+
+        <!-- Hero -->
+        <div class="hero-section animate-in">
+            <h1
+                style="font-size: 3rem; margin-bottom: 1rem; background: linear-gradient(to right, var(--primary), #3b82f6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                Rent Smart. Save More.</h1>
+            <p style="font-size: 1.2rem; color: var(--gray); max-width: 600px; margin: 0 auto 2rem;">
+                Why buy when you can rent? Join the Megapolis community to borrow what you need and earn from what you
+                own.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="/#categories" class="btn btn-primary">Start Renting</a>
+                <a href="create-listing.html" class="btn btn-outline">List an Item</a>
+            </div>
+        </div>
+
+        <!-- How it Works: RENTING -->
+        <h2 class="section-title" style="text-align: center; margin-bottom: 3rem;">How to Rent</h2>
+        <div class="steps-container">
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="step-number">1</div>
+                <div class="step-icon">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+                <h3>Find</h3>
+                <p>Browse categories or search for specific items like tools, party gear, or electronics available right
+                    in your neighborhood.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="step-number">2</div>
+                <div class="step-icon">
+                    <i class="fa-regular fa-calendar-check"></i>
+                </div>
+                <h3>Book</h3>
+                <p>Check availability on the calendar, select your dates, and send a booking request to the owner
+                    instantly.</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="step-number">3</div>
+                <div class="step-icon">
+                    <i class="fa-regular fa-handshake"></i>
+                </div>
+                <h3>Collect</h3>
+                <p>Once approved, chat with the owner to coordinate pickup. Meet a friendly neighbor and collect your
+                    item.</p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="step-number">4</div>
+                <div class="step-icon">
+                    <i class="fa-solid fa-arrow-rotate-left"></i>
+                </div>
+                <h3>Return</h3>
+                <p>Enjoy the item! When you're done, return it in the same condition and leave a review to build trust.
+                </p>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="faq-section">
+            <h2 class="section-title" style="text-align: center; margin-bottom: 2rem;">Frequently Asked Questions</h2>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    Is it safe to rent from neighbors?
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Yes! We verify users (look for the Blue Tick) and encourage reviews. We recommend meeting in public
+                    spaces within the society for pickups.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    How do payments work?
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Currently, payments are settled directly between neighbors (via UPI or Cash) upon pickup. We are
+                    working on integrating in-app payments soon.
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <div class="faq-question">
+                    What if an item gets damaged?
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+                <div class="faq-answer">
+                    Renters are responsible for returning items in the condition they received them. We recommend taking
+                    photos before and after rental.
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="app-footer"></footer>
+
+    <!-- Scripts -->
+    <!-- Minimal script for Auth & FAQ Toggle -->
+    <script type="module">
+        import { initFooter } from './js/footer-manager.js';
+        import { initAuth } from './js/auth.js';
+        import { initTheme } from './js/theme.js';
+        import { initMobileMenu } from './js/navigation.js';
+        import { initHeader } from './js/header-manager.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initFooter();
+            initAuth();
+            initTheme();
+            initMobileMenu();
+            initHeader();
+
+            // FAQ Toggle
+            document.querySelectorAll('.faq-question').forEach(item => {
+                item.addEventListener('click', () => {
+                    const parent = item.parentElement;
+                    parent.classList.toggle('active');
+                });
+            });
+        });
+    </script>
+</body>
+
+</html>
