@@ -4,7 +4,7 @@
     "description": "Hyper-local rental marketplace",
     "scripts": {
         "dev": "vite",
-        "build": "node scripts/generate-env.js",
+        "build": "node scripts/build.js",
         "preview": "vite preview"
     },
     "keywords": [],
