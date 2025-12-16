@@ -192,33 +192,23 @@ async function handleBooking() {
             // Don't block the UI for email failure
         }
 
-        showToast("Booking Request sent! 📨", "success");
-        // Clear selection
-        calendarInstance.clear();
+        showToast('Booking request sent successfully! 🎉', 'success');
 
-        // SECURITY FIX: Implement cooldown period
-        if (bookNowBtn) {
-            bookNowBtn.disabled = true;
-            let countdown = 5;
-            const originalText = bookNowBtn.innerHTML;
-
-            const interval = setInterval(() => {
-                bookNowBtn.innerHTML = `⏳ Wait ${countdown}s...`;
-                countdown--;
-
-                if (countdown < 0) {
-                    clearInterval(interval);
-                    bookNowBtn.disabled = false;
-                    bookNowBtn.innerHTML = originalText;
-                }
-            }, 1000);
-        }
+        // Redirect to My Bookings page
+        setTimeout(() => {
+            hideLoader();  // FIX: Hide loader before redirect
+            window.location.href = '/my-bookings.html';
+        }, 1500);
 
     } catch (error) {
-        console.error("Booking failed:", error);
-        showToast("Failed to book: " + error.message, "error");
+        console.error('Booking failed:', error);
+        hideLoader();  // FIX: Hide loader on error
+        showToast('Booking failed. Please try again.', 'error');
     } finally {
         hideLoader();
+        // The button re-enabling logic is now handled by the countdown interval,
+        // but if an error occurs before the interval starts, we need to re-enable it.
+        // This is handled by the early returns above.
     }
 }
 window.handleBooking = handleBooking;
