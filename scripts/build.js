@@ -4,7 +4,7 @@ const { execSync } = require('child_process');
 
 console.log('🚀 Starting Build Process...');
 
-// 1. Run generate-env.js to create js/env.js (Vite needs this)
+// 1. Run generate-env.js first
 try {
     console.log('📝 Generating Environment Variables...');
     require('./generate-env.js');
@@ -13,34 +13,62 @@ try {
     process.exit(1);
 }
 
-// 2. Run Vite Build
-try {
-    console.log('📦 Running Vite Build...');
-    // stdio: 'inherit' lets us see Vite's output colors/progress
-    execSync('npx vite build', { stdio: 'inherit' });
-} catch (e) {
-    console.error('❌ Vite Build Failed:', e);
-    process.exit(1);
-}
-
-// 3. Post-Build
-// Vite handles 'public/' folder automatically (copies to dist root).
-// We only need to copy special files NOT in public/ but needed in dist/
-const distDir = path.join(__dirname, '../dist');
+// 2. Define Source and Dist
 const rootDir = path.join(__dirname, '..');
+const distDir = path.join(rootDir, 'dist');
 
-const extraFiles = [
-    'firebase.json',
-    // 'store.rules', // Move rules if needed, or leave at root
-];
+// 3. Clean and Create Dist
+if (fs.existsSync(distDir)) {
+    console.log('🧹 Cleaning old dist...');
+    fs.rmSync(distDir, { recursive: true, force: true });
+}
+fs.mkdirSync(distDir);
 
-console.log('📂 Copying extra static files...');
-extraFiles.forEach(file => {
-    const src = path.join(rootDir, file);
-    const dest = path.join(distDir, file);
-    if (fs.existsSync(src)) {
+// 4. Copy Function
+function copyRecursive(src, dest) {
+    const exists = fs.existsSync(src);
+    conststats = exists && fs.statSync(src);
+
+    if (!exists) return;
+
+    if (fs.statSync(src).isDirectory()) {
+        if (!fs.existsSync(dest)) fs.mkdirSync(dest);
+        fs.readdirSync(src).forEach(child => {
+            copyRecursive(path.join(src, child), path.join(dest, child));
+        });
+    } else {
         fs.copyFileSync(src, dest);
     }
+}
+
+// 5. Define what to copy
+const itemsToCopy = [
+    'css',
+    'js',
+    'functions', // Optional: if needed by backend, but usually Vercel handles this separately. Let's include if unsure.
+    'manifest.json',
+    'admin-manifest.json',
+    'sw.js',
+    'admin-sw.js',
+    'firebase.json',
+    'firestore.rules',
+    'storage.rules',
+    'database_guide.md' // Optional docs
+];
+
+// Copy all HTML files
+const files = fs.readdirSync(rootDir);
+files.forEach(file => {
+    if (file.endsWith('.html') || file.endsWith('.png') || file.endsWith('.ico') || file.endsWith('.json')) {
+        // Skip package files and unwanted jsons if needed, but safe to copy
+        if (file === 'package.json' || file === 'package-lock.json') return;
+        copyRecursive(path.join(rootDir, file), path.join(distDir, file));
+    }
+});
+
+// Copy specific folders
+itemsToCopy.forEach(item => {
+    copyRecursive(path.join(rootDir, item), path.join(distDir, item));
 });
 
 console.log('✅ Build Complete! Output directory: dist');
