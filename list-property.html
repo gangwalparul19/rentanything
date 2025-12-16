@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List Your Property - RentAnything</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous" />
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="header-container"></div>
+
+    <main style="padding: 2rem 1.5rem; max-width: 900px; margin: 0 auto;">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">🏢 List Your Property</h1>
+            <p style="color: #6b7280;">Fill in the details below to list your property for rent</p>
+        </div>
+
+        <form id="property-form"
+            style="background: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+
+            <!-- Property Type & Basic Details -->
+            <div class="form-section">
+                <h3 class="section-title">Property Details</h3>
+
+                <div class="form-group">
+                    <label class="form-label">Property Type *</label>
+                    <select class="form-control" id="property-type" required>
+                        <option value="">Select Type</option>
+                        <option value="flat">Flat/Apartment</option>
+                        <option value="house">Independent House</option>
+                        <option value="pg">PG/Hostel</option>
+                        <option value="villa">Villa</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Property Title *</label>
+                    <input type="text" class="form-control" id="title" placeholder="e.g., Spacious 2BHK in Koramangala"
+                        required>
+                </div>
+
+                <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="form-group">
+                        <label class="form-label">Bedrooms *</label>
+                        <input type="number" class="form-control" id="bedrooms" placeholder="2" min="0" max="10"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Bathrooms *</label>
+                        <input type="number" class="form-control" id="bathrooms" placeholder="2" min="0" max="10"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Square Feet *</label>
+                        <input type="number" class="form-control" id="square-feet" placeholder="1200" min="100"
+                            required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Furnishing Status *</label>
+                    <select class="form-control" id="furnishing" required>
+                        <option value="">Select Status</option>
+                        <option value="unfurnished">Unfurnished</option>
+                        <option value="semi-furnished">Semi-Furnished</option>
+                        <option value="fully-furnished">Fully Furnished</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-section">
+                <h3 class="section-title">Location</h3>
+
+                <div class="form-group">
+                    <label class="form-label">Building/Society Name</label>
+                    <input type="text" class="form-control" id="building" placeholder="Prestige Residency">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Street Address *</label>
+                    <input type="text" class="form-control" id="street" placeholder="MG Road" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Area/Locality *</label>
+                        <input type="text" class="form-control" id="area" placeholder="Koramangala" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">City *</label>
+                        <input type="text" class="form-control" id="city" placeholder="Bangalore" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">State *</label>
+                        <input type="text" class="form-control" id="state" placeholder="Karnataka" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Pincode *</label>
+                        <input type="text" class="form-control" id="pincode" placeholder="560095" pattern="[0-9]{6}"
+                            required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="form-section">
+                <h3 class="section-title">Pricing</h3>
+
+                <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+                    <div class="form-group">
+                        <label class="form-label">Monthly Rent (₹) *</label>
+                        <input type="number" class="form-control" id="monthly-rent" placeholder="15000" min="1000"
+                            required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Security Deposit (₹) *</label>
+                        <input type="number" class="form-control" id="security-deposit" placeholder="30000" min="0"
+                            required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Maintenance Charges (₹/month)</label>
+                    <input type="number" class="form-control" id="maintenance" placeholder="2000" min="0">
+                    <small class="form-hint">Leave blank if included in rent</small>
+                </div>
+            </div>
+
+            <!-- Amenities -->
+            <div class="form-section">
+                <h3 class="section-title">Amenities</h3>
+                <div class="checkbox-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="parking">
+                        <span>🅿️ Parking</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="gym">
+                        <span>🏋️ Gym</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="wifi">
+                        <span>📶 WiFi</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="ac">
+                        <span>❄️ Air Conditioning</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="powerBackup">
+                        <span>🔋 Power Backup</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="lift">
+                        <span>🛗 Lift/Elevator</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="security">
+                        <span>🔒 24/7 Security</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="swimmingPool">
+                        <span>🏊 Swimming Pool</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="garden">
+                        <span>🌳 Garden</span>
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="amenity" value="clubhouse">
+                        <span>🏛️ Clubhouse</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Photos -->
+            <div class="form-section">
+                <h3 class="section-title">Property Photos *</h3>
+                <div class="form-group">
+                    <label class="file-upload-label">
+                        <input type="file" id="property-images" accept="image/*" multiple style="display: none;">
+                        <div
+                            style="border: 2px dashed #cbd5e1; border-radius: 0.5rem; padding: 2rem; text-align: center; cursor: pointer;">
+                            <i class="fa-solid fa-cloud-arrow-up"
+                                style="font-size: 3rem; color: #0ea5e9; margin-bottom: 1rem;"></i>
+                            <p style="font-weight: 600; margin-bottom: 0.5rem;">Click to upload property images</p>
+                            <p style="font-size: 0.9rem; color: #6b7280;">Upload up to 10 images (JPG, PNG, WebP)</p>
+                        </div>
+                    </label>
+                    <div id="image-preview"
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Description & Preferences -->
+            <div class="form-section">
+                <h3 class="section-title">Additional Information</h3>
+
+                <div class="form-group">
+                    <label class="form-label">Description *</label>
+                    <textarea class="form-control" id="description" rows="4"
+                        placeholder="Describe your property, nearby amenities, rules, etc..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Preferred Tenants</label>
+                    <select class="form-control" id="preferred-tenants">
+                        <option value="any">Any</option>
+                        <option value="family">Family Only</option>
+                        <option value="bachelor">Bachelor/Single</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Available From *</label>
+                    <input type="date" class="form-control" id="available-from" required>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="button" onclick="window.history.back()" class="btn btn-outline" style="flex: 1;">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary" style="flex: 2;">
+                    <i class="fa-solid fa-check"></i> List Property
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script type="module" src="js/list-property.js"></script>
+</body>
+
+</html>

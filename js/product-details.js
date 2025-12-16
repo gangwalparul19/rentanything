@@ -451,7 +451,7 @@ async function renderProduct() {
         // 1. RENT SECTION
         if (transactionTypes.includes('rent')) {
             actionsHtml += `
-                <div class="booking-card" style="margin-bottom: 2rem;">
+                <div class="booking-card" style="margin-bottom: 4rem;">
                     <div class="booking-header">Reserve for Rent 📅</div>
                     
                     <div class="booking-group">
@@ -500,7 +500,7 @@ async function renderProduct() {
         // 2. BUY SECTION
         if (transactionTypes.includes('sell')) {
             actionsHtml += `
-                <div class="booking-card" style="margin-bottom: 2rem; border-color: #bbf7d0;">
+                <div class="booking-card" style="margin-bottom: 4rem; border-color: #bbf7d0;">
                     <div class="booking-header" style="background: #dcfce7; color: #166534;">Buy this Item 🛍️</div>
                     <div style="padding: 1.5rem text-align: center;">
                         <p style="margin-bottom: 1rem;">Interested in owning this item?</p>
@@ -516,7 +516,7 @@ async function renderProduct() {
         // 3. DONATE SECTION
         if (transactionTypes.includes('donate')) {
             actionsHtml += `
-                <div class="booking-card" style="margin-bottom: 2rem; border-color: #fecdd3;">
+                <div class="booking-card" style="margin-bottom: 4rem; border-color: #fecdd3;">
                     <div class="booking-header" style="background: #ffe4e6; color: #9f1239;">Claim Free Item ❤️</div>
                     <div style="padding: 1.5rem text-align: center;">
                         <p style="margin-bottom: 1rem;">This item is being given away for free!</p>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Properties - RentAnything</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="header-container"></div>
+
+    <main style="padding: 2rem 1.5rem; max-width: 1200px; margin: 0 auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h1 style="font-size: 2rem; margin-bottom: 0.5rem;">My Properties</h1>
+                <p style="color: #6b7280;">Manage your rental property listings</p>
+            </div>
+            <a href="/list-property.html" class="btn btn-primary">
+                <i class="fa-solid fa-plus"></i> Add Property
+            </a>
+        </div>
+
+        <div id="properties-container">
+            <!-- Loaded dynamically -->
+        </div>
+    </main>
+
+    <script type="module" src="js/my-properties.js"></script>
+</body>
+
+</html>

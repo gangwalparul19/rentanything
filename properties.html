@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Properties - RentAnything</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous" />
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div id="header-container"></div>
+
+    <main style="padding: 2rem 1.5rem; max-width: 1400px; margin: 0 auto;">
+        <h1 style="font-size: 2rem; margin-bottom: 2rem;">Browse Rental Properties</h1>
+
+        <!-- Filters -->
+        <div
+            style="background: white; padding: 1.5rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <input type="text" id="search-city" placeholder="Search by city..." class="form-control">
+
+                <select id="filter-bedrooms" class="form-control">
+                    <option value="">Any Bedrooms</option>
+                    <option value="1">1 BHK</option>
+                    <option value="2">2 BHK</option>
+                    <option value="3">3 BHK</option>
+                    <option value="4">4+ BHK</option>
+                </select>
+
+                <select id="filter-type" class="form-control">
+                    <option value="">Any Type</option>
+                    <option value="flat">Flat/Apartment</option>
+                    <option value="house">House</option>
+                    <option value="pg">PG/Hostel</option>
+                    <option value="villa">Villa</option>
+                </select>
+
+                <button onclick="applyFilters()" class="btn btn-primary">
+                    <i class="fa-solid fa-filter"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Properties Grid -->
+        <div id="properties-grid"
+            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem;">
+            <!-- Loaded dynamically -->
+        </div>
+    </main>
+
+    <script type="module" src="js/properties.js"></script>
+</body>
+
+</html>

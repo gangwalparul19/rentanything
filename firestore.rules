@@ -193,5 +193,38 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+    
+    // RENTAL PROPERTIES
+    match /properties/{propertyId} {
+      // Anyone can read available properties
+      allow read: if resource.data.status == 'available' || 
+                     (request.auth != null && resource.data.ownerId == request.auth.uid);
+      
+      // Only authenticated users can create properties
+      allow create: if request.auth != null 
+        && request.resource.data.ownerId == request.auth.uid
+        && request.resource.data.status in ['available', 'rented'];
+      
+      // Only property owner can update or delete
+      allow update, delete: if request.auth != null 
+        && resource.data.ownerId == request.auth.uid;
+    }
+    
+    // Property Inquiries
+    match /property_inquiries/{inquiryId} {
+      // Users can create inquiries for available properties
+      allow create: if request.auth != null
+        && request.resource.data.userId == request.auth.uid;
+      
+      // Inquiry creator and property owner can read
+      allow read: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId == request.auth.uid
+      );
+      
+      // Only property owner can update inquiry status
+      allow update: if request.auth != null &&
+        get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId == request.auth.uid;
+    }
   }
 }

@@ -16,9 +16,9 @@ export function initHeader() {
     // Standard Links Configuration
     // derived from index.html
     const links = [
-        { text: 'Home', href: '/index.html#home' },
+        { text: 'Browse Items', href: '/search.html' },
+        { text: 'Browse Properties', href: '/properties.html' },
         { text: 'Requests', href: '/requests.html' },
-        { text: 'Categories', href: '/index.html#categories' },
         { text: 'How it Works', href: '/index.html#how-it-works' }
     ];
 
@@ -48,6 +48,28 @@ export function initHeader() {
     // Check if Desktop Actions container exists
     const userActions = document.querySelector('.user-actions');
     if (userActions) {
+        // Add "Create Listing" button (only if it doesn't exist)
+        if (!document.getElementById('list-item-btn')) {
+            const createBtn = document.createElement('a');
+            createBtn.id = 'list-item-btn';
+            createBtn.href = '/create-listing.html';
+            createBtn.className = 'btn btn-primary';
+            createBtn.innerHTML = '<i class="fa-solid fa-plus"></i> List Item';
+            createBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap;';
+            userActions.appendChild(createBtn);
+        }
+
+        // Add "List Property" button (only if it doesn't exist)
+        if (!document.getElementById('list-property-btn')) {
+            const listPropertyBtn = document.createElement('a');
+            listPropertyBtn.id = 'list-property-btn';
+            listPropertyBtn.href = '/list-property.html';
+            listPropertyBtn.className = 'btn btn-outline';
+            listPropertyBtn.innerHTML = '<i class="fa-solid fa-building"></i> List Property';
+            listPropertyBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-left: 0.5rem;';
+            userActions.appendChild(listPropertyBtn);
+        }
+
         // Create Bell Button
         if (!document.getElementById('desktop-notification-btn')) {
             const bellBtn = document.createElement('button');
