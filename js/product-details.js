@@ -685,10 +685,6 @@ async function loadReviews(productId, container) {
     } catch (e) { }
 }
 
-async function loadRecommendations(product, productId, container) {
-    // ... Simplified Recs
-}
-
 function setupInteractionButtons(productId, product) {
     // Favorites
     const favBtn = document.getElementById('fav-btn');

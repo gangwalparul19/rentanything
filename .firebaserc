@@ -1,6 +1,7 @@
 {
   "projects": {
-    "rent": "rent-anything-shop"
+    "rent": "rent-anything-shop",
+    "default": "rent-anything-shop"
   },
   "targets": {},
   "etags": {}
