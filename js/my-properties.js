@@ -46,6 +46,44 @@ async function loadMyProperties(userId) {
     }
 }
 
+function formatDate(timestamp) {
+    if (!timestamp) return 'N/A';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function getApprovalStatusBadge(property) {
+    const approvalStatus = property.approvalStatus || 'approved'; // Default to approved for old properties
+
+    if (approvalStatus === 'pending') {
+        return `
+            <div style="padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 0.85rem; font-weight: 600; background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); color: #92400e; border: 1px solid #fbbf24;">
+                <i class="fa-solid fa-clock"></i> Pending Approval
+                <div style="font-size: 0.75rem; font-weight: 400; margin-top: 0.25rem; opacity: 0.8;">Under review by admin</div>
+                <div style="font-size: 0.7rem; margin-top: 0.25rem; opacity: 0.7;">Submitted: ${formatDate(property.createdAt)}</div>
+            </div>
+        `;
+    } else if (approvalStatus === 'rejected') {
+        const reason = property.rejectionReason || 'No reason provided';
+        return `
+            <div style="padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 0.85rem; font-weight: 600; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); color: #991b1b; border: 1px solid #f87171;">
+                <i class="fa-solid fa-times-circle"></i> Rejected
+                <div style="font-size: 0.75rem; font-weight: 400; margin-top: 0.25rem; opacity: 0.8;" title="${reason}">Reason: ${reason.substring(0, 30)}${reason.length > 30 ? '...' : ''}</div>
+                <div style="font-size: 0.7rem; margin-top: 0.25rem; opacity: 0.7;">Rejected: ${formatDate(property.rejectedAt)}</div>
+            </div>
+        `;
+    } else if (approvalStatus === 'approved') {
+        return `
+            <div style="padding: 0.75rem; border-radius: 0.5rem; text-align: center; font-size: 0.85rem; font-weight: 600; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); color: #065f46; border: 1px solid #34d399;">
+                <i class="fa-solid fa-check-circle"></i> Approved
+                <div style="font-size: 0.7rem; margin-top: 0.25rem; opacity: 0.7;">Approved: ${formatDate(property.approvedAt)}</div>
+            </div>
+        `;
+    }
+
+    return ''; // No badge if no approval status
+}
+
 function renderProperties(properties) {
     const container = document.getElementById('properties-container');
 
@@ -93,27 +131,35 @@ function renderProperties(properties) {
                     </div>
                     
                     <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem; border-left: 1px solid #e5e7eb;">
-                        <span style="padding: 0.5rem 1rem; border-radius: 0.5rem; text-align: center; font-size: 0.85rem; font-weight: 600; ${property.status === 'available' ? 'background: #dcfce7; color: #15803d;' : 'background: #fee2e2; color: #991b1b;'}">
-                            ${property.status === 'available' ? '✓ Available' : '✗ Rented'}
+                        ${getApprovalStatusBadge(property)}
+                        
+                        <span style="padding: 0.5rem 1rem; border-radius: 0.5rem; text-align: center; font-size: 0.85rem; font-weight: 600; ${property.status === 'available' ? 'background: #dcfce7; color: #15803d;' : property.status === 'pending' ? 'background: #fef3c7; color: #92400e;' : 'background: #fee2e2; color: #991b1b;'}">
+                            ${property.status === 'available' ? '✓ Available' : property.status === 'pending' ? '⏳ Pending' : '✗ Rented'}
                         </span>
                         
                         <a href="/property-details.html?id=${property.id}" class="btn btn-outline" style="text-align: center;">
                             <i class="fa-solid fa-eye"></i> View
                         </a>
                         
-                        ${property.status === 'available' ? `
-                            <button onclick="markAsRented('${property.id}')" class="btn btn-outline" style="border-color: #22c55e; color: #22c55e;">
-                                <i class="fa-solid fa-check"></i> Mark Rented
+                        ${(property.approvalStatus === 'approved' || !property.approvalStatus) ? `
+                            ${property.status === 'available' ? `
+                                <button onclick="markAsRented('${property.id}')" class="btn btn-outline" style="border-color: #22c55e; color: #22c55e;">
+                                    <i class="fa-solid fa-check"></i> Mark Rented
+                                </button>
+                            ` : `
+                                <button onclick="markAsAvailable('${property.id}')" class="btn btn-outline" style="border-color: #0ea5e9; color: #0ea5e9;">
+                                    <i class="fa-solid fa-rotate"></i> Mark Available
+                                </button>
+                            `}
+                            
+                            <button onclick="deleteProperty('${property.id}')" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">
+                                <i class="fa-solid fa-trash"></i> Delete
                             </button>
                         ` : `
-                            <button onclick="markAsAvailable('${property.id}')" class="btn btn-outline" style="border-color: #0ea5e9; color: #0ea5e9;">
-                                <i class="fa-solid fa-rotate"></i> Mark Available
+                            <button disabled class="btn btn-outline" style="opacity: 0.5; cursor: not-allowed; border-color: #9ca3af; color: #9ca3af;" title="Actions disabled until approved">
+                                <i class="fa-solid fa-lock"></i> Actions Disabled
                             </button>
                         `}
-                        
-                        <button onclick="deleteProperty('${property.id}')" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444;">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </button>
                     </div>
                 </div>
             `).join('')}

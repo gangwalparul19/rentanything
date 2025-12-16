@@ -3,6 +3,7 @@ import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, setPersistence
 import { collection, query, where, getDocs, updateDoc, doc, getDoc, getCountFromServer, orderBy, limit } from 'firebase/firestore';
 import { showToast } from './toast.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
+import { sendPropertyApprovalEmail, sendPropertyRejectionEmail } from './email-notifications.js';
 
 // Global data storage for export
 let analyticsData = {
@@ -228,11 +229,17 @@ async function loadDashboard() {
     });
     document.getElementById('stat-revenue').innerText = totalRev.toLocaleString();
 
+    // Pending Properties Count
+    const pendingPropsQ = query(collection(db, "properties"), where("approvalStatus", "==", "pending"));
+    const pendingPropsSnap = await getDocs(pendingPropsQ);
+    document.getElementById('stat-pending-properties').innerText = pendingPropsSnap.size;
+
     // 2. Load All Data
     await loadAllData();
 
-    // 3. Load Pending Approvals (NEW)
+    // 3. Load Pending Approvals
     await loadPendingListings();
+    await loadPendingProperties(); // Load pending properties for approval
 
     // ===== DISPUTES MANAGEMENT =====
     let allDisputes = [];
@@ -558,6 +565,190 @@ window.rejectListing = async (id) => {
         showToast("Failed to reject listing", "error");
     }
 };
+
+// --- PROPERTY APPROVALS ---
+async function loadPendingProperties() {
+    try {
+        const badge = document.getElementById('badge-property-count');
+        const tbody = document.querySelector('#table-property-approvals tbody');
+
+        // Query pending properties
+        const q = query(collection(db, "properties"), where("approvalStatus", "==", "pending"));
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 2rem; color: var(--gray);">No pending property approvals</td></tr>';
+            if (badge) badge.style.display = 'none';
+            return;
+        }
+
+        // Show badge count
+        if (badge) {
+            badge.innerText = snapshot.size;
+            badge.style.display = 'inline-flex';
+        }
+
+        tbody.innerHTML = '';
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const createdDate = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <img src="${data.mainImage || data.images?.[0] || 'https://via.placeholder.com/50'}" 
+                             style="width: 50px; height: 50px; object-fit: cover; border-radius: 0.5rem;">
+                        <div>
+                            <strong>${data.title}</strong><br>
+                            <small style="color: var(--secondary);">${doc.id.substring(0, 8)}...</small>
+                        </div>
+                    </div>
+                </td>
+                <td>${data.ownerName || 'Unknown'}</td>
+                <td>
+                    ${data.address?.society || data.address?.building || 'N/A'}<br>
+                    <small style="color: var(--gray);">${data.address?.area}, ${data.address?.city}</small>
+                </td>
+                <td><span class="badge">${data.type || 'N/A'}</span></td>
+                <td style="font-weight:600;">₹${(data.monthlyRent || 0).toLocaleString()}/mo</td>
+                <td><small>${createdDate}</small></td>
+                <td>
+                    <button class="btn-sm btn-approve" onclick="window.approveProperty('${doc.id}')">
+                        <i class="fa-solid fa-check"></i> Approve
+                    </button>
+                    <button class="btn-sm" style="background: #fee2e2; color: #991b1b;" onclick="window.rejectProperty('${doc.id}')">
+                        <i class="fa-solid fa-xmark"></i> Reject
+                    </button>
+                    <button class="btn-sm btn-view" onclick="window.open('/property-details.html?id=${doc.id}', '_blank')">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Error loading pending properties:", error);
+    }
+}
+
+window.approveProperty = async (id) => {
+    if (!confirm("Approve this property listing? It will be visible to all users.")) return;
+    try {
+        const propertyDoc = await getDoc(doc(db, "properties", id));
+        const propertyData = { id, ...propertyDoc.data() };
+
+        await updateDoc(doc(db, "properties", id), {
+            status: "available",
+            approvalStatus: "approved",
+            approvedAt: new Date(),
+            approvedBy: auth.currentUser?.uid
+        });
+
+        // Send approval email
+        try {
+            const ownerDoc = await getDoc(doc(db, "users", propertyData.ownerId));
+            const ownerData = ownerDoc.data();
+
+            if (ownerData?.email) {
+                await sendPropertyApprovalEmail(
+                    propertyData,
+                    ownerData.email,
+                    ownerData.displayName || ownerData.name || 'User'
+                );
+                console.log('Approval email sent to:', ownerData.email);
+            }
+        } catch (emailError) {
+            console.error('Error sending approval email:', emailError);
+            // Don't fail the approval if email fails
+        }
+
+        showToast("Property approved! ✅", "success");
+        loadPendingProperties();
+        loadDashboard();
+    } catch (error) {
+        console.error("Error approving property:", error);
+        showToast("Failed to approve property", "error");
+    }
+};
+
+let pendingRejectionPropertyId = null;
+
+window.rejectProperty = async (id) => {
+    pendingRejectionPropertyId = id;
+    const modal = document.getElementById('rejection-modal');
+    const textarea = document.getElementById('rejection-reason');
+
+    // Clear previous input
+    textarea.value = '';
+
+    // Show modal
+    modal.classList.add('active');
+    textarea.focus();
+};
+
+window.closeRejectionModal = function () {
+    const modal = document.getElementById('rejection-modal');
+    modal.classList.remove('active');
+    pendingRejectionPropertyId = null;
+};
+
+// Initialize rejection confirmation button
+document.addEventListener('DOMContentLoaded', () => {
+    const confirmBtn = document.getElementById('confirm-rejection-btn');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', async () => {
+            const reason = document.getElementById('rejection-reason').value.trim();
+
+            if (!reason) {
+                showToast('Please provide a rejection reason', 'warning');
+                return;
+            }
+
+            if (pendingRejectionPropertyId) {
+                try {
+                    const propertyDoc = await getDoc(doc(db, "properties", pendingRejectionPropertyId));
+                    const propertyData = { id: pendingRejectionPropertyId, ...propertyDoc.data() };
+
+                    await updateDoc(doc(db, "properties", pendingRejectionPropertyId), {
+                        status: "rejected",
+                        approvalStatus: "rejected",
+                        rejectedAt: new Date(),
+                        rejectedBy: auth.currentUser?.uid,
+                        rejectionReason: reason
+                    });
+
+                    // Send rejection email
+                    try {
+                        const ownerDoc = await getDoc(doc(db, "users", propertyData.ownerId));
+                        const ownerData = ownerDoc.data();
+
+                        if (ownerData?.email) {
+                            await sendPropertyRejectionEmail(
+                                propertyData,
+                                ownerData.email,
+                                ownerData.displayName || ownerData.name || 'User',
+                                reason
+                            );
+                            console.log('Rejection email sent to:', ownerData.email);
+                        }
+                    } catch (emailError) {
+                        console.error('Error sending rejection email:', emailError);
+                        // Don't fail the rejection if email fails
+                    }
+
+                    showToast("Property rejected ❌", "info");
+                    closeRejectionModal();
+                    loadPendingProperties();
+                    loadDashboard();
+                } catch (error) {
+                    console.error("Error rejecting property:", error);
+                    showToast("Failed to reject property", "error");
+                }
+            }
+        });
+    }
+});
 
 // --- RENDER CHARTS ---
 function renderCharts() {

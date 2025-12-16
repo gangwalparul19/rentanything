@@ -4,7 +4,7 @@
 
 import { auth, db, storage } from './firebase-config.js';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { initHeader } from './header-manager.js';
 import { compressImage } from './image-compressor.js';
@@ -26,9 +26,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    loadSocieties(); // Load societies from Firestore
     setupImageUpload();
     setupFormSubmission();
+    setupSocietyToggle(); // Setup Other society toggle
 });
+
+
+/**
+ * Load Societies from Firestore
+ */
+async function loadSocieties() {
+    try {
+        const q = query(collection(db, "societies"), where("isActive", "!=", false));
+        const querySnapshot = await getDocs(q);
+        const approvedSocieties = [];
+        querySnapshot.forEach((doc) => {
+            approvedSocieties.push(doc.data().name);
+        });
+
+        const societySelect = document.getElementById('building');
+        const otherOption = societySelect.querySelector('option[value="Other Hinjewadi Phase 3"]');
+
+        approvedSocieties.sort().forEach(name => {
+            // Check if already exists
+            if (!societySelect.querySelector(`option[value="${name}"]`)) {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                societySelect.insertBefore(opt, otherOption);
+            }
+        });
+
+    } catch (error) {
+        console.error("Error loading societies:", error);
+    }
+}
+
+/**
+ * Setup society selection toggle for "Other" option
+ */
+function setupSocietyToggle() {
+    const societySelect = document.getElementById('building');
+    const otherWrapper = document.getElementById('other-society-wrapper');
+    const otherInput = document.getElementById('other-society-name');
+
+    if (!societySelect || !otherWrapper || !otherInput) return;
+
+    societySelect.addEventListener('change', () => {
+        if (societySelect.value === "Other Hinjewadi Phase 3") {
+            otherWrapper.style.display = 'block';
+            otherInput.setAttribute('required', 'true');
+        } else {
+            otherWrapper.style.display = 'none';
+            otherInput.removeAttribute('required');
+            otherInput.value = ''; // Clear if hidden
+        }
+    });
+}
 
 /**
  * Setup image upload handler
@@ -134,7 +189,8 @@ function setupFormSubmission() {
                 ownerId: auth.currentUser.uid,
                 ownerName: auth.currentUser.displayName || 'Anonymous',
                 ownerPhone: auth.currentUser.phoneNumber || '',
-                status: 'available',
+                status: 'pending',
+                approvalStatus: 'pending',
                 views: 0,
                 inquiries: 0,
                 createdAt: serverTimestamp(),
@@ -142,7 +198,7 @@ function setupFormSubmission() {
             });
 
             hideLoader();
-            showToast('Property listed successfully! 🎉', 'success');
+            showToast('Property submitted for approval! You\'ll be notified once it\'s reviewed. 📝', 'success');
 
             setTimeout(() => {
                 window.location.href = '/my-properties.html';
@@ -184,6 +240,16 @@ function getFormData(imageUrls) {
     const amenities = Array.from(document.querySelectorAll('input[name="amenity"]:checked'))
         .map(cb => cb.value);
 
+    // Handle society selection
+    const buildingValue = document.getElementById('building').value;
+    const otherSocietyName = document.getElementById('other-society-name').value;
+
+    // Handle "Other" society selection
+    let actualBuilding = buildingValue;
+    if (buildingValue === "Other Hinjewadi Phase 3" && otherSocietyName) {
+        actualBuilding = `Pending: ${otherSocietyName}`;
+    }
+
     return {
         // Property Details
         type: document.getElementById('property-type').value,
@@ -195,7 +261,9 @@ function getFormData(imageUrls) {
 
         // Location
         address: {
-            building: document.getElementById('building').value || '',
+            building: actualBuilding,
+            society: buildingValue === "Other Hinjewadi Phase 3" ? otherSocietyName : buildingValue,
+            societyRequest: buildingValue === "Other Hinjewadi Phase 3" ? otherSocietyName : null,
             street: document.getElementById('street').value,
             area: document.getElementById('area').value,
             city: document.getElementById('city').value,

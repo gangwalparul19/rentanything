@@ -9,8 +9,35 @@ import { showLoader, hideLoader } from './loader.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initHeader();
+    loadSocieties(); // Load society dropdown
     loadProperties();
 });
+
+/**
+ * Load Societies dropdown from Firestore
+ */
+async function loadSocieties() {
+    try {
+        const q = query(collection(db, "societies"), where("isActive", "!=", false));
+        const querySnapshot = await getDocs(q);
+        const approvedSocieties = [];
+        querySnapshot.forEach((doc) => {
+            approvedSocieties.push(doc.data().name);
+        });
+
+        const societySelect = document.getElementById('search-society');
+
+        approvedSocieties.sort().forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            societySelect.appendChild(opt);
+        });
+
+    } catch (error) {
+        console.error("Error loading societies:", error);
+    }
+}
 
 async function loadProperties(filters = {}) {
     showLoader('Loading properties...');
@@ -32,9 +59,10 @@ async function loadProperties(filters = {}) {
         // Apply client-side filtering
         let filteredProperties = properties;
 
-        if (filters.city) {
+        if (filters.society) {
             filteredProperties = filteredProperties.filter(p =>
-                p.address.city.toLowerCase().includes(filters.city.toLowerCase())
+                p.address.building?.toLowerCase().includes(filters.society.toLowerCase()) ||
+                p.address.society?.toLowerCase().includes(filters.society.toLowerCase())
             );
         }
 
@@ -106,7 +134,7 @@ function renderProperties(properties) {
 
 window.applyFilters = () => {
     const filters = {
-        city: document.getElementById('search-city').value,
+        society: document.getElementById('search-society').value,
         bedrooms: document.getElementById('filter-bedrooms').value,
         type: document.getElementById('filter-type').value
     };
