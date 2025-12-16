@@ -1137,7 +1137,7 @@ async function loadListings() {
                         onclick="toggleListingStatus('${docSnap.id}', ${isActive})">
                         ${isActive ? 'Deactivate' : 'Activate'}
                     </button>
-                    <button class="btn-sm btn-view" onclick="window.open('product.html?id=${docSnap.id}', '_blank')">
+                    <button class="btn-sm btn-view" onclick="window.open('/product.html?id=${docSnap.id}', '_blank')">
                         <i class="fa-solid fa-eye"></i> View
                     </button>
                 </td>

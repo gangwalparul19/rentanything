@@ -8,9 +8,11 @@ import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
 import { compressImage } from './image-compressor.js';
 import { showToast } from './toast.js';
+import { showLoader, hideLoader } from './loader.js';
 
 // Initialize Global UI Components
 document.addEventListener('DOMContentLoaded', () => {
+    initTransactionModes();
     initMobileMenu();
     initTheme();
     initAuth();
@@ -33,20 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!title) { showToast("Enter a title first!", "info"); return; }
 
-            const originalText = magicBtn.innerHTML;
-            magicBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles fa-spin"></i> Generating...';
-            magicBtn.disabled = true;
+            // Loader for AI
+            showLoader("✨ Generating magic description...");
 
-            // Simulated AI Generation
             setTimeout(() => {
                 const descriptors = ["high-quality", "durable", "perfect condition", "easy to use", "top-rated"];
                 const desc = `Rent this ${descriptors[Math.floor(Math.random() * descriptors.length)]} ${title} for your next ${category === 'party' ? 'event' : 'project'}. It is well-maintained and ready for immediate pickup. Contact me for more details!`;
 
                 document.getElementById('description').value = desc;
                 showToast("Description generated! ✨", "success");
-                magicBtn.innerHTML = originalText;
-                magicBtn.disabled = false;
-            }, 1500);
+                hideLoader();
+            }, 1000);
         });
     }
 
@@ -64,9 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const weekInput = document.getElementById('price-week');
             const monthInput = document.getElementById('price-month');
 
-            const originalText = aiPriceBtn.innerText;
-            aiPriceBtn.innerHTML = '<i class="fa-solid fa-calculator fa-spin"></i> Analyzing...';
-            aiPriceBtn.disabled = true;
+            showLoader("📊 Analyzing market prices...");
 
             setTimeout(() => {
                 let base = 100; // default
@@ -92,9 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (depositInput) depositInput.value = base * 20;
 
                 showToast(`💡 Market average found for ${category}!`, "success");
-                aiPriceBtn.innerHTML = originalText;
-                aiPriceBtn.disabled = false;
-            }, 1000);
+                hideLoader();
+            }, 800);
         });
     }
 });
@@ -113,19 +109,82 @@ let existingImages = [];
 let isEditMode = false;
 let currentListingId = null;
 
+// --- TRANSACTION MODES LOGIC ---
+function initTransactionModes() {
+    const modes = ['rent', 'sell', 'donate'];
+
+    modes.forEach(mode => {
+        const checkbox = document.getElementById(`mode-${mode}`);
+        const section = document.getElementById(`section-${mode}`);
+
+        if (checkbox && section) {
+            checkbox.addEventListener('change', () => {
+                section.style.display = checkbox.checked ? 'block' : 'none';
+
+                // Logic to ensure at least one is checked? 
+                // Or just validate on submit. Let's validate on submit to allow free toggling.
+            });
+
+            // Trigger initial state
+            section.style.display = checkbox.checked ? 'block' : 'none';
+        }
+    });
+}
+
 // --- AUTH GUARD ---
 onAuthStateChanged(auth, (user) => {
     if (user) {
         currentUser = user;
+        // Remove banner if exists
+        const banner = document.getElementById('login-warning-banner');
+        if (banner) banner.remove();
+        if (submitBtn) submitBtn.disabled = false;
     } else {
-        setTimeout(() => {
-            if (!auth.currentUser) {
-                showToast("You must be logged in to list an item!", 'error');
-                setTimeout(() => window.location.href = '/', 1500);
-            }
-        }, 1000);
+        // User not logged in
+        // 1. Show Banner
+        showLoginBanner();
+
+        // 2. Disable Submit Button visually (optional, but good UX)
+        // submitBtn.disabled = true; // User requested to "see that button", so let's keep it enabled but block action
     }
 });
+
+function showLoginBanner() {
+    if (document.getElementById('login-warning-banner')) return;
+
+    const container = document.querySelector('.container');
+    const banner = document.createElement('div');
+    banner.id = 'login-warning-banner';
+    banner.className = 'alert alert-warning';
+    banner.style.background = '#fffbeb';
+    banner.style.border = '1px solid #fcd34d';
+    banner.style.padding = '1rem';
+    banner.style.marginBottom = '1rem';
+    banner.style.borderRadius = '0.5rem';
+    banner.style.color = '#92400e';
+    banner.style.display = 'flex';
+    banner.style.alignItems = 'center';
+    banner.style.gap = '0.5rem';
+    banner.innerHTML = `
+        <i class="fa-solid fa-lock"></i>
+        <span><strong>Login Required:</strong> You can fill out this form, but you must <a href="#" id="banner-login-link" style="text-decoration:underline; color:#b45309;">login</a> to submit it.</span>
+    `;
+
+    // Insert before the form
+    if (form) {
+        form.parentNode.insertBefore(banner, form);
+    }
+
+    // Attach click to the link
+    const link = banner.querySelector('#banner-login-link');
+    if (link) {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) loginBtn.click();
+        });
+    }
+}
 
 // --- EDIT MODE LOGIC ---
 async function enableEditMode(id) {
@@ -133,6 +192,8 @@ async function enableEditMode(id) {
     currentListingId = id;
     if (pageTitle) pageTitle.textContent = "Edit Listing";
     if (submitBtn) submitBtn.innerHTML = '<i class="fa-solid fa-save"></i> Update Listing';
+
+    showLoader("Loading listing details...");
 
     try {
         const docRef = doc(db, "listings", id);
@@ -147,16 +208,38 @@ async function enableEditMode(id) {
             document.getElementById('category').value = data.category || '';
             document.getElementById('location').value = data.location || '';
 
-            // Populate Rates
-            if (data.rates) {
-                document.getElementById('price-day').value = data.rates.daily || '';
-                document.getElementById('price-week').value = data.rates.weekly || '';
-                document.getElementById('price-month').value = data.rates.monthly || '';
-            } else if (data.price) {
-                // Backward compatibility
-                if (data.period === 'day') document.getElementById('price-day').value = data.price;
-                if (data.period === 'week') document.getElementById('price-week').value = data.price;
-                if (data.period === 'month') document.getElementById('price-month').value = data.price;
+            // Populate Modes (Backwards Compatibility: Default to Rent)
+            const types = data.transactionTypes || ['rent'];
+
+            ['rent', 'sell', 'donate'].forEach(mode => {
+                const cb = document.getElementById(`mode-${mode}`);
+                if (cb) {
+                    cb.checked = types.includes(mode);
+                    // Trigger change to update UI
+                    cb.dispatchEvent(new Event('change'));
+                }
+            });
+
+            // Populate Rent Rates
+            if (types.includes('rent')) {
+                if (data.rates) {
+                    document.getElementById('price-day').value = data.rates.daily || '';
+                    document.getElementById('price-week').value = data.rates.weekly || '';
+                    document.getElementById('price-month').value = data.rates.monthly || '';
+                } else if (data.price) {
+                    // Legacy support
+                    if (data.period === 'day') document.getElementById('price-day').value = data.price;
+                }
+            }
+
+            // Populate Sell Price
+            if (types.includes('sell') && data.salePrice) {
+                document.getElementById('sale-price').value = data.salePrice;
+            }
+
+            // Populate Donate Note
+            if (types.includes('donate') && data.donateDescription) {
+                document.getElementById('donate-note').value = data.donateDescription;
             }
 
             // Populate Deposit
@@ -179,6 +262,8 @@ async function enableEditMode(id) {
     } catch (error) {
         console.error("Error loading listing:", error);
         showToast("Error loading listing details", "error");
+    } finally {
+        hideLoader();
     }
 }
 
@@ -212,7 +297,7 @@ if (uploadArea && imageInput) {
     imageInput.addEventListener('change', handleImageUpload);
 
     // Helper: Handle Image Upload & Preview
-    function handleImageUpload(e) {
+    async function handleImageUpload(e) {
         const files = Array.from(e.target.files);
 
         if ((files.length + existingImages.length) > 5) {
@@ -222,9 +307,36 @@ if (uploadArea && imageInput) {
             return;
         }
 
+        // SECURITY FIX: Validate all files
+        const { validateImageFiles } = await import('./file-validator.js');
+        const validation = validateImageFiles(files);
+
+        if (!validation.valid) {
+            showToast(validation.errors.join('\n'), 'error');
+            imageInput.value = '';
+            return;
+        }
+
         selectedFiles = files;
 
-        files.forEach(file => {
+        // PERFORMANCE FIX: Compress images before upload
+        const { compressImage } = await import('./image-compressor.js');
+        const compressedFiles = [];
+
+        for (const file of files) {
+            try {
+                const compressed = await compressImage(file);
+                compressedFiles.push(compressed);
+            } catch (error) {
+                console.error('Compression error:', error);
+                // Fallback to original if compression fails
+                compressedFiles.push(file);
+            }
+        }
+
+        selectedFiles = compressedFiles;
+
+        files.forEach((file, index) => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const img = document.createElement('img');
@@ -247,22 +359,50 @@ if (form) {
         e.preventDefault();
 
         if (!currentUser) {
-            showToast("Please login first.", 'error');
+            showToast("Please login to submit your listing.", 'info');
+
+            // Scroll to top to see banner or just triggering modal
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Trigger Login Modal
+            const loginBtn = document.getElementById('login-btn');
+            if (loginBtn) {
+                setTimeout(() => loginBtn.click(), 500);
+            }
+            return;
+        }
+
+        // 1. Transaction Type Validation
+        const isRent = document.getElementById('mode-rent').checked;
+        const isSell = document.getElementById('mode-sell').checked;
+        const isDonate = document.getElementById('mode-donate').checked;
+
+        if (!isRent && !isSell && !isDonate) {
+            showToast("Please select at least one option: Rent, Sell, or Donate.", 'error');
             return;
         }
 
         // Basic Validation
         const title = document.getElementById('title').value;
         const category = document.getElementById('category').value;
+        const description = document.getElementById('description').value;
+        const location = document.getElementById('location').value;
 
-        // Pricing
+        // Pricing Validation
         const priceDay = document.getElementById('price-day').value;
         const priceWeek = document.getElementById('price-week').value;
         const priceMonth = document.getElementById('price-month').value;
+        const salePrice = document.getElementById('sale-price').value;
+        const donateNote = document.getElementById('donate-note').value;
         const deposit = document.getElementById('deposit').value;
 
-        if (!priceDay && !priceWeek && !priceMonth) {
-            showToast("Please enter at least one price rate.", 'error');
+        if (isRent && !priceDay && !priceWeek && !priceMonth) {
+            showToast("Please enter at least one Rental Rate (Daily, Weekly, or Monthly).", 'error');
+            return;
+        }
+
+        if (isSell && !salePrice) {
+            showToast("Please enter a Selling Price.", 'error');
             return;
         }
 
@@ -272,19 +412,24 @@ if (form) {
             return;
         }
 
-        showToast(isEditMode ? "Updating listing..." : "Creating listing...", 'info');
+        // showToast(isEditMode ? "Updating listing..." : "Creating listing...", 'info');
+        showLoader(isEditMode ? "Updating your listing..." : "Creating your listing... (Uploading images)");
         submitBtn.disabled = true;
 
         try {
             const imageUrls = [...existingImages]; // Keep old
 
             // Upload New Images
-            for (const file of selectedFiles) {
-                const compressedFile = await compressImage(file);
-                const storageRef = ref(storage, `listings/${currentUser.uid}/${Date.now()}_${file.name}`);
-                const snapshot = await uploadBytes(storageRef, compressedFile);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                imageUrls.push(downloadURL);
+            if (selectedFiles.length > 0) {
+                for (const file of selectedFiles) {
+                    // Update loader message for multi-file upload
+                    // showLoader(`Uploading image ${imageUrls.length + 1}...`);
+                    const compressedFile = await compressImage(file);
+                    const storageRef = ref(storage, `listings/${currentUser.uid}/${Date.now()}_${file.name}`);
+                    const snapshot = await uploadBytes(storageRef, compressedFile);
+                    const downloadURL = await getDownloadURL(snapshot.ref);
+                    imageUrls.push(downloadURL);
+                }
             }
 
             // Sanitize Input (XSS Prevention)
@@ -294,16 +439,24 @@ if (form) {
                 return temp.innerHTML;
             };
 
+            const transactionTypes = [];
+            if (isRent) transactionTypes.push('rent');
+            if (isSell) transactionTypes.push('sell');
+            if (isDonate) transactionTypes.push('donate');
+
             const listingData = {
                 title: sanitize(title),
-                description: sanitize(document.getElementById('description').value),
+                description: sanitize(description),
                 category: category,
-                location: sanitize(document.getElementById('location').value),
+                location: sanitize(location),
+                transactionTypes: transactionTypes, // NEW
                 rates: {
-                    daily: priceDay || null,
-                    weekly: priceWeek || null,
-                    monthly: priceMonth || null
+                    daily: isRent ? (priceDay || null) : null,
+                    weekly: isRent ? (priceWeek || null) : null,
+                    monthly: isRent ? (priceMonth || null) : null
                 },
+                salePrice: isSell ? Number(salePrice) : null, // NEW
+                donateDescription: isDonate ? sanitize(donateNote) : null, // NEW
                 deposit: deposit || 0,
                 images: imageUrls,
                 image: imageUrls[0], // Main
@@ -317,10 +470,12 @@ if (form) {
                 listingData.status = 'pending'; // Default status
                 listingData.createdAt = serverTimestamp();
                 await addDoc(collection(db, "listings"), listingData);
+                hideLoader();
                 showToast("Listing submitted for approval! ⏳", 'success');
             } else {
                 const docRef = doc(db, "listings", currentListingId);
                 await updateDoc(docRef, listingData);
+                hideLoader();
                 showToast("Listing updated successfully! ✅", 'success');
             }
 
@@ -330,6 +485,7 @@ if (form) {
 
         } catch (error) {
             console.error("Error saving listing:", error);
+            hideLoader();
             showToast("Failed to save listing: " + error.message, 'error');
             submitBtn.disabled = false;
         }

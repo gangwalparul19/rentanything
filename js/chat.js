@@ -171,10 +171,16 @@ function renderMessage(msg) {
     const date = msg.createdAt ? msg.createdAt.toDate() : new Date();
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    div.innerHTML = `
-        ${msg.text}
-        <div class="message-time">${timeStr}</div>
-    `;
+    // SECURITY FIX: Use textContent instead of innerHTML to prevent XSS
+    const messageText = document.createElement('div');
+    messageText.textContent = msg.text; // Safe - will escape any HTML/script tags
+
+    const messageTime = document.createElement('div');
+    messageTime.className = 'message-time';
+    messageTime.textContent = timeStr;
+
+    div.appendChild(messageText);
+    div.appendChild(messageTime);
     messagesContainer.appendChild(div);
 }
 

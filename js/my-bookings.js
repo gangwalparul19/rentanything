@@ -112,12 +112,12 @@ function renderBookingCard(booking) {
                 ` : ''}
 
                 ${['confirmed', 'active', 'completed'].includes(booking.status) ? `
-                     <button class="btn btn-outline" onclick="window.location.href='agreement.html?id=${booking.id}'" style="border-color: var(--primary); color: var(--primary);">
+                     <button class="btn btn-outline" onclick="window.location.href='/agreement.html?id=${booking.id}'" style="border-color: var(--primary); color: var(--primary);">
                         <i class="fa-solid fa-file-contract"></i> Agreement
                     </button>
                 ` : ''}
 
-                <a href="product.html?id=${booking.listingId}" class="btn btn-primary" style="margin-left: 0.5rem;">View Item</a>
+                <a href="/product.html?id=${booking.listingId}" class="btn btn-primary" style="margin-left: 0.5rem;">View Item</a>
             </div>
             <div style="text-align: right; margin-top: 0.5rem;">
                 <a href="report.html?bookingId=${booking.id}" style="font-size: 0.8rem; color: #94a3b8; text-decoration: underline;">Report Issue</a>

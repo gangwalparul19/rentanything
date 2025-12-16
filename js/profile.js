@@ -7,8 +7,8 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
-// Duplicate import removed
 import { showToast } from './toast.js';
+import { showLoader, hideLoader } from './loader.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -176,13 +176,16 @@ async function compressImage(file) {
 profileImageInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
-        // Validate Type
-        if (!file.type.startsWith('image/')) {
-            showToast("Please select an image file", "error");
+        // SECURITY FIX: Comprehensive file validation
+        const { validateImageFile } = await import('./file-validator.js');
+        const validation = validateImageFile(file);
+
+        if (!validation.valid) {
+            showToast(validation.error, "error");
+            profileImageInput.value = ''; // Reset input
             return;
         }
 
-        // Show loading state (optonal UI, but for now we just process)
         // Preview Original immediately for better UX
         const reader = new FileReader();
         reader.onload = (evt) => {
@@ -194,10 +197,6 @@ profileImageInput.addEventListener('change', async (e) => {
             console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
             const compressedBlob = await compressImage(file);
             console.log(`Compressed size: ${(compressedBlob.size / 1024).toFixed(2)} KB`);
-
-            // Allow slightly larger files if compressed is still big, but usually 0.7 jpeg is small.
-            // No strict 2MB limit on *upload* because we compressed it.
-            // But we can check compressed size if we want.
 
             newImageFile = compressedBlob;
         } catch (error) {
@@ -274,6 +273,7 @@ profileForm.addEventListener('submit', async (e) => {
 
     saveBtn.disabled = true;
     saveBtn.innerText = 'Saving...';
+    showLoader("Saving your profile...");
 
     try {
         let photoURL = profilePreview.src;
@@ -370,5 +370,6 @@ profileForm.addEventListener('submit', async (e) => {
     } finally {
         saveBtn.disabled = false;
         saveBtn.innerText = 'Save Changes';
+        hideLoader();
     }
 });

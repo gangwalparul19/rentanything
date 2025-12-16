@@ -1,11 +1,15 @@
 
+
 // Firebase Imports
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, limit } from 'firebase/firestore'; // Added query, limit
+import { collection, getDocs, query, limit, orderBy } from 'firebase/firestore';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { showLoader, hideLoader } from './loader.js';
+import { HOME_PAGE_LISTING_LIMIT } from './constants.js';
+import { ERROR_MESSAGES } from './error-messages.js';
 
 // console.log('RentAnything App Initialized');
 
@@ -14,9 +18,14 @@ const listingsContainer = document.getElementById('listings-container');
 
 // Fetch Listings from Firestore
 async function fetchListings() {
+    showLoader('Loading amazing items...');
     try {
-        // Limit to 8 items for Home Page as requested
-        const q = query(collection(db, "listings"), limit(8));
+        // PERFORMANCE FIX: Add orderBy for better performance and predictable results
+        const q = query(
+            collection(db, "listings"),
+            orderBy("createdAt", "desc"),
+            limit(HOME_PAGE_LISTING_LIMIT)
+        );
         const querySnapshot = await getDocs(q);
         const listings = [];
         querySnapshot.forEach((doc) => {
@@ -26,7 +35,9 @@ async function fetchListings() {
         renderListings(listings);
     } catch (error) {
         console.error("Error fetching listings:", error);
-        listingsContainer.innerHTML = `<p style="text-align: center; grid-column: 1/-1;">Failed to load listings. Please try again later.</p>`;
+        listingsContainer.innerHTML = `<p style="text-align: center; grid-column: 1/-1;">${ERROR_MESSAGES.FETCH_FAILED}</p>`;
+    } finally {
+        hideLoader();
     }
 }
 
@@ -47,10 +58,38 @@ function renderListings(listings) {
         return;
     }
 
-    listingsContainer.innerHTML = listings.map(item => `
-        <a href="product.html?id=${item.id}" class="listing-card" style="text-decoration: none; color: inherit; display: block;">
+    listingsContainer.innerHTML = listings.map(item => {
+        // Badges
+        const badges = [];
+        if (item.transactionTypes) {
+            if (item.transactionTypes.includes('rent')) badges.push('<span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right:4px;">RENT</span>');
+            if (item.transactionTypes.includes('sell')) badges.push('<span style="background: #dcfce7; color: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right:4px;">BUY</span>');
+            if (item.transactionTypes.includes('donate')) badges.push('<span style="background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;" margin-right:4px;>FREE</span>');
+        } else {
+            // Default to Rent
+            badges.push('<span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">RENT</span>');
+        }
+
+        // Price Display Logic
+        let priceDisplay = '';
+        if (item.transactionTypes && item.transactionTypes.includes('donate')) {
+            priceDisplay = '<span style="color: #e11d48;">Free (Donation)</span>';
+        } else if (item.transactionTypes && item.transactionTypes.includes('sell') && !item.transactionTypes.includes('rent')) {
+            priceDisplay = `₹${item.salePrice || 'N/A'} <span style="font-weight: 400; font-size: 0.8rem; color: var(--gray);">to buy</span>`;
+        } else {
+            // Rent is primary or mixed
+            priceDisplay = item.rates?.daily ? `₹${item.rates.daily}<span style="font-weight: 400; font-size: 0.8rem; color: var(--gray);">/day</span>` :
+                item.rates?.weekly ? `₹${item.rates.weekly}<span style="font-weight: 400; font-size: 0.8rem; color: var(--gray);">/week</span>` :
+                    `₹${item.price || 'N/A'}`;
+        }
+
+        return `
+        <a href="/product.html?id=${item.id}" class="listing-card" style="text-decoration: none; color: inherit; display: block;">
             <div class="card-image" style="height: 200px; width: 100%; overflow: hidden; position: relative;">
                 <img src="${item.image || 'https://placehold.co/400x300?text=No+Image'}" alt="${item.title}" loading="lazy" referrerpolicy="no-referrer" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
+                <div style="position: absolute; top: 10px; left: 10px; display:flex; flex-wrap:wrap; gap:4px;">
+                    ${badges.join('')}
+                </div>
                 ${item.rating ? `<span style="background: white; position: absolute; top: 10px; right: 10px; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">⭐ ${item.rating}</span>` : ''}
             </div>
             <div class="card-content" style="padding: 1rem;">
@@ -60,15 +99,13 @@ function renderListings(listings) {
                 <p style="color: var(--gray); font-size: 0.9rem; margin-bottom: 0.5rem;"><i class="fa-solid fa-location-dot"></i> ${item.location}</p>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
                     <span style="font-weight: 700; font-size: 1.1rem;">
-                        ${item.rates?.daily ? `₹${item.rates.daily}<span style="font-weight: 400; font-size: 0.8rem; color: var(--gray);">/day</span>` :
-            item.rates?.weekly ? `₹${item.rates.weekly}<span style="font-weight: 400; font-size: 0.8rem; color: var(--gray);">/week</span>` :
-                `₹${item.price || 'N/A'}`}
+                        ${priceDisplay}
                     </span>
                     <span class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">View</span>
                 </div>
             </div>
         </a>
-    `).join('');
+    `}).join('');
 }
 
 // Init

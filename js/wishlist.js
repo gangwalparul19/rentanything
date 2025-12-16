@@ -225,7 +225,7 @@ export async function isInWishlist(listingId) {
 
 // View item (navigate to product page)
 window.viewItem = (listingId) => {
-    window.location.href = `product.html?id=${listingId}`;
+    window.location.href = `/product.html?id=${listingId}`;
 };
 
 // Expose functions for external use

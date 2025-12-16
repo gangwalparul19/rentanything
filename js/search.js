@@ -137,8 +137,8 @@ async function loadData() {
         const listSnap = await getDocs(collection(db, "listings"));
         listSnap.forEach(doc => {
             const data = doc.data();
-            // FILTER: Only show active listings (or legacy ones without status)
-            if (data.status === 'active' || !data.status) {
+            // FILTER: Only show approved listings
+            if (data.status === 'approved' || !data.status) {
                 // SIMULATION: Assign random tower if missing
                 const tower = data.tower || ['A', 'B', 'C'][Math.floor(Math.random() * 3)];
                 allListings.push({ id: doc.id, tower, ...data });
@@ -224,6 +224,7 @@ window.clearFilters = () => {
     document.getElementById('max-price').value = '';
     calendarInstance.clear();
     document.querySelectorAll('#category-filters input').forEach(cb => cb.checked = false);
+    document.querySelectorAll('#transaction-filters input').forEach(cb => cb.checked = false);
     if (document.getElementById('verified-only')) document.getElementById('verified-only').checked = false;
     currentPage = 1; // Reset page
     filterAndRender();
@@ -244,6 +245,9 @@ function filterAndRender() {
     // Categories
     const selectedCats = Array.from(document.querySelectorAll('#category-filters input:checked')).map(cb => cb.value);
 
+    // Transaction Types
+    const selectedTypes = Array.from(document.querySelectorAll('#transaction-filters input:checked')).map(cb => cb.value);
+
     // Dates
     const dates = calendarInstance.selectedDates;
     const dateStart = dates[0];
@@ -257,21 +261,42 @@ function filterAndRender() {
         // 2. Category
         if (selectedCats.length > 0 && !selectedCats.includes(item.category)) return false;
 
-        // 3. Price
-        const price = item.rates?.daily || item.price || 0;
-        if (price < minPrice || price > maxPrice) return false;
+        // 3. Transaction Types (OR Logic)
+        const itemTypes = item.transactionTypes || ['rent'];
+        if (selectedTypes.length > 0) {
+            const hasMatch = selectedTypes.some(type => itemTypes.includes(type));
+            if (!hasMatch) return false;
+        }
 
-        // 4. Verified Only Check
+        // 4. Price (Adaptive)
+        // If filtering by Price, we need to check if ANY of the item's available modes fall in range.
+        // For simplicity: If "Donate" is selected/available, Price 0 is fine.
+        // If "Sell" -> item.salePrice
+        // If "Rent" -> item.rates.daily
+        let effectivePrice = Infinity;
+
+        if (itemTypes.includes('donate')) effectivePrice = 0;
+        if (itemTypes.includes('rent') && item.rates?.daily) effectivePrice = Math.min(effectivePrice, item.rates.daily);
+        if (itemTypes.includes('sell') && item.salePrice) effectivePrice = Math.min(effectivePrice, item.salePrice);
+
+        // If no known price, default to item.price (legacy)
+        if (effectivePrice === Infinity) effectivePrice = item.price || 0;
+
+        if (effectivePrice < minPrice || effectivePrice > maxPrice) return false;
+
+
+        // 5. Verified Only Check
         if (isVerifiedOnly) {
             if (!item.ownerId || !verifiedUserIds.has(item.ownerId)) return false;
         }
 
-        // 5. Availability Check
+        // 6. Availability Check (Only relevant for Renting)
+        // If user is searching specifically for "Buy" only, maybe skip date check?
+        // Let's keep it simple: If dates are selected, we assume they want it available during that time (even for visiting to buy).
         if (dateStart) {
             // Check if ANY booking overlaps this range for this item
             const hasConflict = allBookings.some(b => {
                 if (b.listingId !== item.id) return false;
-
                 // Overlap formula: (StartA <= EndB) and (EndA >= StartB)
                 return (dateStart <= b.end && dateEnd >= b.start);
             });
@@ -306,28 +331,49 @@ function renderGrid(items) {
         return;
     }
 
-    grid.innerHTML = items.map(item => `
-        <a href="product.html?id=${item.id}" class="listing-card" style="text-decoration:none; color:inherit; display:block;">
+    grid.innerHTML = items.map(item => {
+        const types = item.transactionTypes || ['rent'];
+
+        // Dynamic Badge
+        let badge = '';
+        if (types.includes('donate')) badge = '<span style="position:absolute; top:10px; left:10px; background:#e11d48; color:white; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-weight:700;">FREE</span>';
+        else if (types.includes('sell') && !types.includes('rent')) badge = '<span style="position:absolute; top:10px; left:10px; background:#16a34a; color:white; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-weight:700;">KEEP</span>';
+        else if (types.includes('rent')) badge = '<span style="position:absolute; top:10px; left:10px; background:#0284c7; color:white; padding:4px 10px; border-radius:6px; font-size:0.7rem; font-weight:700;">RENT</span>';
+
+        // Dynamic Price
+        let priceDisplay = '';
+        if (types.includes('rent')) {
+            const daily = item.rates?.daily || item.price || 0;
+            priceDisplay = `₹${daily} <span style="font-size:0.8rem; color:var(--gray); font-weight:400;">/day</span>`;
+        } else if (types.includes('sell')) {
+            priceDisplay = `₹${item.salePrice} <span style="font-size:0.8rem; color:var(--gray); font-weight:400;">to buy</span>`;
+        } else if (types.includes('donate')) {
+            priceDisplay = `<span style="color: #e11d48;">Free</span>`;
+        }
+
+        return `
+        <a href="/product.html?id=${item.id}" class="listing-card" style="text-decoration:none; color:inherit; display:block;">
             <div class="card-image" style="height:200px; width:100%; overflow:hidden; position:relative;">
                 <img src="${item.image || 'https://placehold.co/400'}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
+                ${badge}
                 ${item.rating ? `<span class="rating-badge" style="position:absolute; top:10px; right:10px; background:white; padding: 2px 8px; border-radius:10px; font-size:0.8rem; font-weight:600;">⭐ ${item.rating}</span>` : ''}
             </div>
             <div class="card-content" style="padding:1rem;">
                 <h3 style="font-size:1.1rem; margin-bottom:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.title}</h3>
                 <div style="color:var(--gray); font-size:0.9rem; margin-bottom:0.5rem;"><i class="fa-solid fa-location-dot"></i> ${item.location}</div>
-                <div style="font-weight:700; font-size:1.2rem; color:var(--primary);">₹${item.rates?.daily || item.price || 0} <span style="font-size:0.8rem; color:var(--gray); font-weight:400;">/day</span></div>
+                <div style="font-weight:700; font-size:1.2rem; color:var(--primary);">${priceDisplay}</div>
             </div>
             <div class="listing-footer" style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 1rem 1rem;">
-                <span class="price" style="font-weight:700; font-size:1.2rem; color:var(--primary);">₹${item.rates?.daily || item.price || 0}<span class="period" style="font-size:0.8rem; color:var(--gray); font-weight:400;">/day</span></span>
+                 <span style="font-size: 0.8rem; color: var(--gray);">${types.length > 1 ? types.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(' • ') : types[0].charAt(0).toUpperCase() + types[0].slice(1)}</span>
                 <div style="display:flex; align-items:center;">
-                    <button class="btn-icon" onclick="toggleSaved(this)" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--gray);">
+                    <button class="btn-icon" onclick="event.preventDefault(); toggleSaved(this)" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--gray);">
                         <i class="fa-regular fa-bookmark"></i>
                     </button>
                     ${item.userPhoto ? `<img src="${item.userPhoto}" referrerpolicy="no-referrer" style="width:30px; height:30px; border-radius:50%; margin-left:0.5rem;">` : ''}
                 </div>
             </div>
         </a>
-    `).join('');
+    `}).join('');
 }
 
 function updateChips(term, cats, min, max, date) {

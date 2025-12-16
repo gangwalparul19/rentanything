@@ -108,7 +108,7 @@ service cloud.firestore {
     // ========== WAITLISTS COLLECTION ==========
     match /waitlists/{waitlistId} {
       allow create: if isAuthenticated() && 
-        wishlistId.matches('^' + request.auth.uid + '_[a-zA-Z0-9]+$');
+        waitlistId.matches('^' + request.auth.uid + '_[a-zA-Z0-9]+$');
       allow read, update, delete: if (isAuthenticated() && 
         resource.data.userId == request.auth.uid) || isAdmin();
     }

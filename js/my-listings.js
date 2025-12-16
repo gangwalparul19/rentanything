@@ -165,10 +165,20 @@ function renderListings(listings) {
         return;
     }
 
-    container.innerHTML = listings.map(item => `
+    container.innerHTML = listings.map(item => {
+        const types = item.transactionTypes || ['rent'];
+        let badgesHtml = '';
+        if (types.includes('donate')) badgesHtml += '<span style="background:#e11d48; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700; margin-right:4px;">FREE</span>';
+        if (types.includes('sell')) badgesHtml += '<span style="background:#16a34a; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700; margin-right:4px;">SELL</span>';
+        if (types.includes('rent')) badgesHtml += '<span style="background:#0284c7; color:white; padding:2px 6px; border-radius:4px; font-size:0.7rem; font-weight:700; margin-right:4px;">RENT</span>';
+
+        return `
         <div class="listing-card" style="position: relative;">
-            <div class="card-image" style="height: 200px; width: 100%; overflow: hidden;">
+            <div class="card-image" style="height: 200px; width: 100%; overflow: hidden; position: relative;">
                 <img src="${item.image || 'https://via.placeholder.com/400x300'}" referrerpolicy="no-referrer" alt="${item.title}" style="width: 100%; height: 100%; object-fit: cover;">
+                <div style="position:absolute; top:8px; left:8px; display:flex; flex-wrap:wrap;">
+                    ${badgesHtml}
+                </div>
             </div>
             <div class="card-content" style="padding: 1rem;">
                 <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${item.title}</h3>
@@ -186,10 +196,15 @@ function renderListings(listings) {
                 </div>
 
                 <div style="display: flex; gap: 0.5rem;">
+                    ${types.includes('sell') && item.status !== 'sold' ? `
+                        <button onclick="markAsSold('${item.id}')" class="btn btn-primary" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;" title="Mark as Sold">
+                            <i class="fa-solid fa-check"></i> Sold
+                        </button>
+                    ` : ''}
                     <a href="create-listing.html?id=${item.id}" class="btn btn-outline" style="flex: 1; text-align: center; padding: 0.5rem;" title="Edit">
                         <i class="fa-solid fa-pen-to-square"></i>
                     </a>
-                    <a href="product.html?id=${item.id}" class="btn btn-outline" style="flex: 1; text-align: center; padding: 0.5rem;" title="View">
+                    <a href="/product.html?id=${item.id}" class="btn btn-outline" style="flex: 1; text-align: center; padding: 0.5rem;" title="View">
                          <i class="fa-solid fa-eye"></i>
                     </a>
                     <button onclick="deleteListing('${item.id}')" class="btn btn-outline" style="border-color: #ef4444; color: #ef4444; padding: 0.5rem 0.8rem;" title="Delete">
@@ -198,7 +213,7 @@ function renderListings(listings) {
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // Window actions
