@@ -209,104 +209,97 @@
 
                 <!-- Transaction Mode Selection -->
                 <div class="form-group">
-                    <label class="form-label">What do you want to do?</label>
+                    <label class="form-label">What do you want to do? *</label>
                     <div style="display: flex; gap: 1.5rem; flex-wrap: wrap;">
                         <label
                             style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; background: #f0f9ff; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid #bae6fd;">
                             <input type="checkbox" id="mode-rent" value="rent" checked
-                                style="width: 1.2rem; height: 1.2rem;">
+                                onchange="handleTransactionTypeChange()" style="width: 1.2rem; height: 1.2rem;">
                             <span style="font-weight: 500; color: #0284c7;">Rent it out</span>
                         </label>
                         <label
                             style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; background: #f0fdf4; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid #bbf7d0;">
-                            <input type="checkbox" id="mode-sell" value="sell" style="width: 1.2rem; height: 1.2rem;">
+                            <input type="checkbox" id="mode-sell" value="sell" onchange="handleTransactionTypeChange()"
+                                style="width: 1.2rem; height: 1.2rem;">
                             <span style="font-weight: 500; color: #16a34a;">Sell it</span>
                         </label>
                         <label
                             style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; background: #fff1f2; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid #fecdd3;">
                             <input type="checkbox" id="mode-donate" value="donate"
-                                style="width: 1.2rem; height: 1.2rem;">
+                                onchange="handleTransactionTypeChange()" style="width: 1.2rem; height: 1.2rem;">
                             <span style="font-weight: 500; color: #e11d48;">Donate it</span>
                         </label>
                     </div>
                 </div>
+        </div>
 
-                <!-- Rental Rates (Conditional) -->
-                <div id="section-rent">
-                    <label class="form-label">Rental Rates (₹)</label>
-                    <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 1rem;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Daily</label>
-                                <button type="button" id="ai-price-btn"
-                                    style="border:none; background:none; color:var(--primary); font-size:0.8rem; cursor:pointer;"
-                                    title="Suggest Price based on category">
-                                    🤖 AI Suggest
-                                </button>
-                            </div>
-                            <input type="number" class="form-control" id="price-day" placeholder="500" min="1">
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Weekly</label>
-                            <input type="number" class="form-control" id="price-week" placeholder="2500" min="1">
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Monthly</label>
-                            <input type="number" class="form-control" id="price-month" placeholder="8000" min="1">
-                        </div>
-                    </div>
+        <!-- Rental Rates (Conditional) -->
+        <div id="section-rent">
+            <label class="form-label">Rental Rates (₹)</label>
+            <div class="form-row" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <input type="number" class="form-control" id="price-day" placeholder="500" min="1">
                 </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Weekly</label>
+                    <input type="number" class="form-control" id="price-week" placeholder="2500" min="1">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label" style="font-size: 0.9rem; color: var(--gray);">Monthly</label>
+                    <input type="number" class="form-control" id="price-month" placeholder="8000" min="1">
+                </div>
+            </div>
+        </div>
 
-                <!-- Selling Price (Conditional) -->
-                <div id="section-sell" style="display: none; margin-bottom: 2rem;">
-                    <label class="form-label">Selling Price (₹)</label>
-                    <div class="input-group">
-                        <span class="icon"><i class="fa-solid fa-tag"></i></span>
-                        <input type="number" class="form-control" id="sale-price" placeholder="e.g. 15000" min="1">
-                    </div>
-                    <p style="font-size: 0.85rem; color: var(--gray); margin-top: 0.2rem;">One-time price for buyers.
-                    </p>
-                </div>
+        <!-- Selling Price (Conditional) -->
+        <div id="section-sell" style="display: none; margin-bottom: 2rem;">
+            <label class="form-label">Selling Price (₹)</label>
+            <div class="input-group">
+                <span class="icon"><i class="fa-solid fa-tag"></i></span>
+                <input type="number" class="form-control" id="sale-price" placeholder="e.g. 15000" min="1">
+            </div>
+            <p style="font-size: 0.85rem; color: var(--gray); margin-top: 0.2rem;">One-time price for buyers.
+            </p>
+        </div>
 
-                <!-- Donation View (Conditional) -->
-                <div id="section-donate"
-                    style="display: none; margin-bottom: 2rem; background: #fff1f2; padding: 1rem; border-radius: 0.75rem; border: 1px solid #fecdd3;">
-                    <label class="form-label" style="color: #be123c;">❤️ Donation Note</label>
-                    <input type="text" class="form-control" id="donate-note"
-                        placeholder="e.g. Free for students or NGOs. Pickup only." style="border-color: #fda4af;">
-                    <p style="font-size: 0.85rem; color: #be123c; margin-top: 0.5rem;">This item will be listed as FREE.
-                    </p>
-                </div>
+        <!-- Donation View (Conditional) -->
+        <div id="section-donate"
+            style="display: none; margin-bottom: 2rem; background: #fff1f2; padding: 1rem; border-radius: 0.75rem; border: 1px solid #fecdd3;">
+            <label class="form-label" style="color: #be123c;">❤️ Donation Note</label>
+            <input type="text" class="form-control" id="donate-note"
+                placeholder="e.g. Free for students or NGOs. Pickup only." style="border-color: #fda4af;">
+            <p style="font-size: 0.85rem; color: #be123c; margin-top: 0.5rem;">This item will be listed as FREE.
+            </p>
+        </div>
 
-                <div class="form-group"
-                    style="background: #fff7ed; padding: 1rem; border-radius: 0.75rem; border: 1px solid #fed7aa;">
-                    <label class="form-label" style="color: #9a3412;">🛡️ Security Deposit (Refundable)</label>
-                    <p style="font-size: 0.85rem; color: #c2410c; margin-bottom: 0.5rem;">Protect your item! Renters pay
-                        this upfront and get it back if returned safe.</p>
-                    <input type="number" class="form-control" id="deposit" placeholder="e.g. 5000" min="0"
-                        style="border-color: #fdba74;">
-                </div>
+        <div class="form-group"
+            style="background: #fff7ed; padding: 1rem; border-radius: 0.75rem; border: 1px solid #fed7aa;">
+            <label class="form-label" style="color: #9a3412;">🛡️ Security Deposit (Refundable)</label>
+            <p style="font-size: 0.85rem; color: #c2410c; margin-bottom: 0.5rem;">Protect your item! Renters pay
+                this upfront and get it back if returned safe.</p>
+            <input type="number" class="form-control" id="deposit" placeholder="e.g. 5000" min="0"
+                style="border-color: #fdba74;">
+        </div>
 
-                <div class="form-group">
-                    <label class="form-label">Item Images (Max 5)</label>
-                    <div class="image-upload-area" id="upload-area">
-                        <i class="fa-solid fa-cloud-arrow-up"
-                            style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                        <p>Click to upload or drag and drop<br><span style="font-size: 0.8rem; color: var(--gray);">Up
-                                to 5 photos</span></p>
-                        <input type="file" id="image-file" accept="image/*" multiple style="display: none;" required>
-                    </div>
-                    <div id="preview-container" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
-                    </div>
-                </div>
+        <div class="form-group">
+            <label class="form-label">Item Images (Max 5)</label>
+            <div class="image-upload-area" id="upload-area">
+                <i class="fa-solid fa-cloud-arrow-up"
+                    style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                <p>Click to upload or drag and drop<br><span style="font-size: 0.8rem; color: var(--gray);">Up
+                        to 5 photos</span></p>
+                <input type="file" id="image-file" accept="image/*" multiple style="display: none;" required>
+            </div>
+            <div id="preview-container" style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;">
+            </div>
+        </div>
 
-                <div style="margin-top: 3rem;">
-                    <button type="submit" class="btn btn-primary"
-                        style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                        <i class="fa-solid fa-paper-plane" style="margin-right: 0.5rem;"></i> Publish Listing
-                    </button>
-                </div>
-            </form>
+        <div style="margin-top: 3rem;">
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                <i class="fa-solid fa-paper-plane" style="margin-right: 0.5rem;"></i> Publish Listing
+            </button>
+        </div>
+        </form>
         </div>
     </main>
 

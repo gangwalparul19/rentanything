@@ -109,6 +109,35 @@ let existingImages = [];
 let isEditMode = false;
 let currentListingId = null;
 
+// BUSINESS RULE: Donate cannot be combined with Rent or Sell
+window.handleTransactionTypeChange = function () {
+    const rentCheckbox = document.getElementById('mode-rent');
+    const sellCheckbox = document.getElementById('mode-sell');
+    const donateCheckbox = document.getElementById('mode-donate');
+
+    if (!rentCheckbox || !sellCheckbox || !donateCheckbox) return;
+
+    // If Donate is checked, uncheck and disable Rent and Sell
+    if (donateCheckbox.checked) {
+        rentCheckbox.checked = false;
+        sellCheckbox.checked = false;
+        rentCheckbox.disabled = true;
+        sellCheckbox.disabled = true;
+    } else {
+        // If Donate is unchecked, enable Rent and Sell
+        rentCheckbox.disabled = false;
+        sellCheckbox.disabled = false;
+    }
+
+    // If Rent or Sell is checked, disable Donate
+    if (rentCheckbox.checked || sellCheckbox.checked) {
+        donateCheckbox.disabled = true;
+    } else {
+        donateCheckbox.disabled = false;
+    }
+};
+
+
 // --- TRANSACTION MODES LOGIC ---
 function initTransactionModes() {
     const modes = ['rent', 'sell', 'donate'];
