@@ -16,10 +16,10 @@ export function initHeader() {
     // Standard Links Configuration
     // derived from index.html
     const links = [
-        { text: 'Home', href: 'index.html/#home' },
+        { text: 'Home', href: '/index.html#home' },
         { text: 'Requests', href: '/requests.html' },
-        { text: 'Categories', href: 'index.html/#categories' },
-        { text: 'How it Works', href: 'index.html/#how-it-works' }
+        { text: 'Categories', href: '/index.html#categories' },
+        { text: 'How it Works', href: '/index.html#how-it-works' }
     ];
 
     // Clear existing content (if any)

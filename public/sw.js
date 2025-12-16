@@ -1,25 +1,10 @@
-const CACHE_NAME = 'rentanything-v10';
+const CACHE_NAME = 'rentanything-v11';
 const urlsToCache = [
-    './index.html',
-    './search.html',
-    './product.html',
-    './profile.html',
-    './my-listings.html',
-    './my-bookings.html',
-    './chat.html',
-    './requests.html',
-    './css/style.css',
-    './js/app.js',
-    './js/search.js',
-    './js/product-details.js',
-    './js/profile.js',
-    './js/auth.js',
-    './js/navigation.js',
-    './js/theme.js',
-    './js/toast.js',
-    './js/chat.js',
-    './js/requests.js',
-    './js/firebase-config.js'
+    '/index.html',
+    '/search.html',
+    '/product.html',
+    '/manifest.json'
+    // Note: Vite bundles CSS/JS with hashes, they'll be cached on-demand
 ];
 
 self.addEventListener('install', event => {
@@ -55,11 +40,21 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-    // Network First Strategy for HTML/CSS/JS to ensure updates are seen immediately
-    // Only fall back to cache if offline or network fails.
+    // Network First Strategy: Try network, cache response, fallback to cache if offline
     event.respondWith(
         fetch(event.request)
+            .then(response => {
+                // Cache successful responses dynamically
+                if (response.status === 200) {
+                    const responseClone = response.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, responseClone);
+                    });
+                }
+                return response;
+            })
             .catch(() => {
+                // Network failed, try cache
                 return caches.match(event.request);
             })
     );
