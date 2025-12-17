@@ -29,7 +29,11 @@ async function fetchListings() {
         const querySnapshot = await getDocs(q);
         const listings = [];
         querySnapshot.forEach((doc) => {
-            listings.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            // FILTER: Only show approved listings (or legacy items without status field)
+            if (data.status === 'approved' || !data.status) {
+                listings.push({ id: doc.id, ...data });
+            }
         });
 
         renderListings(listings);
