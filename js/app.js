@@ -95,7 +95,7 @@ function renderListings(listings) {
         return `
         <a href="/product.html?id=${item.id}" class="listing-card" style="text-decoration: none; color: inherit; display: block;">
             <div class="card-image" style="height: 200px; width: 100%; overflow: hidden; position: relative; background: #f1f5f9;">
-                <img src="${item.image || 'https://placehold.co/400x300?text=No+Image'}" alt="${item.title}" loading="eager" referrerpolicy="no-referrer" crossorigin="anonymous" onerror="this.src='https://placehold.co/400x300?text=Image+Error'" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
+                <img src="${item.image || 'https://placehold.co/400x300?text=No+Image'}" alt="${item.title}" loading="eager" referrerpolicy="no-referrer" onerror="this.onerror=null; this.src='https://placehold.co/400x300?text=No+Image';" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s;">
                 <div style="position: absolute; top: 10px; left: 10px; display:flex; flex-wrap:wrap; gap:4px;">
                     ${badges.join('')}
                 </div>
