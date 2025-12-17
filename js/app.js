@@ -30,8 +30,8 @@ async function fetchListings() {
         const listings = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            // FILTER: Only show approved listings (or legacy items without status field)
-            if (data.status === 'approved' || !data.status) {
+            // FILTER: Only show approved/active listings (or legacy items without status field)
+            if (data.status === 'active' || data.status === 'approved' || !data.status) {
                 listings.push({ id: doc.id, ...data });
             }
         });
