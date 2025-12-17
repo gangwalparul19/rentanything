@@ -443,6 +443,9 @@ if (uploadArea && imageInput) {
         const { compressImage } = await import('./image-compressor.js');
         const compressedFiles = [];
 
+        // Show loader during compression
+        showLoader(`Compressing ${files.length} image(s)...`);
+
         for (const file of files) {
             try {
                 const compressed = await compressImage(file);
@@ -454,6 +457,7 @@ if (uploadArea && imageInput) {
             }
         }
 
+        hideLoader();
         selectedFiles = compressedFiles;
 
         files.forEach((file, index) => {

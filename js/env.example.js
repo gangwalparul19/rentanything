@@ -14,18 +14,18 @@ export const ENV = {
     FIREBASE_MESSAGING_SENDER_ID: 'YOUR_SENDER_ID',
     FIREBASE_APP_ID: 'YOUR_APP_ID',
     FIREBASE_MEASUREMENT_ID: 'G-XXXXXXXXXX',
-    
+
     // ===== FIREBASE CLOUD MESSAGING =====
     // Get from: Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
     FCM_VAPID_KEY: 'YOUR_VAPID_KEY_HERE',
-    
+
     // ===== ADMIN CONFIGURATION =====
     // Add authorized admin email addresses
     ADMIN_EMAILS: [
         'admin1@example.com',
         'admin2@example.com',
     ],
-    
+
     // ===== OPTIONAL: ADD OTHER SECRETS =====
     // STRIPE_PUBLIC_KEY: 'pk_test_...',
     // GOOGLE_MAPS_API_KEY: 'AIza...',
