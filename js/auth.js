@@ -58,6 +58,14 @@ export function initAuth() {
             // User is signed in
             // User is signed in
             if (loginBtn) loginBtn.style.display = 'none';
+        } else {
+            // User is signed out
+            if (loginBtn) loginBtn.style.display = 'inline-flex';
+            if (userProfile) userProfile.style.display = 'none';
+        }
+
+        if (user) {
+
 
             // Register for Push Notifications
             console.log("🔔 Initializing Push Notifications for User...");

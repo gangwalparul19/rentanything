@@ -141,8 +141,8 @@ export function initHeader() {
         const mobileBell = document.getElementById('mobile-notification-btn');
 
         if (user) {
-            if (desktopBell) desktopBell.style.display = 'inline-block';
-            if (mobileBell) mobileBell.style.display = 'inline-block';
+            if (desktopBell) desktopBell.style.display = 'inline-flex';
+            if (mobileBell) mobileBell.style.display = ''; // Let CSS handle mobile-only visibility
 
             try {
                 startNotificationListener(user.uid);
