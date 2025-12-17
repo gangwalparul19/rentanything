@@ -2,7 +2,7 @@
 
 // Firebase Imports
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, limit, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
@@ -20,26 +20,31 @@ const listingsContainer = document.getElementById('listings-container');
 async function fetchListings() {
     showLoader('Loading amazing items...');
     try {
-        // PERFORMANCE FIX: Add orderBy for better performance and predictable results
+        // Simple query without orderBy to avoid index requirement
         const q = query(
             collection(db, "listings"),
-            orderBy("createdAt", "desc"),
             limit(HOME_PAGE_LISTING_LIMIT)
         );
         const querySnapshot = await getDocs(q);
+        console.log("Fetched listings count:", querySnapshot.size);
+
         const listings = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
+            console.log("Listing:", doc.id, "status:", data.status, "image:", data.image);
             // FILTER: Only show approved/active listings (or legacy items without status field)
             if (data.status === 'active' || data.status === 'approved' || !data.status) {
                 listings.push({ id: doc.id, ...data });
             }
         });
 
+        console.log("Filtered listings to display:", listings.length);
         renderListings(listings);
     } catch (error) {
         console.error("Error fetching listings:", error);
-        listingsContainer.innerHTML = `<p style="text-align: center; grid-column: 1/-1;">${ERROR_MESSAGES.FETCH_FAILED}</p>`;
+        if (listingsContainer) {
+            listingsContainer.innerHTML = `<p style="text-align: center; grid-column: 1/-1;">Error loading listings. ${error.message}</p>`;
+        }
     } finally {
         hideLoader();
     }
