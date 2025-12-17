@@ -1,7 +1,7 @@
 
 import { auth, googleProvider } from './firebase-config.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 
 export function initAuth() {
     const loginBtn = document.getElementById('login-btn');

@@ -1,6 +1,6 @@
 import { db, auth } from './firebase-config.js';
 import { collection, addDoc, serverTimestamp, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc, increment, orderBy, limit, arrayUnion, arrayRemove } from 'firebase/firestore';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 
 /**
  * Default forum categories

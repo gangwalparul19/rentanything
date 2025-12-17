@@ -5,7 +5,7 @@
 
 import { db, auth } from './firebase-config.js';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 
 // Badge definitions
 export const BADGES = {

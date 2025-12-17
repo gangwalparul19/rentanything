@@ -1,6 +1,6 @@
 import { db, auth } from './firebase-config.js';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, increment, query, where, getDocs } from 'firebase/firestore';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 
 /**
  * Emission Factors Database (kg CO2e per item)

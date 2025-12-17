@@ -1,6 +1,6 @@
 import { db, auth } from './firebase-config.js';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 
 /**
  * Share to WhatsApp

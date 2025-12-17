@@ -7,7 +7,8 @@ import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
 // Duplicate import removed
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
+import { showEmptyState } from './empty-states.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
@@ -155,13 +156,7 @@ async function loadDashboardData(userId) {
 
 function renderListings(listings) {
     if (listings.length === 0) {
-        container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; opacity: 0.7;">
-                <i class="fa-regular fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                <h3>No listings yet</h3>
-                <p>Go ahead and <a href="create-listing.html" style="color: var(--primary);">List your first item</a>!</p>
-            </div>
-        `;
+        showEmptyState('#my-listings-container', 'myListings');
         return;
     }
 

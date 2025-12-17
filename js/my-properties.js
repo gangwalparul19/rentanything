@@ -6,7 +6,7 @@ import { db, auth } from './firebase-config.js';
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -2,7 +2,7 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
@@ -38,8 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
     bookingId = urlParams.get('id');
 
     if (!bookingId) {
-        alert("Invalid Agreement Link");
-        window.location.href = '/';
+        showToast("Invalid Agreement Link", "error");
+        setTimeout(() => window.location.href = '/', 1500);
         return;
     }
 
@@ -62,7 +62,7 @@ async function loadBooking(id) {
         const snap = await getDoc(docRef);
 
         if (!snap.exists()) {
-            alert("Booking not found");
+            showToast("Booking not found", "error");
             return;
         }
 

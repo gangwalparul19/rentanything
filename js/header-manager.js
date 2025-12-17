@@ -231,39 +231,62 @@ function renderDropdown() {
     }
 
     list.innerHTML = notifications.map(n => `
-        <div class="notification-item" onclick="handleNotificationClick('${n.id}', '${n.type}', '${n.link || ''}')" 
+        <div class="notification-item" data-notif-id="${n.id}" data-notif-type="${n.type}" data-notif-link="${n.link || ''}" 
              style="padding:0.75rem 1rem; border-bottom:1px solid #f8fafc; cursor:pointer; background: ${n.read ? 'white' : '#f0f9ff'};">
             <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.2rem;">${n.title}</div>
             <div style="font-size:0.85rem; color:#475569;">${n.body}</div>
             <div style="font-size:0.7rem; color:#94a3b8; margin-top:0.3rem;">${n.createdAt ? new Date(n.createdAt.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}</div>
         </div>
     `).join('');
+
+    // Add click listeners after rendering
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.dataset.notifId;
+            const type = item.dataset.notifType;
+            const link = item.dataset.notifLink;
+            handleNotificationClick(id, type, link);
+        });
+    });
 }
 
-// Global handler
-window.handleNotificationClick = async (id, type, link) => {
+// Handler for notification clicks
+async function handleNotificationClick(id, type, link) {
     // 1. Mark as read
     try {
         const notifRef = doc(db, "notifications", id);
         await updateDoc(notifRef, { read: true });
     } catch (e) { console.error("Error marking read", e); }
 
-    // 2. Redirect
+    // 2. Close dropdown
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+
+    // 3. Redirect
     if (link) {
         window.location.href = link;
     } else {
         // Default Routes
+        if (type === 'booking_request') window.location.href = 'my-listings.html';
         if (type === 'booking_update') window.location.href = 'my-bookings.html';
         if (type === 'message') window.location.href = 'chat.html';
+        if (type === 'new_property') window.location.href = 'properties.html';
     }
-};
+}
 
 // Close dropdown on click outside
 window.addEventListener('click', (e) => {
     const dropdown = document.getElementById('notification-dropdown');
     const desktopBell = document.getElementById('desktop-notification-btn');
+    const mobileBell = document.getElementById('mobile-notification-btn');
+
     if (dropdown && dropdown.style.display === 'block') {
-        if (!dropdown.contains(e.target) && !desktopBell.contains(e.target)) {
+        // Check if click is outside dropdown and not on any bell button
+        const isClickInside = dropdown.contains(e.target);
+        const isClickOnDesktopBell = desktopBell && desktopBell.contains(e.target);
+        const isClickOnMobileBell = mobileBell && mobileBell.contains(e.target);
+
+        if (!isClickInside && !isClickOnDesktopBell && !isClickOnMobileBell) {
             dropdown.style.display = 'none';
         }
     }

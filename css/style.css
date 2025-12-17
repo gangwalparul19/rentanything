@@ -881,11 +881,80 @@ a {
             color: var(--primary) !important;
             /* Force color */
             opacity: 1 !important;
+            margin-right: 0.5rem;
         }
 
         .logo img {
             height: 28px;
             /* Smaller logo icon to fit */
+        }
+
+        /* Mobile Icons Group - Enhanced Styling */
+        .mobile-icons-group {
+            display: flex !important;
+            align-items: center;
+            gap: 0.75rem;
+            /* Better spacing between icons */
+            margin-left: auto;
+        }
+
+        /* Mobile Chat Button */
+        #mobile-chat-btn {
+            padding: 0.5rem !important;
+            border: none !important;
+            background: transparent !important;
+            color: var(--primary) !important;
+            transition: all 0.2s ease;
+        }
+
+        #mobile-chat-btn:hover,
+        #mobile-chat-btn:active {
+            background: rgba(99, 102, 241, 0.1) !important;
+            border-radius: 0.5rem;
+        }
+
+        #mobile-chat-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* Mobile Notification Button - Enhanced */
+        #mobile-notification-btn {
+            padding: 0.5rem !important;
+            border: none !important;
+            background: transparent !important;
+            color: var(--primary) !important;
+            position: relative;
+            min-width: 44px;
+            /* Touch-friendly size */
+            min-height: 44px;
+            transition: all 0.2s ease;
+        }
+
+        #mobile-notification-btn:hover,
+        #mobile-notification-btn:active {
+            background: rgba(99, 102, 241, 0.1) !important;
+            border-radius: 0.5rem;
+        }
+
+        #mobile-notification-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* Notification Badge - Improved Visibility */
+        #mobile-notification-btn .notif-badge {
+            position: absolute !important;
+            top: 4px !important;
+            right: 4px !important;
+            background: #ef4444 !important;
+            color: white !important;
+            border-radius: 10px !important;
+            padding: 2px 6px !important;
+            font-size: 0.65rem !important;
+            font-weight: 600 !important;
+            border: 2px solid white !important;
+            min-width: 18px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         /* Hero adjustments */
@@ -1060,6 +1129,37 @@ a {
             display: flex;
             z-index: 102;
             /* Above the dropdown */
+            padding: 0.5rem;
+            background: transparent;
+            border-radius: 0.5rem;
+            transition: all 0.2s ease;
+            min-width: 44px;
+            /* Touch-friendly */
+            min-height: 44px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-menu-btn:hover,
+        .mobile-menu-btn:active {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .mobile-menu-btn span {
+            transition: all 0.3s ease;
+        }
+
+        /* Animate hamburger to X when active */
+        .app-header.active .mobile-menu-btn span:nth-child(1) {
+            transform: rotate(45deg) translate(6px, 6px);
+        }
+
+        .app-header.active .mobile-menu-btn span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .app-header.active .mobile-menu-btn span:nth-child(3) {
+            transform: rotate(-45deg) translate(6px, -6px);
         }
 
         /* Mobile Menu Open State - Clean Flexbox Implementation */
@@ -1068,6 +1168,14 @@ a {
         .app-header .container {
             flex-wrap: wrap;
             transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            /* Better padding for mobile */
+            gap: 0.5rem;
+        }
+
+        /* Ensure header doesn't overflow */
+        .app-header {
+            padding: 0.5rem 0;
         }
 
         /* Initial State: Hidden */

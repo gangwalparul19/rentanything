@@ -6,8 +6,9 @@ import { db, auth } from './firebase-config.js';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
+import { gallery } from './image-gallery.js';
 
 // Get property ID from URL
 const urlParams = new URLSearchParams(window.location.search);
@@ -197,6 +198,38 @@ function renderPropertyDetails(property) {
             </div>
         </div>
     `;
+
+    // Setup image gallery
+    setupImageGallery(property);
+}
+
+function setupImageGallery(property) {
+    const container = document.getElementById('property-container');
+    if (!container) return;
+
+    // Collect all images
+    const images = [property.mainImage];
+    if (property.images && property.images.length > 0) {
+        images.push(...property.images);
+    }
+
+    // Add click handler to main image
+    const mainImage = container.querySelector('img[alt="' + property.title + '"]');
+    if (mainImage) {
+        mainImage.style.cursor = 'pointer';
+        mainImage.addEventListener('click', () => {
+            gallery.open(images, 0);
+        });
+    }
+
+    // Add click handlers to thumbnails
+    const thumbnails = container.querySelectorAll('img[src]:not([alt="' + property.title + '"])');
+    thumbnails.forEach((thumb, index) => {
+        thumb.style.cursor = 'pointer';
+        thumb.addEventListener('click', () => {
+            gallery.open(images, index + 1);
+        });
+    });
 }
 
 // Contact owner - Open chat

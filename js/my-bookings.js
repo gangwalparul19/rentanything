@@ -6,8 +6,9 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { notifyWaitlistedUsers } from './waitlist.js';
+import { showEmptyState } from './empty-states.js';
 
 // Elements
 const container = document.getElementById('bookings-container');
@@ -41,13 +42,7 @@ async function fetchBookings(userId) {
         const snap = await getDocs(q);
 
         if (snap.empty) {
-            container.innerHTML = `
-                <div style="text-align: center; padding: 4rem; color: var(--gray);">
-                    <i class="fa-regular fa-calendar-xmark" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                    <h3>No bookings yet</h3>
-                    <p>Browse categories to find something to rent!</p>
-                </div>
-            `;
+            showEmptyState('#bookings-container', 'bookings');
             return;
         }
 

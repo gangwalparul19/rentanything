@@ -4,7 +4,8 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
+import { showEmptyState } from './empty-states.js';
 
 let currentFilter = 'all';
 let wishlistData = [];
@@ -93,8 +94,7 @@ function renderWishlist() {
     }
 
     if (filtered.length === 0) {
-        const filterText = currentFilter === 'all' ? '' : ` with ${currentFilter} priority`;
-        showEmptyState(`No items${filterText} in your wishlist`);
+        showEmptyState('#wishlist-grid', 'wishlist');
         return;
     }
 

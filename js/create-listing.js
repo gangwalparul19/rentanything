@@ -7,8 +7,9 @@ import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
 import { compressImage } from './image-compressor.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
+import { FormValidator } from './form-validator.js';
 
 // Initialize Global UI Components
 document.addEventListener('DOMContentLoaded', () => {
@@ -77,23 +78,113 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 // Add some "market fluctuation" randomness (+- 10%)
-                const variance = 1 + (Math.random() * 0.2 - 0.1);
-                base = Math.round(base * variance / 10) * 10;
+                const variance = base * 0.1;
+                const dayPrice = Math.round(base + (Math.random() - 0.5) * variance);
+                const weekPrice = Math.round(dayPrice * 6); // Small weekly discount
+                const monthPrice = Math.round(dayPrice * 20); // Better monthly discount
 
-                dayInput.value = base;
-                weekInput.value = base * 5;
-                monthInput.value = base * 15;
+                dayInput.value = dayPrice;
+                weekInput.value = weekPrice;
+                monthInput.value = monthPrice;
 
                 // Suggest Deposit (Safety) - e.g., 20x daily rate for safety
                 const depositInput = document.getElementById('deposit');
-                if (depositInput) depositInput.value = base * 20;
+                if (depositInput) depositInput.value = dayPrice * 20;
 
-                showToast(`💡 Market average found for ${category}!`, "success");
+                showToast("Smart prices suggested! 💡", "success");
                 hideLoader();
-            }, 800);
+            }, 1200);
         });
     }
+
+    // Setup Form Validation
+    setupFormValidation();
 });
+
+function setupFormValidation() {
+    const form = document.getElementById('create-listing-form');
+    if (!form) return;
+
+    const validator = new FormValidator(form, {
+        title: {
+            required: true,
+            minLength: 3,
+            maxLength: 100,
+            messages: {
+                required: 'Please enter a title for your listing',
+                minLength: 'Title should be at least 3 characters long',
+                maxLength: 'Title cannot exceed 100 characters'
+            }
+        },
+        description: {
+            required: true,
+            minLength: 20,
+            maxLength: 1000,
+            messages: {
+                required: 'Please describe your item',
+                minLength: 'Please provide more details (minimum 20 characters)',
+                maxLength: 'Description is too long (maximum 1000 characters)'
+            }
+        },
+        category: {
+            required: true,
+            custom: (value) => {
+                if (!value || value === '') {
+                    return 'Please select a category';
+                }
+                return null;
+            }
+        },
+        location: {
+            required: true,
+            minLength: 2,
+            messages: {
+                required: 'Please specify the location (e.g., Splendour, Mystic)',
+                minLength: 'Location seems too short'
+            }
+        },
+        daily: {
+            number: true,
+            min: 1,
+            custom: (value) => {
+                const modeRent = document.getElementById('mode-rent');
+                const isRentMode = modeRent && modeRent.checked;
+
+                if (isRentMode && (!value || parseFloat(value) < 1)) {
+                    return 'Please enter a daily rental price (minimum ₹1)';
+                }
+                return null;
+            },
+            messages: {
+                number: 'Price must be a valid number',
+                min: 'Price must be at least ₹1'
+            }
+        }
+    });
+
+    // Add character counter for description
+    const descriptionField = document.getElementById('description');
+    if (descriptionField) {
+        const formGroup = descriptionField.closest('.form-group');
+        const counter = document.createElement('div');
+        counter.className = 'char-counter';
+        counter.textContent = '0 / 1000';
+        formGroup.appendChild(counter);
+
+        descriptionField.addEventListener('input', () => {
+            const length = descriptionField.value.length;
+            counter.textContent = `${length} / 1000`;
+
+            if (length > 950) {
+                counter.classList.add('warning');
+            } else if (length > 1000) {
+                counter.classList.add('error');
+            } else {
+                counter.classList.remove('warning', 'error');
+            }
+        });
+    }
+}
 
 // --- GLOBALS ---
 const form = document.getElementById('create-listing-form');

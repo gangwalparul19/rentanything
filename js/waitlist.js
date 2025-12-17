@@ -1,6 +1,6 @@
 import { db, auth } from './firebase-config.js';
 import { collection, query, where, getDocs, doc, getDoc, setDoc, deleteDoc, serverTimestamp, addDoc } from 'firebase/firestore';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 
 // Add to waitlist
 export async function addToWaitlist(listingId, listingTitle, listingImage, desiredDates = null) {

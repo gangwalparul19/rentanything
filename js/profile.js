@@ -7,8 +7,9 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
+import { compressImage } from './image-compressor.js'; // Import enhanced compressor
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -126,53 +127,6 @@ imageUploadWrapper.addEventListener('click', () => {
     profileImageInput.click();
 });
 
-// Helper: Compress Image using Canvas
-async function compressImage(file) {
-    return new Promise((resolve, reject) => {
-        const maxWidth = 800; // Resize to max 800px width/height
-        const maxHeight = 800;
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-            const img = new Image();
-            img.src = event.target.result;
-            img.onload = () => {
-                let width = img.width;
-                let height = img.height;
-
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                // Compress to JPEG at 0.7 quality
-                canvas.toBlob((blob) => {
-                    if (blob) {
-                        resolve(blob);
-                    } else {
-                        reject(new Error("Compression failed"));
-                    }
-                }, 'image/jpeg', 0.7);
-            };
-            img.onerror = (err) => reject(err);
-        };
-        reader.onerror = (err) => reject(err);
-    });
-}
-
 profileImageInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -186,6 +140,11 @@ profileImageInput.addEventListener('change', async (e) => {
             return;
         }
 
+        // Show notification for large files
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('Compressing large image...', 'info');
+        }
+
         // Preview Original immediately for better UX
         const reader = new FileReader();
         reader.onload = (evt) => {
@@ -195,10 +154,20 @@ profileImageInput.addEventListener('change', async (e) => {
 
         try {
             console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
-            const compressedBlob = await compressImage(file);
-            console.log(`Compressed size: ${(compressedBlob.size / 1024).toFixed(2)} KB`);
+            // Use enhanced compressor with profile-optimized settings
+            const compressedFile = await compressImage(file, {
+                maxWidth: 800,  // Profile images don't need to be huge
+                targetSizeMB: 0.5, // Target 500KB for profile pictures
+                maxQuality: 0.85
+            });
+            console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
 
-            newImageFile = compressedBlob;
+            newImageFile = compressedFile;
+
+            if (file.size > 2 * 1024 * 1024) {
+                const reduction = ((1 - compressedFile.size / file.size) * 100).toFixed(0);
+                showToast(`✅ Image compressed by ${reduction}%`, 'success');
+            }
         } catch (error) {
             console.error("Compression error:", error);
             showToast("Failed to process image. Try another.", "error");

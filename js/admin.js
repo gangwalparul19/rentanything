@@ -1,7 +1,7 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, signOut } from 'firebase/auth';
 import { collection, query, where, getDocs, updateDoc, doc, getDoc, getCountFromServer, orderBy, limit } from 'firebase/firestore';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
 import { sendPropertyApprovalEmail, sendPropertyRejectionEmail } from './email-notifications.js';
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // console.log('Admin panel accessed by:', user.email);
+            // Admin access logged via Firebase auth
 
             // Show sidebar and main content
             const sidebar = document.querySelector('.sidebar');
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadDashboard();
         } else {
             // Not logged in - show Google Sign-In
-            console.log('No user logged in. Showing admin login...');
+            // No user logged in - show login screen
 
             // Hide sidebar
             const sidebar = document.querySelector('.sidebar');
@@ -208,7 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- LOAD DASHBOARD ---
 async function loadDashboard() {
-    console.log("Loading Admin Data...");
+    // Loading admin dashboard data
 
     // 1. KPIs
     const usersSnap = await getCountFromServer(collection(db, "users"));
@@ -656,7 +656,7 @@ window.approveProperty = async (id) => {
                     ownerData.email,
                     ownerData.displayName || ownerData.name || 'User'
                 );
-                console.log('Approval email sent to:', ownerData.email);
+                // Approval email sent successfully
             }
         } catch (emailError) {
             console.error('Error sending approval email:', emailError);
@@ -730,7 +730,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ownerData.displayName || ownerData.name || 'User',
                                 reason
                             );
-                            console.log('Rejection email sent to:', ownerData.email);
+                            // Rejection email sent successfully
                         }
                     } catch (emailError) {
                         console.error('Error sending rejection email:', emailError);

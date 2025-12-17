@@ -5,7 +5,8 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
+import { showEmptyState } from './empty-states.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -65,7 +66,7 @@ function loadConversations() {
     onSnapshot(q, (snapshot) => {
         conversationsList.innerHTML = '';
         if (snapshot.empty) {
-            conversationsList.innerHTML = '<div style="padding:1.5rem; text-align:center; color:var(--gray);">No messages yet. Start a chat from a listing!</div>';
+            showEmptyState('#conversations-list', 'chat');
             return;
         }
 

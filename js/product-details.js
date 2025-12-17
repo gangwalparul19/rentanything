@@ -7,9 +7,10 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { initShareMenu, shareToWhatsApp, shareToFacebook, shareToTwitter, shareToLinkedIn, shareViaEmail, copyShareLink, shareNative } from './social-share.js';
 import { calculateCO2Savings } from './carbon-calculator.js';
+import { gallery } from './image-gallery.js';
 
 // ... (Existing code)
 
@@ -640,6 +641,9 @@ async function renderProduct() {
         // Setup Buttons (Fav, Wishlist, Share)
         setupInteractionButtons(productId, product);
 
+        // Setup Image Gallery
+        setupImageGallery(product);
+
     } catch (error) {
         console.error("Error fetching product:", error);
         container.innerHTML = `<div style="text-align:center; grid-column: 1/-1;"><h2>Error loading product ⚠️</h2><p>${error.message}</p></div>`;
@@ -691,6 +695,39 @@ function setupInteractionButtons(productId, product) {
             document.querySelector('.share-dropdown').classList.toggle('active');
         };
     }
+}
+
+function setupImageGallery(product) {
+    const mainImage = document.getElementById('main-image');
+    if (!mainImage) return;
+
+    // Collect all images
+    const images = [product.image || 'https://placehold.co/600x400'];
+    if (product.images && product.images.length > 0) {
+        images.push(...product.images);
+    }
+
+    // Add click handler to main image
+    mainImage.style.cursor = 'pointer';
+    mainImage.addEventListener('click', () => {
+        const currentSrc = mainImage.src;
+        const startIndex = images.findIndex(img => img === currentSrc) || 0;
+        gallery.open(images, startIndex);
+    });
+
+    // Add click handlers to thumbnails (if they exist)
+    const thumbnails = document.querySelectorAll('.main-image-wrapper + div img');
+    thumbnails.forEach((thumb, index) => {
+        thumb.style.cursor = 'pointer';
+        const originalOnclick = thumb.onclick;
+        thumb.onclick = (e) => {
+            if (originalOnclick) originalOnclick.call(thumb, e);
+            // Double click to open gallery
+        };
+        thumb.addEventListener('dblclick', () => {
+            gallery.open(images, index + 1); // +1 because first image is main
+        });
+    });
 }
 
 // NEW HANDLERS

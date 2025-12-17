@@ -5,7 +5,7 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { compressImage } from './image-compressor.js';
 
 // State
@@ -184,7 +184,7 @@ function validateCurrentStep() {
 }
 
 // Handle evidence file selection
-function handleEvidenceSelect(e) {
+async function handleEvidenceSelect(e) {
     const files = Array.from(e.target.files);
 
     if (evidenceFiles.length + files.length > 10) {
@@ -192,23 +192,44 @@ function handleEvidenceSelect(e) {
         return;
     }
 
-    files.forEach(file => {
+    // Show compression notification for large images
+    const largeImages = files.filter(f => f.type.startsWith('image/') && f.size > 2 * 1024 * 1024);
+    if (largeImages.length > 0) {
+        showToast(`Compressing ${largeImages.length} large image(s)...`, 'info');
+    }
+
+    for (const file of files) {
         // Validate file type
         const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
         if (!validTypes.includes(file.type)) {
             showToast(`${file.name} is not a valid file type`, 'error');
-            return;
+            continue;
         }
 
-        // Validate file size (5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            showToast(`${file.name} is too large (max 5MB)`, 'error');
-            return;
+        let processedFile = file;
+
+        // Compress images automatically (no size restriction)
+        if (file.type.startsWith('image/')) {
+            try {
+                processedFile = await compressImage(file);
+                if (file.size > 2 * 1024 * 1024) {
+                    const reduction = ((1 - processedFile.size / file.size) * 100).toFixed(0);
+                    console.log(`✅ ${file.name} compressed by ${reduction}%`);
+                }
+            } catch (error) {
+                console.warn('Compression failed, using original:', error);
+                processedFile = file;
+            }
         }
 
-        evidenceFiles.push(file);
-        displayEvidencePreview(file);
-    });
+        evidenceFiles.push(processedFile);
+        displayEvidencePreview(processedFile);
+    }
+
+    // Show success for large files
+    if (largeImages.length > 0) {
+        showToast('✅ Images compressed successfully', 'success');
+    }
 
     e.target.value = ''; // Reset input
 }

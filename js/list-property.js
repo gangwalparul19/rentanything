@@ -8,8 +8,9 @@ import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, query, whe
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { initHeader } from './header-manager.js';
 import { compressImage } from './image-compressor.js';
-import { showToast } from './toast.js';
+import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
+import { FormValidator } from './form-validator.js';
 
 let selectedFiles = [];
 let isEditMode = false;

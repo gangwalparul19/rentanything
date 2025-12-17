@@ -3,9 +3,10 @@ import { db, auth } from './firebase-config.js';
 import { collection, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
-
+import { showToast } from './toast-enhanced.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { debounce } from './utils.js';
 
 let allListings = [];
 let allBookings = [];
@@ -44,6 +45,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     setupTypeAhead(); // Init autocomplete
     filterAndRender();
+
+    // Add debounced search to search input
+    const searchInput = document.getElementById('search-input');
+    const debouncedFilter = debounce(filterAndRender, 300);
+    if (searchInput) {
+        searchInput.addEventListener('input', debouncedFilter);
+    }
+
+    // Add debounced filtering to price inputs
+    const minPriceInput = document.getElementById('min-price');
+    const maxPriceInput = document.getElementById('max-price');
+    if (minPriceInput) minPriceInput.addEventListener('input', debouncedFilter);
+    if (maxPriceInput) maxPriceInput.addEventListener('input', debouncedFilter);
+
+    // Add debounced filtering to filter checkboxes
+    document.querySelectorAll('#category-filters input, #transaction-filters input').forEach(checkbox => {
+        checkbox.addEventListener('change', debouncedFilter);
+    });
+
+    const verifiedCheckbox = document.getElementById('verified-only');
+    if (verifiedCheckbox) verifiedCheckbox.addEventListener('change', debouncedFilter);
 });
 
 let verifiedUserIds = new Set();
@@ -73,7 +95,7 @@ window.toggleMapView = () => {
 let activeTowerFilter = null;
 window.filterByTower = (tower) => {
     activeTowerFilter = tower;
-    alert(`Showing listings in Tower ${tower}`);
+    showToast(`Showing listings in Tower ${tower}`, 'info');
 
     // Switch back to grid visualization but filtered
     window.toggleMapView(); // Go back to list
@@ -324,10 +346,12 @@ function filterAndRender() {
     updateChips(term, selectedCats, minPrice, maxPrice, dateStart);
 }
 
+import { showEmptyState } from './empty-states.js';
+
 function renderGrid(items) {
     const grid = document.getElementById('results-grid');
     if (items.length === 0) {
-        grid.innerHTML = `<div class="no-results"><i class="fa-solid fa-magnifying-glass" style="font-size:3rem; margin-bottom:1rem;"></i><h3>No matches found</h3><p>Try adjusting your filters.</p></div>`;
+        showEmptyState(grid, 'search');
         return;
     }
 
