@@ -6,10 +6,7 @@ import { ENV } from './env.js';
 export const ADMIN_CONFIG = {
     // List of authorized admin email addresses
     // HARDCODED FOR NOW - will refine env var loading later
-    authorizedEmails: [
-        'gangwalparul19@gmail.com',
-        'rentanythingindia@gmail.com'
-    ],
+    authorizedEmails: ENV.ADMIN_EMAILS,
 
     // Admin panel settings
     settings: {
