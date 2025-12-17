@@ -3,11 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import { getMessaging } from 'firebase/messaging';
 import { ENV } from './env.js';
 
-// Firebase configuration loaded from environment variables
-// See .env.example.js for setup instructions
 const firebaseConfig = {
     apiKey: ENV.FIREBASE_API_KEY,
     authDomain: ENV.FIREBASE_AUTH_DOMAIN,

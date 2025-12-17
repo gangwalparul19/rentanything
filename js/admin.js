@@ -1438,3 +1438,53 @@ window.viewImage = (src) => {
     m.style.display = 'flex';
     m.onclick = () => m.style.display = 'none';
 };
+
+// --- MOBILE MENU TOGGLE ---
+document.addEventListener('DOMContentLoaded', () => {
+    const mobileToggle = document.getElementById('mobile-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarClose = document.getElementById('sidebar-close');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+    // Function to open sidebar
+    const openSidebar = () => {
+        if (sidebar) sidebar.classList.add('active');
+        if (sidebarOverlay) sidebarOverlay.classList.add('active');
+        // Prevent body scroll when sidebar is open on mobile
+        document.body.style.overflow = 'hidden';
+    };
+
+    // Function to close sidebar
+    const closeSidebar = () => {
+        if (sidebar) sidebar.classList.remove('active');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        // Restore body scroll
+        document.body.style.overflow = '';
+    };
+
+    // Mobile toggle button click
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', openSidebar);
+    }
+
+    // Close button click
+    if (sidebarClose) {
+        sidebarClose.addEventListener('click', closeSidebar);
+    }
+
+    // Overlay click
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', closeSidebar);
+    }
+
+    // Close sidebar when clicking on nav items on mobile
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            // Only close on mobile (when overlay is active)
+            if (window.innerWidth <= 768 && sidebarOverlay && sidebarOverlay.classList.contains('active')) {
+                closeSidebar();
+            }
+        });
+    });
+});
