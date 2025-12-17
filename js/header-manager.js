@@ -38,8 +38,29 @@ export function initHeader() {
         }
 
         navContainer.appendChild(a);
-        navContainer.appendChild(a);
     });
+
+    // Mobile Login Link (Inject if not logged in)
+    // We check auth state here or rely on the listener below to re-render links?
+    // Proper way: Re-run initHeader or manipulate DOM in auth listener.
+    // For now, let's add a "Mobile Login" class item that is toggled definition.
+    if (!auth.currentUser) {
+        const loginLink = document.createElement('a');
+        loginLink.href = '#';
+        loginLink.textContent = 'Login';
+        loginLink.className = 'mobile-only'; // Ensure it only shows on mobile if needed, or always?
+        // User says "cant see login button... on desktop too".
+        // But duplicates are bad.
+        // Let's make it mobile-only for now.
+        loginLink.style.color = 'var(--primary)';
+        loginLink.style.fontWeight = '600';
+        loginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            if (btn) btn.click();
+        });
+        navContainer.appendChild(loginLink);
+    }
 
     // --- 2. Notification System & Bell Icon ---
     // We need to inject the bell icon if it doesn't exist (Desktop).
@@ -144,6 +165,14 @@ export function initHeader() {
             if (desktopBell) desktopBell.style.display = 'inline-flex';
             if (mobileBell) mobileBell.style.display = ''; // Let CSS handle mobile-only visibility
 
+            // Re-init header to remove "Login" link from nav if present
+            // But be careful of infinite recursion if initHeader calls this listener.
+            // initHeader DOES NOT call listener, it establishes it.
+            // But we need to refresh the links.
+            // Let's manually toggle the Mobile Login Link visibility if it exists.
+            const navLogin = document.querySelector('.nav-links a.mobile-only');
+            if (navLogin) navLogin.style.display = 'none';
+
             try {
                 startNotificationListener(user.uid);
             } catch (error) {
@@ -152,6 +181,9 @@ export function initHeader() {
         } else {
             if (desktopBell) desktopBell.style.display = 'none';
             if (mobileBell) mobileBell.style.display = 'none';
+
+            const navLogin = document.querySelector('.nav-links a.mobile-only');
+            if (navLogin) navLogin.style.display = 'inline-block';
         }
     });
 

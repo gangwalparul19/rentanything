@@ -54,13 +54,20 @@ export function initAuth() {
 
     // Monitor Auth State
     onAuthStateChanged(auth, async (user) => {
+        console.log("Auth State Changed:", user ? "Logged In" : "Logged Out");
+        console.log("Login Btn Check:", loginBtn);
         if (user) {
-            // User is signed in
             // User is signed in
             if (loginBtn) loginBtn.style.display = 'none';
         } else {
             // User is signed out
-            if (loginBtn) loginBtn.style.display = 'inline-flex';
+            if (loginBtn) {
+                console.log("Showing Login Button (Forced)");
+                // Force visibility with !important
+                loginBtn.style.setProperty('display', 'inline-flex', 'important');
+            } else {
+                console.error("Login Button NOT FOUND in DOM");
+            }
             if (userProfile) userProfile.style.display = 'none';
         }
 
