@@ -129,19 +129,6 @@ function createWishlistCard(item) {
     `;
 }
 
-// Show empty state
-function showEmptyState(message) {
-    const container = document.getElementById('wishlist-grid');
-    container.innerHTML = `
-        <div class="empty-state" style="grid-column: 1/-1;">
-            <div class="empty-icon">💖</div>
-            <h2>Your Wishlist is Empty</h2>
-            <p style="color: var(--gray); margin-bottom: 1.5rem;">${message}</p>
-            <a href="/" class="btn btn-primary">Browse Listings</a>
-        </div>
-    `;
-}
-
 // Add to wishlist (called from product pages)
 export async function addToWishlist(listingId, listingTitle, listingImage, notes = '', priority = 'medium') {
     const user = auth.currentUser;
