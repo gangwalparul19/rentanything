@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rentanything-v18';
+const CACHE_NAME = 'rentanything-v19';
 const urlsToCache = [
     '/index.html',
     '/search.html',
@@ -57,6 +57,68 @@ self.addEventListener('fetch', event => {
                 // Network failed, try cache
                 return caches.match(event.request);
             })
+    );
+});
+
+// ===== PUSH NOTIFICATIONS =====
+
+self.addEventListener('push', (event) => {
+    console.log('[SW] Push Received:', event);
+
+    let data = { title: 'RentAnything', body: 'New notification!', icon: '/images/icon-192.png', url: '/' };
+
+    if (event.data) {
+        try {
+            const payload = event.data.json();
+            // Support both data-only and notification payloads
+            if (payload.notification) {
+                data = { ...data, ...payload.notification };
+            }
+            if (payload.data) {
+                data = { ...data, ...payload.data };
+            }
+        } catch (e) {
+            console.error('[SW] Error parsing push data', e);
+            data.body = event.data.text();
+        }
+    }
+
+    const options = {
+        body: data.body,
+        icon: data.icon || '/images/icon-192.png',
+        badge: '/images/icon-192.png',
+        vibrate: [200, 100, 200],
+        sound: 'default',
+        data: {
+            url: data.click_action || data.url || '/'
+        },
+        requireInteraction: false
+    };
+
+    event.waitUntil(
+        self.registration.showNotification(data.title, options)
+    );
+});
+
+self.addEventListener('notificationclick', (event) => {
+    console.log('[SW] Notification Clicked:', event);
+    event.notification.close();
+
+    const urlToOpen = event.notification.data?.url || '/';
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+            // Check if there's already a tab open with this URL
+            for (const client of clientList) {
+                if (client.url === urlToOpen && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            // If no tab is open, open a new one
+            if (clients.openWindow) {
+                return clients.openWindow(urlToOpen);
+            }
+        })
     );
 });
 

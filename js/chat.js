@@ -7,6 +7,7 @@ import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
 import { showToast } from './toast-enhanced.js';
 import { showEmptyState } from './empty-states.js';
+import { subscribeToPushNotifications } from './notification-manager.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -138,6 +139,9 @@ function loadChat(chatId, chatData) {
     if (window.innerWidth <= 768) {
         document.querySelector('.chat-window').classList.add('open');
     }
+
+    // Request notification permission if not already granted
+    subscribeToPushNotifications().catch(console.error);
 
     // Subscribe to Messages
     if (unsubscribeMessages) unsubscribeMessages();

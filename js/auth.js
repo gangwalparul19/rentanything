@@ -2,6 +2,7 @@
 import { auth, googleProvider } from './firebase-config.js';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { showToast } from './toast-enhanced.js';
+import { subscribeToPushNotifications } from './notification-manager.js';
 
 export function initAuth() {
     const loginBtn = document.getElementById('login-btn');
@@ -57,6 +58,11 @@ export function initAuth() {
             // User is signed in
             // User is signed in
             if (loginBtn) loginBtn.style.display = 'none';
+
+            // Register for Push Notifications
+            console.log("🔔 Initializing Push Notifications for User...");
+            subscribeToPushNotifications().catch(err => console.error("Push registration failed:", err));
+
             // Mobile Notification Bell Visibility
             const mobileNotifBtn = document.getElementById('mobile-notification-btn');
             if (mobileNotifBtn) mobileNotifBtn.style.display = '';

@@ -139,3 +139,97 @@ exports.sendBookingEmail = functions.https.onCall(async (data, context) => {
         throw new functions.https.HttpsError("internal", "Unable to send email");
     }
 });
+
+exports.sendGenericEmail = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError("unauthenticated", "Auth required");
+    }
+
+    const { to, subject, html } = data;
+    if (!to || !subject || !html) {
+        throw new functions.https.HttpsError("invalid-argument", "Missing email fields");
+    }
+
+    try {
+        await transporter.sendMail({
+            from: `RentAnything <${functions.config().smtp.email}>`,
+            to,
+            subject,
+            html
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error sending generic email:", error);
+        throw new functions.https.HttpsError("internal", "Email failed");
+    }
+});
+
+/**
+ * Send Chat Push Notification
+ * Triggers when a new message is created in a chat
+ */
+exports.sendChatNotification = functions.firestore
+    .document('chats/{chatId}/messages/{messageId}')
+    .onCreate(async (snap, context) => {
+        const message = snap.data();
+        const chatId = context.params.chatId;
+
+        // 1. Get Chat Metadata to find participants
+        const chatRef = admin.firestore().collection('chats').doc(chatId);
+        const chatSnap = await chatRef.get();
+
+        if (!chatSnap.exists) {
+            console.log('Chat not found');
+            return null;
+        }
+
+        const chatData = chatSnap.data();
+        const senderId = message.senderId;
+
+        // Find the "other" participant
+        const recipientId = chatData.participants.find(uid => uid !== senderId);
+        if (!recipientId) return null;
+
+        // 2. Get Recipient's FCM Token
+        const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(recipientId).get();
+        if (!tokenSnap.exists) {
+            console.log('No FCM token for user:', recipientId);
+            return null;
+        }
+
+        const { token } = tokenSnap.data();
+        if (!token) return null;
+
+        // 3. Construct Notification
+        // Get sender name
+        let senderName = "New Message";
+        if (chatData.participantData && chatData.participantData[senderId]) {
+            senderName = chatData.participantData[senderId].name;
+        }
+
+        const payload = {
+            notification: {
+                title: senderName,
+                body: message.text || 'Sent a photo',
+                icon: '/images/icon-192.png',
+                click_action: `https://rentanything.shop/chat.html?id=${chatId}` // Adjust domain as needed
+            },
+            data: {
+                url: `/chat.html?id=${chatId}`,
+                chatId: chatId,
+                type: 'chat_message'
+            }
+        };
+
+        // 4. Send Message
+        try {
+            await admin.messaging().sendToDevice(token, payload);
+            console.log('Notification sent to:', recipientId);
+        } catch (error) {
+            console.error('Error sending notification:', error);
+            // Cleanup invalid tokens
+            if (error.code === 'messaging/registration-token-not-registered') {
+                await admin.firestore().collection('fcm_tokens').doc(recipientId).delete();
+            }
+        }
+    });

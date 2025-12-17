@@ -11,11 +11,12 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
  */
 export async function sendPropertyApprovalEmail(property, ownerEmail, ownerName) {
     try {
-        await addDoc(collection(db, 'mail'), {
-            to: ownerEmail,
-            message: {
-                subject: '🎉 Property Approved - RentAnything',
-                html: `
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const { app } = await import('./firebase-config.js');
+        const functions = getFunctions(app);
+        const sendEmail = httpsCallable(functions, 'sendGenericEmail');
+
+        const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -71,12 +72,15 @@ export async function sendPropertyApprovalEmail(property, ownerEmail, ownerName)
     </div>
 </body>
 </html>
-                `
-            },
-            createdAt: serverTimestamp()
+        `;
+
+        await sendEmail({
+            to: ownerEmail,
+            subject: '🎉 Property Approved - RentAnything',
+            html: htmlContent
         });
 
-        console.log('Approval email queued successfully');
+        console.log('Approval email sent successfully');
         return true;
     } catch (error) {
         console.error('Error sending approval email:', error);
@@ -89,11 +93,12 @@ export async function sendPropertyApprovalEmail(property, ownerEmail, ownerName)
  */
 export async function sendPropertyRejectionEmail(property, ownerEmail, ownerName, rejectionReason) {
     try {
-        await addDoc(collection(db, 'mail'), {
-            to: ownerEmail,
-            message: {
-                subject: 'Property Listing Update - RentAnything',
-                html: `
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const { app } = await import('./firebase-config.js');
+        const functions = getFunctions(app);
+        const sendEmail = httpsCallable(functions, 'sendGenericEmail');
+
+        const htmlContent = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -144,12 +149,15 @@ export async function sendPropertyRejectionEmail(property, ownerEmail, ownerName
     </div>
 </body>
 </html>
-                `
-            },
-            createdAt: serverTimestamp()
+        `;
+
+        await sendEmail({
+            to: ownerEmail,
+            subject: 'Property Listing Update - RentAnything',
+            html: htmlContent
         });
 
-        console.log('Rejection email queued successfully');
+        console.log('Rejection email sent successfully');
         return true;
     } catch (error) {
         console.error('Error sending rejection email:', error);

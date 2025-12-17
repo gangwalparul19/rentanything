@@ -89,6 +89,11 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid) || isAdmin();
     }
 
+    // ========== FCM TOKENS COLLECTION ==========
+    match /fcm_tokens/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
     // ========== FAVORITES COLLECTION ==========
     match /favorites/{favoriteId} {
       allow create: if isAuthenticated() && 

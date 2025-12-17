@@ -1,5 +1,5 @@
 // Service Worker for RentAnything Admin Panel
-const CACHE_NAME = 'rentanything-admin-v18';
+const CACHE_NAME = 'rentanything-admin-v19';
 const ASSETS_TO_CACHE = [
     '/admin.html',
     '/admin-manifest.json',
@@ -153,6 +153,7 @@ self.addEventListener('push', (event) => {
             data: notificationData.data,
             requireInteraction: true,
             vibrate: [200, 100, 200],
+            sound: 'default',
             actions: [
                 {
                     action: 'view',

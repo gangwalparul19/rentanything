@@ -122,17 +122,18 @@ async function saveFCMToken(token) {
             return;
         }
 
-        // Save to admin_tokens collection
-        await setDoc(doc(db, 'admin_tokens', user.uid), {
+        // Save to fcm_tokens collection (generic for all users)
+        await setDoc(doc(db, 'fcm_tokens', user.uid), {
             token: token,
             email: user.email,
+            uid: user.uid,
             lastUpdated: new Date(),
             platform: navigator.platform,
             userAgent: navigator.userAgent
         }, { merge: true });
 
         console.log('FCM token saved to Firestore');
-        showToast('Notification preferences saved', 'success');
+        // showToast('Notification preferences saved', 'success'); // Silent success is better for auto-save
     } catch (error) {
         console.error('Error saving FCM token:', error);
     }
@@ -197,7 +198,7 @@ export async function unsubscribeFromPushNotifications() {
         const user = auth.currentUser;
         if (user) {
             // Remove token from Firestore
-            await deleteDoc(doc(db, 'admin_tokens', user.uid));
+            await deleteDoc(doc(db, 'fcm_tokens', user.uid));
             console.log('FCM token removed from Firestore');
         }
 
