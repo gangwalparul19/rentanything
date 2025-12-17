@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, updateDoc, doc, getDoc, getCountFromServer, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc, getCountFromServer, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { showToast } from './toast-enhanced.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
 import { sendPropertyApprovalEmail, sendPropertyRejectionEmail } from './email-notifications.js';
@@ -576,35 +576,116 @@ async function loadPendingListings() {
     }
 }
 
+// --- NOTIFICATION HELPER ---
+async function createNotification(userId, message, type, metadata = {}) {
+    try {
+        await addDoc(collection(db, "notifications"), {
+            userId: userId,
+            message: message,
+            type: type, // 'success', 'info', 'warning'
+            read: false,
+            createdAt: serverTimestamp(),
+            ...metadata
+        });
+    } catch (error) {
+        console.error("Error creating notification:", error);
+    }
+}
+
+// --- LISTING APPROVAL ---
 window.approveListing = async (id) => {
     if (!confirm("Approve this listing to go live?")) return;
     try {
-        await updateDoc(doc(db, "listings", id), {
+        // Get listing data first to get owner info
+        const listingRef = doc(db, "listings", id);
+        const listingSnap = await getDoc(listingRef);
+
+        if (!listingSnap.exists()) {
+            showToast("Listing not found", "error");
+            return;
+        }
+
+        const listingData = listingSnap.data();
+
+        // Update listing status
+        await updateDoc(listingRef, {
             status: "active",
-            approvedAt: serverTimestamp()
+            approvedAt: serverTimestamp(),
+            approvedBy: auth.currentUser.uid
         });
+
+        // Create notification for owner
+        if (listingData.ownerId) {
+            await createNotification(
+                listingData.ownerId,
+                `Your listing "${listingData.title}" has been approved and is now live! 🎉`,
+                'success',
+                { listingId: id, action: 'listing_approved' }
+            );
+        }
+
         showToast("Listing approved! ✅", "success");
-        loadPendingListings(); // Refresh UI
-        loadDashboard(); // Refresh stats
+
+        // Refresh ALL relevant sections
+        loadPendingListings(); // Remove from pending
+        loadListings(); // Show in listings table
+        loadDashboard(); // Update stats
     } catch (error) {
         console.error("Error approving listing:", error);
-        showToast("Failed to approve listing", "error");
+        showToast("Failed to approve listing: " + error.message, "error");
     }
 };
 
+// --- LISTING REJECTION ---
 window.rejectListing = async (id) => {
-    if (!confirm("Reject this listing? It will not be visible.")) return;
+    const reason = prompt("Please provide a reason for rejection (will be sent to owner):");
+
+    if (!reason || reason.trim() === '') {
+        showToast("Rejection cancelled - reason is required", "info");
+        return;
+    }
+
+    if (!confirm(`Reject this listing with reason: "${reason}"?`)) return;
+
     try {
-        await updateDoc(doc(db, "listings", id), {
+        // Get listing data
+        const listingRef = doc(db, "listings", id);
+        const listingSnap = await getDoc(listingRef);
+
+        if (!listingSnap.exists()) {
+            showToast("Listing not found", "error");
+            return;
+        }
+
+        const listingData = listingSnap.data();
+
+        // Update listing
+        await updateDoc(listingRef, {
             status: "rejected",
-            rejectedAt: serverTimestamp()
+            rejectedAt: serverTimestamp(),
+            rejectedBy: auth.currentUser.uid,
+            rejectionReason: reason.trim()
         });
+
+        // Notify owner
+        if (listingData.ownerId) {
+            await createNotification(
+                listingData.ownerId,
+                `Your listing "${listingData.title}" was not approved. Reason: ${reason}`,
+                'warning',
+                { listingId: id, action: 'listing_rejected', reason: reason }
+            );
+        }
+
         showToast("Listing rejected ❌", "info");
+
+        // Refresh sections
         loadPendingListings();
+        loadListings();
         loadDashboard();
     } catch (error) {
         console.error("Error rejecting listing:", error);
-        showToast("Failed to reject listing", "error");
+        showToast("Failed to reject listing: " + error.message, "error");
     }
 };
 
