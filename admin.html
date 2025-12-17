@@ -977,6 +977,32 @@
                 </div>
             </div>
 
+            <!-- Pending Listings Approval Section -->
+            <div class="card" id="pending-approvals-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0;">
+                        🔔 Pending Listings Approval
+                        <span id="pending-count-badge" class="badge pending" style="margin-left: 0.5rem;">0</span>
+                    </h3>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Owner</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pending-listings-table">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- Date Filter -->
             <div class="card" style="margin-bottom: 2rem;">
                 <div
