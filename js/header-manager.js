@@ -143,6 +143,25 @@ export function initHeader() {
         }
     });
 
+    // Mark All Read Listener
+    const markReadBtn = document.getElementById('mark-all-read');
+    if (markReadBtn) {
+        markReadBtn.addEventListener('click', async () => {
+            try {
+                const { getDocs, writeBatch } = await import('firebase/firestore');
+                const q = query(collection(db, "notifications"), where("userId", "==", auth.currentUser.uid), where("read", "==", false));
+                const snapshot = await getDocs(q);
+                const batch = writeBatch(db);
+                snapshot.forEach(doc => {
+                    batch.update(doc.ref, { read: true });
+                });
+                await batch.commit();
+            } catch (e) {
+                console.error("Error marking all read:", e);
+            }
+        });
+    }
+
     // Toggle Dropdown
     const desktopBell = document.getElementById('desktop-notification-btn');
     if (desktopBell) {

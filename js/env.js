@@ -18,16 +18,16 @@ console.log('🔍 ENV DEBUG:', {
 
 export const ENV = {
     // Firebase Configuration
-    FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAn4tsCwVcjziA81sSNz5_GG7GW2a5-0B0',
-    FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'rent-anything-shop.firebaseapp.com',
-    FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'rent-anything-shop',
-    FIREBASE_STORAGE_BUCKET: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'rent-anything-shop.firebasestorage.app',
-    FIREBASE_MESSAGING_SENDER_ID: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '453157285688',
-    FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID || '1:453157285688:web:27a1a725acb45a6dd99bcd',
-    FIREBASE_MEASUREMENT_ID: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || 'G-VNG1BQ39DG',
+    FIREBASE_API_KEY: import.meta.env.VITE_FIREBASE_API_KEY,
+    FIREBASE_AUTH_DOMAIN: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    FIREBASE_PROJECT_ID: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    FIREBASE_STORAGE_BUCKET: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    FIREBASE_MESSAGING_SENDER_ID: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    FIREBASE_APP_ID: import.meta.env.VITE_FIREBASE_APP_ID,
+    FIREBASE_MEASUREMENT_ID: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 
     // FCM VAPID Key
-    FCM_VAPID_KEY: import.meta.env.VITE_FCM_VAPID_KEY || 'BPx4GwUnsLX4ATKXPFQkZCP_JoYsnPw_lcEJK_pDMN_s8z3MlrxK1xrdPm6EvGACg2bRktQ5f-L6gQ1JzBtyujE',
+    FCM_VAPID_KEY: import.meta.env.VITE_FCM_VAPID_KEY,
 
     // Admin emails
     ADMIN_EMAILS: (typeof rawAdminEmails === 'string' && rawAdminEmails.trim())

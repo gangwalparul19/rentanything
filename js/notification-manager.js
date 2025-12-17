@@ -13,6 +13,20 @@ try {
     console.error('Firebase Messaging initialization error:', error);
 }
 
+// Simple "Ding" sound (Base64 to avoid file dependency)
+const NOTIFICATION_SOUND = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Short placeholder, will replace with better one if needed or user provides file.
+// Actually, let's use a real short beep base64 for better UX.
+const ALERT_SOUND = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+
+function playNotificationSound() {
+    try {
+        ALERT_SOUND.currentTime = 0;
+        ALERT_SOUND.play().catch(e => console.warn("Audio play failed (interaction required):", e));
+    } catch (e) {
+        console.error("Sound error:", e);
+    }
+}
+
 /**
  * Request notification permission from user
  * @returns {Promise<boolean>} True if permission granted
@@ -152,6 +166,9 @@ export function setupForegroundMessageHandler() {
 
         const notificationTitle = payload.notification?.title || 'New Notification';
         const notificationBody = payload.notification?.body || 'You have a new admin notification';
+
+        // Play Sound
+        playNotificationSound();
 
         // Show toast notification when admin panel is in foreground
         showToast(`${notificationTitle}: ${notificationBody}`, 'info');

@@ -224,7 +224,7 @@ messageForm.addEventListener('submit', async (e) => {
 
     } catch (error) {
         console.error("Error sending:", error);
-        showToast("Failed to send", "error");
+        showToast(`Failed to send: ${error.message} (${error.code})`, "error");
     }
 });
 

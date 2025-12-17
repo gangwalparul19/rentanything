@@ -48,9 +48,11 @@
 
                 <!-- User Profile (Hidden by default) -->
                 <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
-                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
-                        title="Messages">
+                    <a href="chat.html" id="header-chat-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem; position: relative;" title="Messages">
                         <i class="fa-regular fa-paper-plane"></i>
+                        <span id="header-chat-badge"
+                            style="display: none; position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; border: 2px solid white;">0</span>
                     </a>
                     <a href="my-listings.html" class="btn btn-outline"
                         style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Listings">
