@@ -82,6 +82,48 @@ window.logoutAdmin = async function () {
     }
 };
 
+// --- SECTION NAVIGATION ---
+window.showSection = function (sectionId, navItem) {
+    // Hide all sections
+    document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // Remove active class from all nav items
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+
+    // Show selected section
+    const selectedSection = document.getElementById(sectionId);
+    if (selectedSection) {
+        selectedSection.classList.add('active');
+    }
+
+    // Add active class to clicked nav item
+    if (navItem) {
+        navItem.classList.add('active');
+    }
+
+    // Load data for the section
+    if (sectionId === 'users') {
+        loadUsers();
+    } else if (sectionId === 'listings') {
+        loadListings();
+    } else if (sectionId === 'bookings') {
+        loadOrders();
+    } else if (sectionId === 'verifications') {
+        loadVerifications();
+    } else if (sectionId === 'reports') {
+        loadReports();
+    } else if (sectionId === 'property-approvals') {
+        loadPendingProperties();
+    } else if (sectionId === 'disputes') {
+        // Disputes are loaded via loadDashboard
+    }
+};
+
+
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, async (user) => {
