@@ -4,8 +4,8 @@ npm-debug.log
 yarn-error.log
 
 # Environment files (IMPORTANT - Contains sensitive keys!)
-js/env.js
-env.js
+# NOTE: js/env.js is now safe to commit as it uses import.meta.env fallbacks
+# env.js
 .env
 .env.local
 
