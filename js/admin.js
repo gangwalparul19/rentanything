@@ -1357,19 +1357,59 @@ async function loadListings() {
     list.innerHTML = '';
     snap.forEach(docSnap => {
         const d = docSnap.data();
-        const isActive = d.status !== 'inactive';
+        const status = d.status || 'pending';
+
+        // Determine badge style and button based on status
+        let badgeClass = 'pending';
+        let badgeText = status;
+        let actionButtons = '';
+
+        if (status === 'pending') {
+            badgeClass = 'pending';
+            badgeText = 'Pending';
+            actionButtons = `
+                <button class="btn-sm btn-approve" onclick="window.approveListing('${docSnap.id}')">
+                    <i class="fa-solid fa-check"></i> Approve
+                </button>
+                <button class="btn-sm" style="background: #fee2e2; color: #991b1b;" onclick="window.rejectListing('${docSnap.id}')">
+                    <i class="fa-solid fa-xmark"></i> Reject
+                </button>
+            `;
+        } else if (status === 'active') {
+            badgeClass = 'verified';
+            badgeText = 'Active';
+            actionButtons = `
+                <button class="btn-sm" style="background: #fee2e2; color: #991b1b;" onclick="toggleListingStatus('${docSnap.id}', true)">
+                    Deactivate
+                </button>
+            `;
+        } else if (status === 'rejected') {
+            badgeClass = 'open';
+            badgeText = 'Rejected';
+            actionButtons = `
+                <button class="btn-sm btn-approve" onclick="window.approveListing('${docSnap.id}')">
+                    <i class="fa-solid fa-check"></i> Approve
+                </button>
+            `;
+        } else {
+            badgeClass = 'pending';
+            badgeText = 'Inactive';
+            actionButtons = `
+                <button class="btn-sm btn-approve" onclick="toggleListingStatus('${docSnap.id}', false)">
+                    Activate
+                </button>
+            `;
+        }
+
         list.innerHTML += `
             <tr>
                 <td>${d.title || '-'}</td>
                 <td>${d.category || '-'}</td>
                 <td>₹${d.rates?.daily || d.price || '0'}</td>
                 <td>${d.ownerName || 'Unknown'}</td>
-                <td><span class="badge ${isActive ? 'verified' : 'pending'}">${isActive ? 'Active' : 'Inactive'}</span></td>
+                <td><span class="badge ${badgeClass}">${badgeText}</span></td>
                 <td>
-                    <button class="btn-sm ${isActive ? 'btn-view' : 'btn-approve'}" 
-                        onclick="toggleListingStatus('${docSnap.id}', ${isActive})">
-                        ${isActive ? 'Deactivate' : 'Activate'}
-                    </button>
+                    ${actionButtons}
                     <button class="btn-sm btn-view" onclick="window.open('/product.html?id=${docSnap.id}', '_blank')">
                         <i class="fa-solid fa-eye"></i> View
                     </button>
