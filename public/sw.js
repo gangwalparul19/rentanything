@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rentanything-v17';
+const CACHE_NAME = 'rentanything-v18';
 const urlsToCache = [
     '/index.html',
     '/search.html',

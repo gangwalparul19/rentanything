@@ -159,8 +159,8 @@ async function loadData() {
         const listSnap = await getDocs(collection(db, "listings"));
         listSnap.forEach(doc => {
             const data = doc.data();
-            // FILTER: Only show approved listings
-            if (data.status === 'approved' || !data.status) {
+            // FILTER: Only show active/approved listings
+            if (data.status === 'active' || data.status === 'approved' || !data.status) {
                 // SIMULATION: Assign random tower if missing
                 const tower = data.tower || ['A', 'B', 'C'][Math.floor(Math.random() * 3)];
                 allListings.push({ id: doc.id, tower, ...data });

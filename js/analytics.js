@@ -71,7 +71,7 @@ async function loadAnalytics(userId) {
  */
 function calculateMetrics(listings, bookings) {
     const totalListings = listings.length;
-    const activeListings = listings.filter(l => l.status === 'approved').length;
+    const activeListings = listings.filter(l => l.status === 'active' || l.status === 'approved').length;
     const totalBookings = bookings.length;
     const confirmedBookings = bookings.filter(b => b.status === 'confirmed' || b.status === 'active').length;
 
