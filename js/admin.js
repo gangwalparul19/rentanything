@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, updateDoc, doc, getDoc, getCountFromServer, orderBy, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc, getCountFromServer, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 import { showToast } from './toast-enhanced.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
 import { sendPropertyApprovalEmail, sendPropertyRejectionEmail } from './email-notifications.js';
