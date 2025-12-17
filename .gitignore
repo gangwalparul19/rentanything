@@ -8,6 +8,7 @@ yarn-error.log
 # env.js
 .env
 .env.local
+js/env.js
 
 # IDE
 .vscode/
@@ -32,3 +33,4 @@ firestore-debug.log
 *.log
 logs/
 .vercel
+js/env.js

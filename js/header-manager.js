@@ -48,15 +48,22 @@ export function initHeader() {
     // Check if Desktop Actions container exists
     const userActions = document.querySelector('.user-actions');
     if (userActions) {
-        // Add "Create Listing" button (only if it doesn't exist)
+        const profileSection = document.getElementById('user-profile');
+
+        // Add "List Item" button (only if it doesn't exist)
         if (!document.getElementById('list-item-btn')) {
             const createBtn = document.createElement('a');
             createBtn.id = 'list-item-btn';
             createBtn.href = '/create-listing.html';
             createBtn.className = 'btn btn-primary';
             createBtn.innerHTML = '<i class="fa-solid fa-plus"></i> List Item';
-            createBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap;';
-            userActions.appendChild(createBtn);
+            createBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-right: 0.5rem;';
+
+            if (profileSection) {
+                userActions.insertBefore(createBtn, profileSection);
+            } else {
+                userActions.appendChild(createBtn);
+            }
         }
 
         // Add "List Property" button (only if it doesn't exist)
@@ -66,8 +73,13 @@ export function initHeader() {
             listPropertyBtn.href = '/list-property.html';
             listPropertyBtn.className = 'btn btn-outline';
             listPropertyBtn.innerHTML = '<i class="fa-solid fa-building"></i> List Property';
-            listPropertyBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-left: 0.5rem;';
-            userActions.appendChild(listPropertyBtn);
+            listPropertyBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-right: 0.5rem;';
+
+            if (profileSection) {
+                userActions.insertBefore(listPropertyBtn, profileSection);
+            } else {
+                userActions.appendChild(listPropertyBtn);
+            }
         }
 
         // Create Bell Button
