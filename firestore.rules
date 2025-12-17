@@ -32,8 +32,8 @@ service cloud.firestore {
     match /listings/{listingId} {
       allow read: if true; // Public listings
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && 
-        (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow update, delete: if isAdmin() || 
+        (isAuthenticated() && resource.data.ownerId == request.auth.uid);
     }
     
     // ========== BOOKINGS COLLECTION ==========
