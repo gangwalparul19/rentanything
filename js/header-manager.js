@@ -105,20 +105,12 @@ export function initHeader() {
     // --- 2. Mobile Menu Toggle ---
     const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
     if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', () => {
+        mobileMenuBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             navContainer.classList.toggle('active');
+            mobileMenuBtn.classList.toggle('active');
             const isExpanded = navContainer.classList.contains('active');
             mobileMenuBtn.setAttribute('aria-expanded', isExpanded);
-
-            // Toggle icon between bars and X
-            const icon = mobileMenuBtn.querySelector('i');
-            if (icon) {
-                if (isExpanded) {
-                    icon.className = 'fa-solid fa-xmark';
-                } else {
-                    icon.className = 'fa-solid fa-bars';
-                }
-            }
         });
 
         // Close menu when clicking a link
@@ -126,11 +118,8 @@ export function initHeader() {
         allLinks.forEach(link => {
             link.addEventListener('click', () => {
                 navContainer.classList.remove('active');
+                mobileMenuBtn.classList.remove('active');
                 mobileMenuBtn.setAttribute('aria-expanded', 'false');
-                const icon = mobileMenuBtn.querySelector('i');
-                if (icon) {
-                    icon.className = 'fa-solid fa-bars';
-                }
             });
         });
     }
