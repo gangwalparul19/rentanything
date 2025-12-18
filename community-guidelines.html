@@ -84,32 +84,36 @@
                 <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
                 RentAnything
             </a>
-            <nav class="nav-links"></nav>
-            <div class="user-actions">
-                <button id="login-btn" class="btn btn-outline" style="display: none;">Login</button>
-                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
-                    <a href="chat.html" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i
-                            class="fa-regular fa-paper-plane"></i></a>
-                    <a href="my-listings.html" class="btn btn-outline"
-                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"><i class="fa-solid fa-list-check"></i></a>
-                    <img id="user-avatar" src=""
-                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
-                    <button id="logout-btn" class="btn btn-outline"
-                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+            <nav class="nav-links">
+                <!-- Links injected by js/header-manager.js -->
+            </nav>
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
+                <button id="login-btn" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                    aria-label="Login to your account">Login</button>
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.5rem;">
+                    <a href="chat.html" id="header-chat-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.6rem; font-size: 1.1rem; border:none; position: relative;"
+                        title="Messages">
+                        <i class="fa-regular fa-paper-plane"></i>
+                        <span id="header-chat-badge"
+                            style="display: none; position: absolute; top: 0px; right: 0px; background: #ef4444; color: white; border-radius: 50%; padding: 2px 5px; font-size: 0.6rem; border: 1.5px solid white;">0</span>
+                    </a>
+                    <button id="header-notification-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.6rem; font-size: 1.1rem; border:none; position: relative;"
+                        aria-label="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span id="header-notification-badge" class="notif-badge"
+                            style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                    </button>
+                    <div id="user-avatar-container">
+                        <img id="user-avatar" src="" alt="Profile"
+                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer;">
+                    </div>
                 </div>
-                <button class="btn btn-primary" onclick="window.location.href='create-listing.html'"><i
-                        class="fa-solid fa-plus" style="margin-right: 0.5rem;"></i> List Item</button>
-            </div>
-            <!-- Mobile Icons Group -->
-            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
-                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
-                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;"><i
-                        class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i></a>
-                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
-                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"><i
-                        class="fa-regular fa-bell" style="font-size: 1.2rem;"></i><span class="notif-badge"
-                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem;">0</span></button>
-                <button class="mobile-menu-btn"><span></span><span></span><span></span></button>
+                <button class="mobile-menu-btn" aria-label="Open navigation menu" aria-expanded="false"
+                    aria-controls="nav-links">
+                    <span></span><span></span><span></span>
+                </button>
             </div>
         </div>
     </header>
