@@ -1793,16 +1793,17 @@ a {
     border-radius: 0.75rem;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     min-width: 200px;
-    opacity: 0;
-    visibility: hidden;
+    display: none;
     transform: translateY(-10px);
     transition: all 0.2s ease;
     z-index: 10000;
-    /* Ensure dropdown is above everything */
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem;
 }
 
 .user-dropdown-menu.show {
     display: block;
+    transform: translateY(0);
 }
 
 @keyframes dropdownPop {
