@@ -152,7 +152,8 @@ export function initHeader() {
 
                 // Populate Dropdown if missing
                 if (!document.getElementById('user-dropdown-menu')) {
-                    userProfile.insertAdjacentHTML('beforeend', `
+                    // Create dropdown and append to body (not userProfile) to avoid containing block issues
+                    const dropdownHTML = `
                         <div class="user-dropdown-menu" id="user-dropdown-menu">
                             <div class="dropdown-header">
                                 <span class="dropdown-user-name">${user.displayName || 'User'}</span>
@@ -166,7 +167,8 @@ export function initHeader() {
                                 <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
                             </button>
                         </div>
-                    `);
+                    `;
+                    document.body.insertAdjacentHTML('beforeend', dropdownHTML);
 
                     // Setup Dropdown Click Listeners
                     if (userAvatar) {

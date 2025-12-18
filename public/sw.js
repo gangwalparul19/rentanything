@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rentanything-v23';
+const CACHE_NAME = 'rentanything-v24';
 const urlsToCache = [
     '/index.html',
     '/search.html',
@@ -39,8 +39,12 @@ self.addEventListener('activate', event => {
     );
 });
 
-self.addEventListener('fetch', event => {
-    // Network First Strategy: Try network, cache response, fallback to cache if offline
+self.addEventListener('fetch', (event) => {
+    // Skip caching for non-GET requests (POST, PUT, DELETE, etc.)
+    if (event.request.method !== 'GET') {
+        return;
+    }
+
     event.respondWith(
         fetch(event.request)
             .then(response => {

@@ -1,5 +1,5 @@
 // Service Worker for RentAnything Admin Panel
-const CACHE_NAME = 'rentanything-admin-v23';
+const CACHE_NAME = 'rentanything-admin-v24';
 const ASSETS_TO_CACHE = [
     '/admin.html',
     '/admin-manifest.json',
