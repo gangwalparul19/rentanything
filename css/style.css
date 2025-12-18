@@ -759,6 +759,11 @@ a {
     background: none;
     border: none;
     cursor: pointer;
+    z-index: 200;
+    /* High z-index to ensure clickability */
+    position: relative;
+    pointer-events: auto;
+    /* Ensure it receives click events */
 }
 
 .mobile-menu-btn span {
@@ -1134,17 +1139,18 @@ a {
 
         .mobile-menu-btn {
             display: flex;
-            z-index: 102;
-            /* Above the dropdown */
+            z-index: 2003;
+            /* Very high to be above everything */
             padding: 0.5rem;
             background: transparent;
             border-radius: 0.5rem;
-            transition: all 0.2s ease;
+            transition: all .2s ease;
             min-width: 44px;
-            /* Touch-friendly */
             min-height: 44px;
             justify-content: center;
             align-items: center;
+            position: relative;
+            pointer-events: auto;
         }
 
         .mobile-menu-btn:hover,
