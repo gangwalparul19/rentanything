@@ -60,6 +60,11 @@ body {
     overflow-x: hidden;
 }
 
+html {
+    overflow-x: hidden;
+    width: 100%;
+}
+
 /* Animated background particles */
 body::before {
     content: '';
@@ -1194,17 +1199,23 @@ a {
             flex-direction: column;
             padding: 5rem 2rem 2rem;
             gap: 1.5rem;
-            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s;
             z-index: 2001;
             /* Higher z-index */
             box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
             border-left: 1px solid rgba(0, 0, 0, 0.05);
             text-align: left;
             margin-right: 0;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
 
         .nav-links.active {
             right: 0;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
         }
 
         .nav-backdrop {
@@ -1240,6 +1251,30 @@ a {
 
         .nav-links a:last-child {
             border-bottom: none;
+        }
+
+        /* Install App Button Styling in Mobile Menu */
+        .nav-links a.install-app-link {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white !important;
+            border: none;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a.install-app-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
+        }
+
+        .nav-links a.install-app-link::after {
+            display: none;
+            /* Remove underline effect */
         }
 
         /* Prevent header expansion issues */

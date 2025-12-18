@@ -24,6 +24,8 @@ export function initMobileMenu() {
             menuBtn.classList.remove('active');
             document.body.classList.remove('menu-open');
             if (header) header.classList.remove('active');
+            menuBtn.setAttribute('aria-expanded', 'false');
+            menuBtn.setAttribute('aria-label', 'Open navigation menu');
         } else {
             // Open
             navLinks.classList.add('active');
@@ -31,6 +33,8 @@ export function initMobileMenu() {
             menuBtn.classList.add('active');
             document.body.classList.add('menu-open');
             if (header) header.classList.add('active');
+            menuBtn.setAttribute('aria-expanded', 'true');
+            menuBtn.setAttribute('aria-label', 'Close navigation menu');
         }
     };
 

@@ -40,17 +40,58 @@ export function initHeader() {
         { text: 'List Item', href: '/create-listing.html' },
         { text: 'List Property', href: '/list-property.html' },
         { text: 'Requests', href: '/requests.html' },
-        { text: 'How it Works', href: '/index.html#how-it-works' }
+        { text: 'How it Works', href: '/index.html#how-it-works' },
+        { text: '📱 Install App', href: '#install-app', id: 'mobile-install-app', class: 'install-app-link' }
     ];
 
     // Clear existing content (if any)
     navContainer.innerHTML = '';
+
+    // PWA Installation Support
+    let deferredPrompt = null;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        // Show install button in mobile menu
+        const installLink = document.getElementById('mobile-install-app');
+        if (installLink) {
+            installLink.style.display = 'flex';
+            installLink.setAttribute('aria-label', 'Install this app as a Progressive Web App');
+        }
+    });
 
     // Generate Links
     links.forEach(link => {
         const a = document.createElement('a');
         a.href = link.href;
         a.textContent = link.text;
+        if (link.id) a.id = link.id;
+        if (link.class) a.className = link.class;
+
+        // Install App Click Handler
+        if (link.id === 'mobile-install-app') {
+            a.style.display = 'none'; // Hidden by default, shown when PWA prompt available
+            a.setAttribute('role', 'button');
+            a.setAttribute('aria-label', 'Install RentAnything as a Progressive Web App');
+            a.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    const { outcome } = await deferredPrompt.userChoice;
+                    console.log(`User response to install prompt: ${outcome}`);
+                    deferredPrompt = null;
+                    a.style.display = 'none';
+                } else {
+                    // If already installed or not available
+                    const { showToast } = await import('./toast-enhanced.js');
+                    if (window.matchMedia('(display-mode: standalone)').matches) {
+                        showToast('App is already installed!', 'info');
+                    } else {
+                        showToast('Install not available on this device', 'info');
+                    }
+                }
+            });
+        }
 
         // Optional: Highlight active link based on URL
         // Simple check: if current path ends with the link href (excluding anchors for now)
@@ -130,9 +171,15 @@ export function initHeader() {
                     // Setup Dropdown Click Listeners
                     if (userAvatar) {
                         userAvatar.src = user.photoURL || 'https://placehold.co/40';
+                        userAvatar.setAttribute('role', 'button');
+                        userAvatar.setAttribute('aria-haspopup', 'true');
+                        userAvatar.setAttribute('aria-expanded', 'false');
+                        userAvatar.setAttribute('aria-label', 'User menu');
                         userAvatar.onclick = (e) => {
                             e.stopPropagation();
-                            document.getElementById('user-dropdown-menu').classList.toggle('show');
+                            const dropdown = document.getElementById('user-dropdown-menu');
+                            const isExpanded = dropdown.classList.toggle('show');
+                            userAvatar.setAttribute('aria-expanded', isExpanded.toString());
                         };
                     }
 
@@ -319,6 +366,54 @@ window.addEventListener('click', (e) => {
 
         if (!isClickInside && !isClickOnBell) {
             dropdown.style.display = 'none';
+        }
+    }
+
+    // Also close user dropdown when clicking outside
+    const userDropdown = document.getElementById('user-dropdown-menu');
+    const userAvatar = document.getElementById('user-avatar');
+
+    if (userDropdown && userDropdown.classList.contains('show')) {
+        const isClickInsideUserDropdown = userDropdown.contains(e.target);
+        const isClickOnAvatar = userAvatar && userAvatar.contains(e.target);
+
+        if (!isClickInsideUserDropdown && !isClickOnAvatar) {
+            userDropdown.classList.remove('show');
+            if (userAvatar) userAvatar.setAttribute('aria-expanded', 'false');
+        }
+    }
+});
+
+// Keyboard Navigation Support
+window.addEventListener('keydown', (e) => {
+    // Escape key closes all dropdowns and menus
+    if (e.key === 'Escape' || e.key === 'Esc') {
+        // Close notification dropdown
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        if (notificationDropdown && notificationDropdown.style.display === 'block') {
+            notificationDropdown.style.display = 'none';
+        }
+
+        // Close user dropdown
+        const userDropdown = document.getElementById('user-dropdown-menu');
+        const userAvatar = document.getElementById('user-avatar');
+        if (userDropdown && userDropdown.classList.contains('show')) {
+            userDropdown.classList.remove('show');
+            if (userAvatar) userAvatar.setAttribute('aria-expanded', 'false');
+        }
+
+        // Close mobile menu
+        const navLinks = document.querySelector('.nav-links');
+        const backdrop = document.querySelector('.nav-backdrop');
+        const menuBtn = document.querySelector('.mobile-menu-btn');
+        const header = document.querySelector('.app-header');
+
+        if (navLinks && navLinks.classList.contains('active')) {
+            navLinks.classList.remove('active');
+            if (backdrop) backdrop.classList.remove('active');
+            if (menuBtn) menuBtn.classList.remove('active');
+            document.body.classList.remove('menu-open');
+            if (header) header.classList.remove('active');
         }
     }
 });
