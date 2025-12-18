@@ -102,7 +102,40 @@ export function initHeader() {
         navContainer.appendChild(a);
     });
 
-    // --- 2. Notification System & Bell Icon ---
+    // --- 2. Mobile Menu Toggle ---
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', () => {
+            navContainer.classList.toggle('active');
+            const isExpanded = navContainer.classList.contains('active');
+            mobileMenuBtn.setAttribute('aria-expanded', isExpanded);
+
+            // Toggle icon between bars and X
+            const icon = mobileMenuBtn.querySelector('i');
+            if (icon) {
+                if (isExpanded) {
+                    icon.className = 'fa-solid fa-xmark';
+                } else {
+                    icon.className = 'fa-solid fa-bars';
+                }
+            }
+        });
+
+        // Close menu when clicking a link
+        const allLinks = navContainer.querySelectorAll('a');
+        allLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navContainer.classList.remove('active');
+                mobileMenuBtn.setAttribute('aria-expanded', 'false');
+                const icon = mobileMenuBtn.querySelector('i');
+                if (icon) {
+                    icon.className = 'fa-solid fa-bars';
+                }
+            });
+        });
+    }
+
+    // --- 3. Authentication State Management ---
     // We need to inject the bell icon if it doesn't exist (Desktop).
     // Note: Mobile bell is already in index.html, we just need to hook it up.
 
