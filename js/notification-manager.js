@@ -40,7 +40,6 @@ export async function requestNotificationPermission() {
         }
 
         if (Notification.permission === 'granted') {
-            console.log('Notification permission already granted');
             return true;
         }
 
@@ -53,11 +52,11 @@ export async function requestNotificationPermission() {
         const permission = await Notification.requestPermission();
 
         if (permission === 'granted') {
-            console.log('Notification permission granted');
+            // Notification permission granted
             showToast('Notifications enabled successfully!', 'success');
             return true;
         } else {
-            console.log('Notification permission denied');
+            // Notification permission denied
             showToast('Notification permission denied', 'warning');
             return false;
         }
@@ -95,14 +94,12 @@ export async function subscribeToPushNotifications() {
         });
 
         if (token) {
-            console.log('FCM Token obtained:', token);
-
             // Save token to Firestore for this admin user
             await saveFCMToken(token);
 
             return token;
         } else {
-            console.log('No FCM token available');
+            // No FCM token available
             showToast('Failed to get notification token', 'error');
             return null;
         }
@@ -146,7 +143,6 @@ async function saveFCMToken(token) {
             userAgent: navigator.userAgent
         }, { merge: true });
 
-        console.log('FCM token saved to Firestore');
         // showToast('Notification preferences saved', 'success'); // Silent success is better for auto-save
     } catch (error) {
         console.error('Error saving FCM token:', error);
@@ -162,7 +158,7 @@ export function setupForegroundMessageHandler() {
     }
 
     onMessage(messaging, (payload) => {
-        console.log('Foreground message received:', payload);
+        // Foreground message received
 
         const notificationTitle = payload.notification?.title || 'New Notification';
         const notificationBody = payload.notification?.body || 'You have a new admin notification';
@@ -216,7 +212,6 @@ export async function unsubscribeFromPushNotifications() {
         if (user) {
             // Remove token from Firestore
             await deleteDoc(doc(db, 'fcm_tokens', user.uid));
-            console.log('FCM token removed from Firestore');
         }
 
         showToast('Notifications disabled', 'info');

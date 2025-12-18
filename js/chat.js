@@ -154,7 +154,7 @@ function loadChat(chatId, chatData) {
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         messagesContainer.innerHTML = '';
         if (snapshot.empty) {
-            console.log("[DEBUG] No messages found in this chat.");
+            // No messages found in this chat
         }
         snapshot.forEach((doc) => {
             const msg = doc.data();

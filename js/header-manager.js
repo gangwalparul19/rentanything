@@ -78,7 +78,7 @@ export function initHeader() {
                 if (deferredPrompt) {
                     deferredPrompt.prompt();
                     const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response to install prompt: ${outcome}`);
+                    // User responded to install prompt
                     deferredPrompt = null;
                     a.style.display = 'none';
                 } else {

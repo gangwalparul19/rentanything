@@ -26,19 +26,18 @@ async function fetchListings() {
             limit(HOME_PAGE_LISTING_LIMIT)
         );
         const querySnapshot = await getDocs(q);
-        console.log("Fetched listings count:", querySnapshot.size);
+        // Debug: Fetched listings count
 
         const listings = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            console.log("Listing:", doc.id, "status:", data.status, "image:", data.image);
             // FILTER: Only show approved/active listings (or legacy items without status field)
             if (data.status === 'active' || data.status === 'approved' || !data.status) {
                 listings.push({ id: doc.id, ...data });
             }
         });
 
-        console.log("Filtered listings to display:", listings.length);
+        // Debug: Filtered listings to display
         renderListings(listings);
     } catch (error) {
         console.error("Error fetching listings:", error);
@@ -73,7 +72,7 @@ function renderListings(listings) {
         if (item.transactionTypes) {
             if (item.transactionTypes.includes('rent')) badges.push('<span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right:4px;">RENT</span>');
             if (item.transactionTypes.includes('sell')) badges.push('<span style="background: #dcfce7; color: #16a34a; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right:4px;">BUY</span>');
-            if (item.transactionTypes.includes('donate')) badges.push('<span style="background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;" margin-right:4px;>FREE</span>');
+            if (item.transactionTypes.includes('donate')) badges.push('<span style="background: #ffe4e6; color: #e11d48; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; margin-right:4px;">FREE</span>');
         } else {
             // Default to Rent
             badges.push('<span style="background: #e0f2fe; color: #0284c7; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">RENT</span>');
@@ -135,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.addEventListener('load', async () => {
             try {
                 const registration = await navigator.serviceWorker.register('/sw.js');
-                console.log('SW registered: ', registration);
+                // Service Worker registered successfully
 
                 // Check for updates on every load
                 registration.update();
@@ -148,20 +147,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (installingWorker.state === 'installed') {
                             if (navigator.serviceWorker.controller) {
                                 // New update available
-                                console.log('New content is available; please refresh.');
                                 // Optionally show a toast to the user
                                 if (window.confirm('A new version of RentAnything is available. Refresh to update?')) {
                                     window.location.reload();
                                 }
                             } else {
                                 // Content is cached for offline use
-                                console.log('Content is cached for offline use.');
                             }
                         }
                     };
                 };
             } catch (error) {
-                console.log('SW registration failed: ', error);
+                console.error('SW registration failed:', error);
             }
         });
     }
@@ -276,7 +273,7 @@ function showInstallPromotion() {
             deferredPrompt.prompt();
             // Wait for the user to respond to the prompt
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
+            // User responded to install prompt
             // We've used the prompt, and can't use it again, throw it away
             deferredPrompt = null;
         });

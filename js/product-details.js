@@ -187,7 +187,7 @@ async function handleBooking() {
                 totalPrice: totalPrice,
                 days: diffDays
             });
-            console.log("Email function called", ownerEmail);
+            // Email function called
         } catch (emailError) {
             console.error("Email send failed (non-blocking):", emailError);
             // Don't block the UI for email failure
@@ -339,7 +339,7 @@ function reloadCalendar() {
                 const days = selectedDates.length === 2
                     ? Math.ceil((selectedDates[1] - selectedDates[0]) / (1000 * 60 * 60 * 24)) + 1
                     : 1;
-                console.log(`Selected ${days} day(s)`);
+                // Selected days for rental
             }
         }
     });
