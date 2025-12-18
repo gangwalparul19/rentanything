@@ -901,15 +901,6 @@ a {
             /* Smaller logo icon to fit */
         }
 
-        /* Mobile Icons Group - Enhanced Styling */
-        .mobile-icons-group {
-            display: flex !important;
-            align-items: center;
-            gap: 0.75rem;
-            /* Better spacing between icons */
-            margin-left: auto;
-        }
-
         /* Mobile Chat Button */
         #mobile-chat-btn {
             padding: 0.5rem !important;
@@ -1299,13 +1290,15 @@ a {
             background: transparent;
             box-shadow: none;
             z-index: 2002;
-            /* Above the backdrop and nav links */
         }
 
         .mobile-icons-group {
-            order: 2;
+            position: relative;
+            /* Required for z-index to take effect */
             z-index: 2003;
-            /* Highest level for interaction */
+            display: flex !important;
+            align-items: center;
+            gap: 0.75rem;
         }
 
         .mobile-menu-btn {

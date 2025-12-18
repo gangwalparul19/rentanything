@@ -10,8 +10,69 @@ import { initHeader } from './header-manager.js';
 import { showLoader, hideLoader } from './loader.js';
 import { HOME_PAGE_LISTING_LIMIT } from './constants.js';
 import { ERROR_MESSAGES } from './error-messages.js';
+import { showToast } from './toast-enhanced.js';
 
 // console.log('RentAnything App Initialized');
+
+// === PWA INSTALLATION (Registered at top level to prevent race condition) ===
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Notify other parts of the app that PWA is available
+    window.dispatchEvent(new CustomEvent('pwa-available'));
+
+    // Show install button (if it exists)
+    const installBtn = document.getElementById('install-btn');
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+    }
+});
+
+// Listen for install requests from header menu
+window.addEventListener('pwa-install-requested', async () => {
+    if (deferredPrompt) {
+        try {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+
+            if (outcome === 'accepted') {
+                showToast('App installed successfully!', 'success');
+            }
+
+            deferredPrompt = null;
+            const installBtn = document.getElementById('install-btn');
+            if (installBtn) installBtn.style.display = 'none';
+
+            // Hide menu install link too
+            const menuInstallLink = document.getElementById('mobile-install-app');
+            if (menuInstallLink) menuInstallLink.style.display = 'none';
+
+        } catch (error) {
+            console.error('Install prompt error:', error);
+        }
+    } else {
+        // Already installed or not available
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            showToast('App is already installed!', 'info');
+        } else {
+            showToast('Install not available on this device', 'info');
+        }
+    }
+});
+
+// Install button click handler (registered after DOM is ready)
+document.addEventListener('DOMContentLoaded', () => {
+    const installBtn = document.getElementById('install-btn');
+    if (installBtn) {
+        installBtn.addEventListener('click', () => {
+            window.dispatchEvent(new CustomEvent('pwa-install-requested'));
+        });
+    }
+});
+
 
 // DOM Elements
 const listingsContainer = document.getElementById('listings-container');
@@ -231,59 +292,3 @@ function animateCounter(elementId, targetValue) {
 
     requestAnimationFrame(updateCounter);
 }
-
-
-// PWA Install Prompt Logic
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-    // Prevent Chrome 67 and earlier from automatically showing the prompt
-    e.preventDefault();
-    // Stash the event so it can be triggered later.
-    deferredPrompt = e;
-
-    // Show your customized install prompt for your PWA
-    showInstallPromotion();
-});
-
-function showInstallPromotion() {
-    // Create floating Install Button if not exists
-    if (!document.getElementById('pwa-install-btn')) {
-        const btn = document.createElement('button');
-        btn.id = 'pwa-install-btn';
-        btn.className = 'btn btn-primary';
-        btn.innerHTML = '<i class="fa-solid fa-download"></i> Install App';
-        btn.style.position = 'fixed';
-        btn.style.bottom = '20px';
-        btn.style.left = '50%';
-        btn.style.transform = 'translateX(-50%)';
-        btn.style.zIndex = '1000';
-        btn.style.boxShadow = '0 4px 12px rgba(79, 70, 229, 0.4)';
-        btn.style.borderRadius = '50px';
-        btn.style.padding = '12px 24px';
-        btn.style.animation = 'fadeInUp 0.5s ease-out';
-
-        // Keyframes for animation need to be in CSS globally or injected
-        // Ensuring it looks good without extra CSS file edit:
-        // btn.style.display = 'block'; 
-
-        btn.addEventListener('click', async () => {
-            // Hide the app provided install promotion
-            hideInstallPromotion();
-            // Show the install prompt
-            deferredPrompt.prompt();
-            // Wait for the user to respond to the prompt
-            const { outcome } = await deferredPrompt.userChoice;
-            // User responded to install prompt
-            // We've used the prompt, and can't use it again, throw it away
-            deferredPrompt = null;
-        });
-
-        document.body.appendChild(btn);
-    }
-}
-
-function hideInstallPromotion() {
-    const btn = document.getElementById('pwa-install-btn');
-    if (btn) btn.style.display = 'none';
-}
-

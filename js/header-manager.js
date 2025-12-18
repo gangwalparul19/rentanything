@@ -44,22 +44,6 @@ export function initHeader() {
         { text: '📱 Install App', href: '#install-app', id: 'mobile-install-app', class: 'install-app-link' }
     ];
 
-    // Clear existing content (if any)
-    navContainer.innerHTML = '';
-
-    // PWA Installation Support
-    let deferredPrompt = null;
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        // Show install button in mobile menu
-        const installLink = document.getElementById('mobile-install-app');
-        if (installLink) {
-            installLink.style.display = 'flex';
-            installLink.setAttribute('aria-label', 'Install this app as a Progressive Web App');
-        }
-    });
-
     // Generate Links
     links.forEach(link => {
         const a = document.createElement('a');
@@ -68,61 +52,43 @@ export function initHeader() {
         if (link.id) a.id = link.id;
         if (link.class) a.className = link.class;
 
-        // Install App Click Handler
+        // Install App Click Handler - handled by app.js PWA logic
         if (link.id === 'mobile-install-app') {
-            a.style.display = 'none'; // Hidden by default, shown when PWA prompt available
+            a.style.display = 'none'; // Hidden by default
             a.setAttribute('role', 'button');
             a.setAttribute('aria-label', 'Install RentAnything as a Progressive Web App');
-            a.addEventListener('click', async (e) => {
+
+            // Listen for custom event from app.js when PWA is available
+            window.addEventListener('pwa-available', () => {
+                a.style.display = 'flex';
+            });
+
+            // When clicked, trigger the install via app.js
+            a.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    // User responded to install prompt
-                    deferredPrompt = null;
-                    a.style.display = 'none';
-                } else {
-                    // If already installed or not available
-                    const { showToast } = await import('./toast-enhanced.js');
-                    if (window.matchMedia('(display-mode: standalone)').matches) {
-                        showToast('App is already installed!', 'info');
-                    } else {
-                        showToast('Install not available on this device', 'info');
-                    }
-                }
+                window.dispatchEvent(new CustomEvent('pwa-install-requested'));
             });
         }
 
-        // Optional: Highlight active link based on URL
-        // Simple check: if current path ends with the link href (excluding anchors for now)
-        if (window.location.pathname === link.href && !link.href.includes('#')) {
-            a.classList.add('active');
+        // Highlight active link based on current page
+        // Handle query parameters, trailing slashes, and hash fragments
+        if (!link.href.includes('#')) {
+            const currentPath = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
+            const linkPath = link.href.replace(/\/$/, ''); // Remove trailing slash from href
+
+            // Check if current path matches the link (exact match or starts with for subpages)
+            if (currentPath === linkPath || currentPath.startsWith(linkPath + '/')) {
+                a.classList.add('active');
+            }
+
+            // Special case: Home page
+            if (linkPath === '/' && (currentPath === '' || currentPath === '/')) {
+                a.classList.add('active');
+            }
         }
 
         navContainer.appendChild(a);
     });
-
-    // --- 2. Mobile Menu Toggle ---
-    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            navContainer.classList.toggle('active');
-            mobileMenuBtn.classList.toggle('active');
-            const isExpanded = navContainer.classList.contains('active');
-            mobileMenuBtn.setAttribute('aria-expanded', isExpanded);
-        });
-
-        // Close menu when clicking a link
-        const allLinks = navContainer.querySelectorAll('a');
-        allLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                navContainer.classList.remove('active');
-                mobileMenuBtn.classList.remove('active');
-                mobileMenuBtn.setAttribute('aria-expanded', 'false');
-            });
-        });
-    }
 
     // --- 3. Authentication State Management ---
     // We need to inject the bell icon if it doesn't exist (Desktop).
@@ -172,27 +138,38 @@ export function initHeader() {
             if (userProfile) {
                 userProfile.style.display = 'flex';
 
-                // Populate Dropdown if missing
-                if (!document.getElementById('user-dropdown-menu')) {
-                    // Create dropdown and append to body (not userProfile) to avoid containing block issues
-                    const dropdownHTML = `
-                        <div class="user-dropdown-menu" id="user-dropdown-menu">
-                            <div class="dropdown-header">
-                                <span class="dropdown-user-name">${user.displayName || 'User'}</span>
-                                <span class="dropdown-user-email">${user.email || ''}</span>
-                            </div>
-                            <a href="profile.html" class="dropdown-item"><i class="fa-regular fa-id-card"></i> My Profile</a>
-                            <a href="my-bookings.html" class="dropdown-item"><i class="fa-solid fa-basket-shopping"></i> My Rentals</a>
-                            <a href="my-listings.html" class="dropdown-item"><i class="fa-solid fa-list-check"></i> My Listings</a>
-                            <div class="dropdown-divider"></div>
-                            <button id="logout-btn-dropdown" class="dropdown-item" style="width:100%; text-align:left; border:none; background:none; cursor:pointer;">
-                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-                            </button>
-                        </div>
-                    `;
-                    document.body.insertAdjacentHTML('beforeend', dropdownHTML);
+                // Update user avatar
+                if (userAvatar) {
+                    userAvatar.src = user.photoURL || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.displayName || 'User');
+                }
 
-                    // Setup Dropdown Click Listeners
+                // Create dropdown menu only once if it doesn't exist
+                if (!document.getElementById('user-dropdown-menu')) {
+                    const dropdown = document.createElement('div');
+                    dropdown.id = 'user-dropdown-menu';
+                    dropdown.className = 'user-dropdown-menu';
+                    dropdown.innerHTML = `
+                        <div class="dropdown-header">
+                            <span class="dropdown-user-name"></span>
+                            <span class="dropdown-user-email"></span>
+                        </div>
+                        <a href="/profile.html" class="dropdown-item">
+                            <i class="fa-solid fa-user"></i> Edit Profile
+                        </a>
+                        <a href="/my-listings.html" class="dropdown-item">
+                            <i class="fa-solid fa-list"></i> My Listings
+                        </a>
+                        <a href="/my-bookings.html" class="dropdown-item">
+                            <i class="fa-solid fa-calendar"></i> My Bookings
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <button onclick="window.logout()" class="dropdown-item">
+                            <i class="fa-solid fa-sign-out"></i> Logout
+                        </button>
+                    `;
+                    document.body.appendChild(dropdown);
+
+                    // Setup Dropdown Click Listeners (moved outside the if block in the original, but now part of the new structure)
                     if (userAvatar) {
                         userAvatar.src = user.photoURL || 'https://placehold.co/40';
                         userAvatar.setAttribute('role', 'button');
@@ -213,6 +190,13 @@ export function initHeader() {
                         dropLogout.onclick = () => auth.signOut().then(() => window.location.reload());
                     }
                 }
+
+                // ALWAYS update user info (even if dropdown already exists)
+                // This fixes the stale user profile issue when switching accounts
+                const userNameEl = document.querySelector('.dropdown-user-name');
+                const userEmailEl = document.querySelector('.dropdown-user-email');
+                if (userNameEl) userNameEl.textContent = user.displayName || 'User';
+                if (userEmailEl) userEmailEl.textContent = user.email || '';
             }
 
             try {
@@ -237,8 +221,14 @@ export function initHeader() {
     if (markReadBtn) {
         markReadBtn.addEventListener('click', async () => {
             try {
-                const { getDocs, writeBatch } = await import('firebase/firestore');
-                const q = query(collection(db, "notifications"), where("userId", "==", auth.currentUser.uid), where("read", "==", false));
+                const { getDocs, writeBatch, limit } = await import('firebase/firestore');
+                // Limit to 50 most recent unread notifications for performance
+                const q = query(
+                    collection(db, "notifications"),
+                    where("userId", "==", auth.currentUser.uid),
+                    where("read", "==", false),
+                    limit(50)
+                );
                 const snapshot = await getDocs(q);
                 const batch = writeBatch(db);
                 snapshot.forEach(doc => {
