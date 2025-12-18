@@ -130,14 +130,39 @@ document.addEventListener('DOMContentLoaded', () => {
     // Calculate and display environmental impact
     calculateEnvironmentalImpact();
 
-    // Register Service Worker
+    // Register Service Worker with update logic
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js').then(registration => {
+        window.addEventListener('load', async () => {
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
                 console.log('SW registered: ', registration);
-            }).catch(registrationError => {
-                console.log('SW registration failed: ', registrationError);
-            });
+
+                // Check for updates on every load
+                registration.update();
+
+                registration.onupdatefound = () => {
+                    const installingWorker = registration.installing;
+                    if (installingWorker == null) return;
+
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed') {
+                            if (navigator.serviceWorker.controller) {
+                                // New update available
+                                console.log('New content is available; please refresh.');
+                                // Optionally show a toast to the user
+                                if (window.confirm('A new version of RentAnything is available. Refresh to update?')) {
+                                    window.location.reload();
+                                }
+                            } else {
+                                // Content is cached for offline use
+                                console.log('Content is cached for offline use.');
+                            }
+                        }
+                    };
+                };
+            } catch (error) {
+                console.log('SW registration failed: ', error);
+            }
         });
     }
 });

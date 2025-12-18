@@ -11,6 +11,25 @@ export function initHeader() {
     const navContainer = document.querySelector('.nav-links');
     if (!navContainer) return;
 
+    // --- Global Components Setup ---
+    // Ensure notification dropdown exists globally
+    if (!document.getElementById('notification-dropdown')) {
+        const dropdown = document.createElement('div');
+        dropdown.id = 'notification-dropdown';
+        dropdown.className = 'notification-dropdown';
+        dropdown.style.display = 'none';
+        dropdown.innerHTML = `
+            <div class="dropdown-header">
+                <h3>Notifications</h3>
+                <button id="mark-all-read" class="btn-text">Mark all read</button>
+            </div>
+            <div id="notification-list" class="notification-list">
+                <!-- Notifications will be injected here -->
+            </div>
+        `;
+        document.body.appendChild(dropdown);
+    }
+
     // --- 1. Nav Links ---
 
     // Standard Links Configuration
@@ -18,6 +37,8 @@ export function initHeader() {
     const links = [
         { text: 'Browse Items', href: '/search.html' },
         { text: 'Browse Properties', href: '/properties.html' },
+        { text: 'List Item', href: '/create-listing.html' },
+        { text: 'List Property', href: '/list-property.html' },
         { text: 'Requests', href: '/requests.html' },
         { text: 'How it Works', href: '/index.html#how-it-works' }
     ];
@@ -48,6 +69,9 @@ export function initHeader() {
     // Icons are now hardcoded in index.html as a single set of header icons.
     // We just need to ensure they are hooked up to the listener.
 
+    // --- 3. User Actions & Buttons ---
+    const userActions = document.querySelector('.mobile-icons-group');
+
     // 1. List Item/Property Buttons (Desktop Only in Header)
     if (userActions) {
         // List Item Button
@@ -77,11 +101,48 @@ export function initHeader() {
     onAuthStateChanged(auth, user => {
         const loginBtn = document.getElementById('login-btn');
         const userProfile = document.getElementById('user-profile');
+        const userAvatar = document.getElementById('user-avatar');
 
         if (user) {
             // Logged In State
             if (loginBtn) loginBtn.style.display = 'none';
-            if (userProfile) userProfile.style.display = 'flex';
+            if (userProfile) {
+                userProfile.style.display = 'flex';
+
+                // Populate Dropdown if missing
+                if (!document.getElementById('user-dropdown-menu')) {
+                    userProfile.insertAdjacentHTML('beforeend', `
+                        <div class="user-dropdown-menu" id="user-dropdown-menu">
+                            <div class="dropdown-header">
+                                <span class="dropdown-user-name">${user.displayName || 'User'}</span>
+                                <span class="dropdown-user-email">${user.email || ''}</span>
+                            </div>
+                            <a href="profile.html" class="dropdown-item"><i class="fa-regular fa-id-card"></i> My Profile</a>
+                            <a href="my-bookings.html" class="dropdown-item"><i class="fa-solid fa-basket-shopping"></i> My Rentals</a>
+                            <a href="my-listings.html" class="dropdown-item"><i class="fa-solid fa-list-check"></i> My Listings</a>
+                            <div class="dropdown-divider"></div>
+                            <button id="logout-btn-dropdown" class="dropdown-item" style="width:100%; text-align:left; border:none; background:none; cursor:pointer;">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                            </button>
+                        </div>
+                    `);
+
+                    // Setup Dropdown Click Listeners
+                    if (userAvatar) {
+                        userAvatar.src = user.photoURL || 'https://placehold.co/40';
+                        userAvatar.onclick = (e) => {
+                            e.stopPropagation();
+                            document.getElementById('user-dropdown-menu').classList.toggle('show');
+                        };
+                    }
+
+                    // Logout Handler
+                    const dropLogout = document.getElementById('logout-btn-dropdown');
+                    if (dropLogout) {
+                        dropLogout.onclick = () => auth.signOut().then(() => window.location.reload());
+                    }
+                }
+            }
 
             try {
                 startNotificationListener(user.uid);
