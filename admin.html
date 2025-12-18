@@ -827,8 +827,33 @@
 
 <body>
 
-    <!-- Sidebar overlay for mobile -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Search Results Dropdown -->
+    <div id="search-results"
+        style="display: none; position: fixed; top: 4rem; left: 1.5rem; width: calc(var(--sidebar-width) - 3rem); max-height: 70vh; background: white; border-radius: 0.75rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1100; overflow-y: auto;">
+        <div style="padding: 1rem; border-bottom: 1px solid #e2e8f0;">
+            <h3 style="margin: 0; font-size: 0.95rem; color: var(--secondary);">Search Results</h3>
+        </div>
+        <div id="search-results-content" style="padding: 0.5rem;">
+            <!-- Results will be injected here -->
+        </div>
+    </div>
+
+    <!-- Notification Dropdown -->
+    <div id="notification-dropdown"
+        style="display: none; position: fixed; top: 5rem; right: 2rem; width: 380px; max-height: 500px; background: white; border-radius: 0.75rem; box-shadow: 0 10px 40px rgba(0,0,0,0.2); z-index: 1100; overflow: hidden;">
+        <div
+            style="padding: 1rem 1.5rem; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <h3 style="margin: 0; font-size: 1rem; font-weight: 600;">Notifications</h3>
+            <span id="notif-count"
+                style="background: rgba(255,255,255,0.3); padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.85rem;">0</span>
+        </div>
+        <div id="notification-list" style="max-height: 420px; overflow-y: auto;">
+            <!-- Notifications will be injected here -->
+        </div>
+    </div>
 
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
@@ -841,7 +866,16 @@
             <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
             RentAnything
         </div>
-        <nav>
+        <nav style="flex: 1; overflow-y: auto;">
+            <!-- Global Search -->
+            <div style="margin-bottom: 1.5rem; position: relative;">
+                <input type="text" id="global-search" placeholder="Search users, listings, bookings..."
+                    style="width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.05); color: white; font-size: 0.9rem;"
+                    autocomplete="off">
+                <i class="fa-solid fa-search"
+                    style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none;"></i>
+            </div>
+
             <div class="nav-item active" onclick="showSection('dashboard', this)">
                 <i class="fa-solid fa-chart-line"></i> Dashboard
             </div>
@@ -869,6 +903,16 @@
             <div class="nav-item" onclick="showSection('reports', this)">
                 <i class="fa-solid fa-flag"></i> Reports <span id="badge-report-count" class="badge open"
                     style="margin-left:auto; display:none;">0</span>
+            </div>
+
+            <hr style="border-color: rgba(255,255,255,0.1); margin: 1rem 0;">
+
+            <div class="nav-item" onclick="showSection('image-moderation', this)">
+                <i class="fa-solid fa-images"></i> Image Moderation
+            </div>
+
+            <div class="nav-item" onclick="showSection('system-health', this)">
+                <i class="fa-solid fa-heartbeat"></i> System Health
             </div>
 
             <div class="sidebar-divider"></div>
@@ -938,42 +982,95 @@
 
         <!-- DASHBOARD SECTION -->
         <section id="dashboard" class="section active">
-            <!-- KPIs -->
+            <!-- KPI Cards -->
             <div class="kpi-grid">
-                <div class="kpi-card">
-                    <div class="kpi-info">
-                        <h3>Total Revenue</h3>
-                        <div class="value">₹<span id="stat-revenue">0</span></div>
-                    </div>
-                    <div class="kpi-icon bg-green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-info">
-                        <h3>Active Bookings</h3>
-                        <div class="value" id="stat-bookings">0</div>
-                    </div>
-                    <div class="kpi-icon bg-blue"><i class="fa-solid fa-calendar-check"></i></div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-info">
-                        <h3>Total Listings</h3>
-                        <div class="value" id="stat-listings">0</div>
-                    </div>
-                    <div class="kpi-icon bg-purple"><i class="fa-solid fa-box-open"></i></div>
-                </div>
                 <div class="kpi-card">
                     <div class="kpi-info">
                         <h3>Total Users</h3>
                         <div class="value" id="stat-users">0</div>
+                        <small id="stat-users-trend" style="color: #22c55e; font-weight: 600;"></small>
                     </div>
-                    <div class="kpi-icon bg-orange"><i class="fa-solid fa-users"></i></div>
+                    <div class="kpi-icon bg-blue">
+                        <i class="fa-solid fa-users"></i>
+                    </div>
                 </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Active Listings</h3>
+                        <div class="value" id="stat-listings">0</div>
+                        <small id="stat-listings-trend" style="color: #22c55e; font-weight: 600;"></small>
+                    </div>
+                    <div class="kpi-icon bg-green">
+                        <i class="fa-solid fa-list"></i>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Active Bookings</h3>
+                        <div class="value" id="stat-bookings">0</div>
+                        <small id="stat-bookings-trend" style="color: #22c55e; font-weight: 600;"></small>
+                    </div>
+                    <div class="kpi-icon bg-orange">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Total Revenue</h3>
+                        <div class="value">₹<span id="stat-revenue">0</span></div>
+                        <small id="stat-revenue-trend" style="color: #22c55e; font-weight: 600;"></small>
+                    </div>
+                    <div class="kpi-icon bg-purple">
+                        <i class="fa-solid fa-indian-rupee-sign"></i>
+                    </div>
+                </div>
+
+                <!-- New Analytics Cards -->
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Active Users (7d)</h3>
+                        <div class="value" id="stat-active-users">0</div>
+                        <small style="color: var(--secondary); font-size: 0.75rem;">Last 7 days</small>
+                    </div>
+                    <div class="kpi-icon" style="background: #fef3c7; color: #f59e0b;">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Avg Booking Value</h3>
+                        <div class="value">₹<span id="stat-avg-booking">0</span></div>
+                        <small style="color: var(--secondary); font-size: 0.75rem;">Per transaction</small>
+                    </div>
+                    <div class="kpi-icon" style="background: #dbeafe; color: #3b82f6;">
+                        <i class="fa-solid fa-chart-line"></i>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-info">
+                        <h3>Property Approval</h3>
+                        <div class="value"><span id="stat-approval-rate">0</span>%</div>
+                        <small style="color: var(--secondary); font-size: 0.75rem;">Approval rate</small>
+                    </div>
+                    <div class="kpi-icon" style="background: #e0e7ff; color: #6366f1;">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                </div>
+
                 <div class="kpi-card">
                     <div class="kpi-info">
                         <h3>Pending Properties</h3>
                         <div class="value" id="stat-pending-properties">0</div>
+                        <small style="color: var(--secondary); font-size: 0.75rem;">Awaiting approval</small>
                     </div>
-                    <div class="kpi-icon bg-purple"><i class="fa-solid fa-building-circle-check"></i></div>
+                    <div class="kpi-icon" style="background: #fef2f2; color: #ef4444;">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
                 </div>
             </div>
 
@@ -1116,7 +1213,7 @@
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Verify Status</th>
+                            <th>Phone</th>
                             <th>Joined</th>
                             <th>Actions</th>
                         </tr>
@@ -1131,7 +1228,13 @@
         <!-- LISTINGS SECTION -->
         <section id="listings" class="section">
             <div class="card">
-                <h3>Platform Listings</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="margin: 0;">All Listings</h3>
+                    <button class="btn btn-primary" onclick="exportListings()"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        <i class="fa-solid fa-download"></i> Export CSV
+                    </button>
+                </div>
                 <table id="table-listings">
                     <thead>
                         <tr>
@@ -1255,6 +1358,30 @@
         </section>
 
         <!-- REPORTS SECTION -->
+        <section id="dashboard" class="section active">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button id="mobile-toggle" class="btn btn-primary"
+                        style="display: none; padding: 0.5rem 0.75rem; font-size: 1.2rem;">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <h1 class="page-title">Admin Dashboard</h1>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <!-- Notification Bell -->
+                    <div style="position: relative; cursor: pointer;" id="notification-bell"
+                        onclick="toggleNotifications()">
+                        <i class="fa-solid fa-bell"
+                            style="font-size: 1.5rem; color: var(--secondary); transition: color 0.2s;"
+                            onmouseover="this.style.color='var(--primary)'"
+                            onmouseout="this.style.color='var(--secondary)'"></i>
+                        <span id="notification-badge"
+                            style="display: none; position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 0.7rem; font-weight: 700; min-width: 20px; height: 20px; border-radius: 50%; align-items: center; justify-content: center; padding: 0 5px; animation: pulse 2s infinite;">0</span>
+                    </div>
+                    <!-- Date Filter -->
+                </div>
+            </div>
+        </section>
         <section id="reports" class="section">
             <div class="card">
                 <h3>Dispute Center</h3>
@@ -1270,6 +1397,82 @@
                     </thead>
                     <tbody id="report-list-body"></tbody>
                 </table>
+            </div>
+        </section>
+
+        <!-- IMAGE MODERATION SECTION -->
+        <section id="image-moderation" class="section">
+            <div class="card">
+                <h3>Image Moderation</h3>
+                <p style="color: var(--secondary); margin-bottom: 1.5rem;">Review all uploaded images from listings</p>
+                <div id="image-gallery"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                    <!-- Images will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM HEALTH SECTION -->
+        <section id="system-health" class="section">
+            <div class="card">
+                <h3>System Health & Performance</h3>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+                    <div
+                        style="background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #3b82f6;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--dark);">Database Stats</h4>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--secondary);">Total Users:</span>
+                            <strong id="health-users">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--secondary);">Total Listings:</span>
+                            <strong id="health-listings">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--secondary);">Total Bookings:</span>
+                            <strong id="health-bookings">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--secondary);">Total Properties:</span>
+                            <strong id="health-properties">0</strong>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #22c55e;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--dark);">Auto-Moderation Stats</h4>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--secondary);">Auto-Flagged:</span>
+                            <strong id="health-flagged" style="color: #ef4444;">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--secondary);">Suspicious Price:</span>
+                            <strong id="health-price-issues">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--secondary);">Keyword Matches:</span>
+                            <strong id="health-keyword-matches">0</strong>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #f8fafc; padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--dark);">Content Quality</h4>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--secondary);">Avg Images/Listing:</span>
+                            <strong id="health-avg-images">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--secondary);">No Image Listings:</span>
+                            <strong id="health-no-images">0</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="color: var(--secondary);">Total Images:</span>
+                            <strong id="health-total-images">0</strong>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -1306,13 +1509,23 @@
     <script type="module" src="js/admin.js"></script>
     <script>
         // ===== MODAL FUNCTIONS =====
-        function openModal(title, content) {
+        function openModal(title, content, customFooter = null) {
             const modal = document.getElementById('details-modal');
             const modalTitle = document.getElementById('modal-title');
             const modalContent = document.getElementById('modal-content');
+            const modalFooter = document.querySelector('.modal-footer');
 
             modalTitle.textContent = title;
             modalContent.innerHTML = content;
+
+            // If custom footer provided, replace default footer
+            if (customFooter) {
+                modalFooter.innerHTML = customFooter;
+            } else {
+                // Reset to default footer
+                modalFooter.innerHTML = '<button class="btn btn-secondary" onclick="closeModal()">Close</button>';
+            }
+
             modal.classList.add('active');
         }
 

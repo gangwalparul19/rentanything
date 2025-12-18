@@ -120,6 +120,10 @@ window.showSection = function (sectionId, navItem) {
         loadPendingProperties();
     } else if (sectionId === 'disputes') {
         // Disputes are loaded via loadDashboard
+    } else if (sectionId === 'image-moderation') {
+        loadImageModeration();
+    } else if (sectionId === 'system-health') {
+        loadSystemHealth();
     }
 };
 
@@ -245,6 +249,47 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Date filter reset!', 'info');
         });
     }
+
+    // === Global Search ===
+    const searchInput = document.getElementById('global-search');
+    const searchResults = document.getElementById('search-results');
+    const searchResultsContent = document.getElementById('search-results-content');
+    let searchTimeout;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim().toLowerCase();
+
+            // Clear previous timeout
+            clearTimeout(searchTimeout);
+
+            if (query.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            if (query.length < 2) return; // Wait for at least 2 characters
+
+            // Debounce search
+            searchTimeout = setTimeout(() => {
+                performGlobalSearch(query);
+            }, 300);
+        });
+
+        // Close search results when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Show results when focusing on search input if there's a query
+        searchInput.addEventListener('focus', (e) => {
+            if (e.target.value.trim().length >= 2) {
+                searchResults.style.display = 'block';
+            }
+        });
+    }
 });
 
 
@@ -266,15 +311,44 @@ async function loadDashboard() {
 
     // Revenue (Simulated from bookings)
     let totalRev = 0;
+    let bookingCount = 0;
     bookingsSnap.forEach(b => {
         totalRev += (b.data().totalPrice || 0);
+        bookingCount++;
     });
     document.getElementById('stat-revenue').innerText = totalRev.toLocaleString();
+
+    // Average Booking Value
+    const avgBooking = bookingCount > 0 ? Math.round(totalRev / bookingCount) : 0;
+    document.getElementById('stat-avg-booking').innerText = avgBooking.toLocaleString();
 
     // Pending Properties Count
     const pendingPropsQ = query(collection(db, "properties"), where("approvalStatus", "==", "pending"));
     const pendingPropsSnap = await getDocs(pendingPropsQ);
     document.getElementById('stat-pending-properties').innerText = pendingPropsSnap.size;
+
+    // Active Users (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const allUsersSnap = await getDocs(collection(db, "users"));
+    let activeUsers = 0;
+    allUsersSnap.forEach(doc => {
+        const data = doc.data();
+        if (data.lastActive && data.lastActive.toDate() > sevenDaysAgo) {
+            activeUsers++;
+        }
+    });
+    document.getElementById('stat-active-users').innerText = activeUsers || 'N/A';
+
+    // Property Approval Rate
+    const allPropsSnap = await getDocs(collection(db, "properties"));
+    let approvedCount = 0;
+    let totalProps = allPropsSnap.size;
+    allPropsSnap.forEach(doc => {
+        if (doc.data().approvalStatus === 'approved') approvedCount++;
+    });
+    const approvalRate = totalProps > 0 ? Math.round((approvedCount / totalProps) * 100) : 0;
+    document.getElementById('stat-approval-rate').innerText = approvalRate;
 
     // 2. Load All Data
     await loadAllData();
@@ -473,14 +547,50 @@ async function loadDashboard() {
             ` : ''}
         `;
 
-        window.openModal('Dispute Details', modalContent);
-
-        // TODO: Enhance with modal showing:
-        // - Full details
-        // - Evidence image gallery
-        // - Timeline
-        // - Action buttons (Mark as Under Review, Resolve, Dismiss, etc.)
+        window.openModal('Dispute Details', modalContent, `
+            <button class="btn-secondary" onclick="closeModal()">Close</button>
+            ${dispute.status !== 'resolved' && dispute.status !== 'dismissed' ? `
+                <button class="btn btn-primary" onclick="updateDisputeStatus('${dispute.id}', 'under_review')">
+                    <i class="fa-solid fa-magnifying-glass"></i> Mark Under Review
+                </button>
+                <button class="btn btn-primary" style="background: #22c55e;" onclick="updateDisputeStatus('${dispute.id}', 'resolved')">
+                    <i class="fa-solid fa-check"></i> Resolve
+                </button>
+                <button class="btn btn-primary" style="background: #ef4444;" onclick="updateDisputeStatus('${dispute.id}', 'dismissed')">
+                    <i class="fa-solid fa-xmark"></i> Dismiss
+                </button>
+            ` : ''}
+        `);
     };
+
+    // Dispute status update function
+    window.updateDisputeStatus = async function (disputeId, newStatus) {
+        const statusLabels = {
+            'under_review': 'Under Review',
+            'resolved': 'Resolved',
+            'dismissed': 'Dismissed'
+        };
+
+        if (!confirm(`Change dispute status to "${statusLabels[newStatus]}"?`)) return;
+
+        try {
+            await updateDoc(doc(db, 'disputes', disputeId), {
+                status: newStatus,
+                updatedAt: serverTimestamp(),
+                updatedBy: auth.currentUser?.uid
+            });
+
+            showToast(`Dispute status updated to ${statusLabels[newStatus]}`, 'success');
+            loadDisputes(); // Reload disputes table
+            closeModal(); // Close the modal
+        } catch (error) {
+            console.error('Error updating dispute:', error);
+            showToast('Failed to update dispute status', 'error');
+        }
+    };
+
+    // Load disputes on dashboard load
+    loadDisputes();
 
     // 3. Render Charts
     renderCharts();
@@ -519,7 +629,6 @@ async function loadAllData() {
         });
 
     } catch (error) {
-        console.error("Error loading analytics data:", error);
         console.error("Error loading analytics data:", error);
     }
 }
@@ -1651,3 +1760,219 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// === USER ACTIVITY TIMELINE ===
+window.viewUserActivity = async function (userId, userName) {
+    try {
+        showToast('Loading user activity...', 'info');
+
+        let timeline = [];
+
+        // Fetch user's listings
+        const listingsQ = query(collection(db, "listings"), where("ownerId", "==", userId));
+        const listingsSnap = await getDocs(listingsQ);
+        listingsSnap.forEach(doc => {
+            const data = doc.data();
+            timeline.push({
+                type: 'listing',
+                icon: 'fa-list',
+                color: '#3b82f6',
+                title: 'Listed Item',
+                description: data.title,
+                date: data.createdAt ? data.createdAt.toDate() : null,
+                status: data.status
+            });
+        });
+
+        // Fetch user's bookings as renter
+        const bookingsQ = query(collection(db, "bookings"), where("renterId", "==", userId));
+        const bookingsSnap = await getDocs(bookingsQ);
+        bookingsSnap.forEach(doc => {
+            const data = doc.data();
+            timeline.push({
+                type: 'booking',
+                icon: 'fa-calendar-check',
+                color: '#22c55e',
+                title: 'Booked Item',
+                description: data.listingTitle,
+                date: data.createdAt ? data.createdAt.toDate() : null,
+                status: data.status
+            });
+        });
+
+        // Fetch user's properties
+        const propertiesQ = query(collection(db, "properties"), where("ownerId", "==", userId));
+        const propertiesSnap = await getDocs(propertiesQ);
+        propertiesSnap.forEach(doc => {
+            const data = doc.data();
+            timeline.push({
+                type: 'property',
+                icon: 'fa-building',
+                color: '#8b5cf6',
+                title: 'Listed Property',
+                description: data.title,
+                date: data.createdAt ? data.createdAt.toDate() : null,
+                status: data.approvalStatus
+            });
+        });
+
+        // Sort by date (newest first)
+        timeline.sort((a, b) => (b.date || 0) - (a.date || 0));
+
+        // Build modal content
+        const modalContent = `
+            <div style="margin-bottom: 1rem;">
+                <div style="font-size: 0.9rem; color: var(--secondary);">
+                    Total Activities: <strong>${timeline.length}</strong>
+                </div>
+            </div>
+            ${timeline.length === 0 ? `
+                <div style="padding: 3rem 2rem; text-align: center; color: var(--secondary);">
+                    <i class="fa-solid fa-inbox" style="font-size: 3rem; opacity: 0.3; margin-bottom: 1rem;"></i>
+                    <p>No activity found for this user</p>
+                </div>
+            ` : `
+                <div style="position: relative; padding-left: 2rem;">
+                    <div style="position: absolute; left: 0.75rem; top: 0; bottom: 0; width: 2px; background: #e2e8f0;"></div>
+                    ${timeline.map((item, index) => `
+                        <div style="position: relative; margin-bottom: ${index === timeline.length - 1 ? '0' : '1.5rem'};">
+                            <div style="position: absolute; left: -1.25rem; width: 2.5rem; height: 2.5rem; border-radius: 50%; background: ${item.color}15; border: 3px solid white; box-shadow: 0 0 0 3px ${item.color}; display: flex; align-items: center; justify-content: center;">
+                                <i class="fa-solid ${item.icon}" style="color: ${item.color}; font-size: 0.9rem;"></i>
+                            </div>
+                            <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid ${item.color};">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                    <div style="font-weight: 600; color: var(--dark);">${item.title}</div>
+                                    <span style="font-size: 0.75rem; color: var(--secondary);">${item.date ? item.date.toLocaleDateString() : 'N/A'}</span>
+                                </div>
+                                <div style="color: var(--dark); margin-bottom: 0.5rem;">${item.description}</div>
+                                <span style="font-size: 0.8rem; padding: 0.25rem 0.75rem; border-radius: 999px; background: ${item.status === 'active' || item.status === 'confirmed' ? '#dcfce7' : item.status === 'pending' ? '#fef3c7' : '#fee2e2'}; color: ${item.status === 'active' || item.status === 'confirmed' ? '#166534' : item.status === 'pending' ? '#92400e' : '#991b1b'}; font-weight: 600;">${item.status || 'N/A'}</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `}
+        `;
+
+        window.openModal(`Activity Timeline - ${userName}`, modalContent);
+    } catch (error) {
+        console.error('Error loading user activity:', error);
+        showToast('Failed to load user activity', 'error');
+    }
+};
+
+// === EXPORT TO CSV ===
+window.exportToCSV = function (data, filename) {
+    if (!data || data.length === 0) {
+        showToast('No data to export', 'warning');
+        return;
+    }
+
+    // Get headers from first object
+    const headers = Object.keys(data[0]);
+
+    // Build CSV content
+    let csvContent = headers.join(',') + '\n';
+
+    data.forEach(item => {
+        const row = headers.map(header => {
+            let value = item[header];
+
+            // Handle special cases
+            if (value === null || value === undefined) value = '';
+            if (typeof value === 'object') value = JSON.stringify(value);
+
+            // Escape quotes and wrap in quotes if contains comma
+            value = String(value).replace(/"/g, '""');
+            if (value.includes(',') || value.includes('\n')) {
+                value = `"${value}"`;
+            }
+
+            return value;
+        });
+        csvContent += row.join(',') + '\n';
+    });
+
+    // Create blob and download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showToast(`Exported ${data.length} records to CSV`, 'success');
+};
+
+// Export current users
+window.exportUsers = async function () {
+    try {
+        const usersSnap = await getDocs(collection(db, 'users'));
+        const users = [];
+        usersSnap.forEach(doc => {
+            const data = doc.data();
+            users.push({
+                id: doc.id,
+                name: data.displayName || '',
+                email: data.email || '',
+                phone: data.phone || '',
+                joined: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : ''
+            });
+        });
+        exportToCSV(users, 'users');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Export failed', 'error');
+    }
+};
+
+// Export current listings
+window.exportListings = async function () {
+    try {
+        const listingsSnap = await getDocs(collection(db, 'listings'));
+        const listings = [];
+        listingsSnap.forEach(doc => {
+            const data = doc.data();
+            listings.push({
+                id: doc.id,
+                title: data.title || '',
+                category: data.category || '',
+                owner: data.ownerName || '',
+                price: data.rates?.daily || data.price || 0,
+                status: data.status || '',
+                created: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : ''
+            });
+        });
+        exportToCSV(listings, 'listings');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Export failed', 'error');
+    }
+};
+
+// Export current bookings
+window.exportBookings = async function () {
+    try {
+        const bookingsSnap = await getDocs(collection(db, 'bookings'));
+        const bookings = [];
+        bookingsSnap.forEach(doc => {
+            const data = doc.data();
+            bookings.push({
+                id: doc.id,
+                listing: data.listingTitle || '',
+                renter: data.renterName || '',
+                amount: data.totalPrice || 0,
+                status: data.status || '',
+                created: data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleDateString() : ''
+            });
+        });
+        exportToCSV(bookings, 'bookings');
+    } catch (error) {
+        console.error('Export error:', error);
+        showToast('Export failed', 'error');
+    }
+};
