@@ -1178,79 +1178,105 @@ a {
             padding: 0.5rem 0;
         }
 
-        /* Initial State: Hidden */
-        .nav-links,
-        .user-actions {
-            display: none;
-            width: 100%;
-            /* Take full width when visible */
-            text-align: center;
+        /* Mobile Navigation Overlay - Professional Slide-out */
+        .nav-links {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            display: flex !important; /* Force flex but hidden by position */
+            flex-direction: column;
+            padding: 5rem 2rem 2rem;
+            gap: 1.5rem;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1001;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.1);
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            text-align: left;
+            margin-right: 0;
         }
 
-        /* Order Management for Mobile Header */
-        .logo {
-            order: 1;
+        .nav-links.active {
+            right: 0;
+        }
+
+        .nav-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .nav-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .nav-links a {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--dark);
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nav-links a:last-child {
+            border-bottom: none;
+        }
+
+        /* Prevent header expansion */
+        .app-header.active {
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .app-header .container {
+            flex-wrap: nowrap;
+            padding: 0.75rem 1rem;
+        }
+
+        /* Keep mobile icons group visible and correct */
+        .mobile-icons-group {
+            order: 2;
+            z-index: 1002; /* Above nav-links overlay */
         }
 
         .mobile-menu-btn {
-            /* This selector might be obsolete if button is inside group, but keeping for safety */
-            order: 2;
-            margin-left: auto;
+            display: flex;
+            z-index: 1002;
         }
 
-        .mobile-icons-group {
-            order: 2;
-            margin-left: auto;
+        /* Adjust body when menu open */
+        body.menu-open {
+            overflow: hidden;
         }
 
-        /* Push to right if needed */
-        .nav-links {
-            order: 3;
-        }
-
+        /* Hide the old user-actions which was inside header expansion */
         .user-actions {
-            order: 4;
-        }
-
-        /* Active State: Show Content */
-        .app-header.active {
-            background: var(--white);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-            /* Shadow for the whole expanded header */
+            display: none !important;
         }
 
         .app-header.active .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            padding: 2rem 0 1rem;
-            border-top: 1px solid #f1f5f9;
-            margin-top: 1rem;
-            /* Space from logo */
-            animation: slideDown 0.3s ease-out;
+            animation: none; /* Remove old slide down */
+            padding-top: 5rem;
         }
 
         .app-header.active .user-actions {
-            display: flex;
-            flex-direction: row;
-            /* Buttons side by side */
-            justify-content: center;
-            gap: 1rem;
-            padding-bottom: 2rem;
-            animation: slideDown 0.3s ease-out 0.1s backwards;
-            /* Slight delay */
-        }
-
-        .app-header.active .nav-links a {
-            font-size: 1.1rem;
-            display: block;
-            padding: 0.5rem;
-        }
-
-        /* Ensure buttons are full width or balanced */
-        .app-header.active .user-actions .btn {
-            flex: 1;
-            max-width: 200px;
+            display: none;
         }
 
         .mobile-booking-bar {

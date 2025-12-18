@@ -42,43 +42,40 @@
             <nav class="nav-links">
                 <!-- Links injected by js/header-manager.js -->
             </nav>
-            <div class="user-actions">
+            <!-- Mobile Icons Group -->
+            <!-- Consoleidated Actions Group -->
+            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center; gap: 0.5rem;">
                 <!-- Login Button -->
-                <button id="login-btn" class="btn btn-outline" aria-label="Login to your account">Login</button>
+                <button id="login-btn" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;"
+                    aria-label="Login to your account">Login</button>
 
-                <!-- User Profile (Hidden by default) -->
-                <div id="user-profile" style="display: none; align-items: center; gap: 0.75rem;">
+                <!-- Authenticated Actions -->
+                <div id="user-profile" style="display: none; align-items: center; gap: 0.5rem;">
+                    <!-- Chat Button -->
                     <a href="chat.html" id="header-chat-btn" class="btn btn-outline"
-                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem; position: relative;" title="Messages">
+                        style="padding: 0.4rem 0.6rem; font-size: 1.1rem; border:none; position: relative;"
+                        title="Messages">
                         <i class="fa-regular fa-paper-plane"></i>
                         <span id="header-chat-badge"
-                            style="display: none; position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; padding: 2px 6px; font-size: 0.7rem; border: 2px solid white;">0</span>
+                            style="display: none; position: absolute; top: 0px; right: 0px; background: #ef4444; color: white; border-radius: 50%; padding: 2px 5px; font-size: 0.6rem; border: 1.5px solid white;">0</span>
                     </a>
-                    <a href="my-listings.html" class="btn btn-outline"
-                        style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" title="My Listings">
-                        <i class="fa-solid fa-list-check"></i>
-                    </a>
-                    <img id="user-avatar" src="" alt="Profile"
-                        style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
-                    <button id="logout-btn" class="btn btn-outline"
-                        style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">Logout</button>
+
+                    <!-- Notification Bell -->
+                    <button id="header-notification-btn" class="btn btn-outline"
+                        style="padding: 0.4rem 0.6rem; font-size: 1.1rem; border:none; position: relative;"
+                        aria-label="Notifications">
+                        <i class="fa-regular fa-bell"></i>
+                        <span id="header-notification-badge" class="notif-badge"
+                            style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
+                    </button>
+
+                    <!-- User Avatar -->
+                    <div id="user-avatar-container">
+                        <img id="user-avatar" src="" alt="Profile"
+                            style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer;">
+                    </div>
                 </div>
-            </div>
-            <!-- Mobile Icons Group -->
-            <div class="mobile-icons-group" style="margin-left: auto; display: flex; align-items: center;">
-                <!-- Mobile Chat Button -->
-                <a href="chat.html" id="mobile-chat-btn" class="btn btn-outline mobile-only"
-                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem;" aria-label="Messages">
-                    <i class="fa-regular fa-paper-plane" style="font-size: 1.2rem;"></i>
-                </a>
-                <!-- Mobile Notification Bell -->
-                <button id="mobile-notification-btn" class="btn btn-outline mobile-only"
-                    style="display: none; border:none; padding: 0.5rem; margin-right: 0.5rem; position: relative;"
-                    aria-label="Notifications">
-                    <i class="fa-regular fa-bell" style="font-size: 1.2rem;"></i>
-                    <span class="notif-badge"
-                        style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:white; border-radius:50%; padding: 2px 5px; font-size:0.6rem; border:1px solid white;">0</span>
-                </button>
+
                 <button class="mobile-menu-btn" aria-label="Toggle Menu">
                     <span></span>
                     <span></span>

@@ -40,138 +40,48 @@ export function initHeader() {
         navContainer.appendChild(a);
     });
 
-    // Mobile Login Link (Inject if not logged in)
-    // We check auth state here or rely on the listener below to re-render links?
-    // Proper way: Re-run initHeader or manipulate DOM in auth listener.
-    // For now, let's add a "Mobile Login" class item that is toggled definition.
-    if (!auth.currentUser) {
-        const loginLink = document.createElement('a');
-        loginLink.href = '#';
-        loginLink.textContent = 'Login';
-        loginLink.className = 'mobile-only'; // Ensure it only shows on mobile if needed, or always?
-        // User says "cant see login button... on desktop too".
-        // But duplicates are bad.
-        // Let's make it mobile-only for now.
-        loginLink.style.color = 'var(--primary)';
-        loginLink.style.fontWeight = '600';
-        loginLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('login-btn');
-            if (btn) btn.click();
-        });
-        navContainer.appendChild(loginLink);
-    }
-
     // --- 2. Notification System & Bell Icon ---
     // We need to inject the bell icon if it doesn't exist (Desktop).
     // Note: Mobile bell is already in index.html, we just need to hook it up.
 
-    // Check if Desktop Actions container exists
-    const userActions = document.querySelector('.user-actions');
-    if (userActions) {
-        const profileSection = document.getElementById('user-profile');
+    // --- 2. Notification System Hookup ---
+    // Icons are now hardcoded in index.html as a single set of header icons.
+    // We just need to ensure they are hooked up to the listener.
 
-        // Add "List Item" button (only if it doesn't exist)
+    // 1. List Item/Property Buttons (Desktop Only in Header)
+    if (userActions) {
+        // List Item Button
         if (!document.getElementById('list-item-btn')) {
             const createBtn = document.createElement('a');
             createBtn.id = 'list-item-btn';
             createBtn.href = '/create-listing.html';
-            createBtn.className = 'btn btn-primary';
+            createBtn.className = 'btn btn-primary desktop-only';
             createBtn.innerHTML = '<i class="fa-solid fa-plus"></i> List Item';
             createBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-right: 0.5rem;';
-
-            if (profileSection) {
-                userActions.insertBefore(createBtn, profileSection);
-            } else {
-                userActions.appendChild(createBtn);
-            }
+            userActions.insertBefore(createBtn, userActions.firstChild);
         }
 
-        // Add "List Property" button (only if it doesn't exist)
+        // List Property Button
         if (!document.getElementById('list-property-btn')) {
             const listPropertyBtn = document.createElement('a');
             listPropertyBtn.id = 'list-property-btn';
             listPropertyBtn.href = '/list-property.html';
-            listPropertyBtn.className = 'btn btn-outline';
+            listPropertyBtn.className = 'btn btn-outline desktop-only';
             listPropertyBtn.innerHTML = '<i class="fa-solid fa-building"></i> List Property';
             listPropertyBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-right: 0.5rem;';
-
-            if (profileSection) {
-                userActions.insertBefore(listPropertyBtn, profileSection);
-            } else {
-                userActions.appendChild(listPropertyBtn);
-            }
+            userActions.insertBefore(listPropertyBtn, userActions.firstChild);
         }
-
-        // Create Bell Button
-        if (!document.getElementById('desktop-notification-btn')) {
-            const bellBtn = document.createElement('button');
-            bellBtn.id = 'desktop-notification-btn';
-            bellBtn.className = 'btn btn-outline';
-            bellBtn.style.display = 'none'; // Hidden until logged in
-            bellBtn.style.padding = '0.4rem 0.6rem';
-            bellBtn.style.fontSize = '1.1rem';
-            bellBtn.style.marginRight = '0.5rem';
-            bellBtn.style.border = 'none';
-            bellBtn.style.position = 'relative';
-            bellBtn.innerHTML = `
-                <i class="fa-regular fa-bell"></i>
-                <span class="badg" style="display:none; position:absolute; top:0; right:0; background:#ef4444; width:8px; height:8px; border-radius:50%;"></span>
-            `;
-
-            // Insert before User Profile / Login
-            const profileSection = document.getElementById('user-profile');
-            if (profileSection) {
-                userActions.insertBefore(bellBtn, profileSection);
-            }
-        }
-    }
-
-    // --- 3. Notification Dropdown UI ---
-    // Inject Dropdown HTML at end of body if not exists
-    if (!document.getElementById('notification-dropdown')) {
-        const dropdown = document.createElement('div');
-        dropdown.id = 'notification-dropdown';
-        dropdown.style.display = 'none';
-        dropdown.style.position = 'absolute';
-        dropdown.style.top = '60px'; // Adjust based on header height
-        dropdown.style.right = '10%'; // Adjust based on bell position
-        dropdown.style.width = '300px';
-        dropdown.style.background = 'white';
-        dropdown.style.borderRadius = '0.75rem';
-        dropdown.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-        dropdown.style.zIndex = '1000';
-        dropdown.style.overflow = 'hidden';
-        dropdown.style.border = '1px solid #e2e8f0';
-
-        dropdown.innerHTML = `
-            <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600; display:flex; justify-content:space-between;">
-                <span>Notifications</span>
-                <span id="mark-all-read" style="font-size:0.8rem; color:var(--primary); cursor:pointer;">Mark read</span>
-            </div>
-            <div id="notification-list" style="max-height: 300px; overflow-y: auto;">
-                <div style="padding:1rem; text-align:center; color:var(--gray);">No new notifications</div>
-            </div>
-        `;
-        document.body.appendChild(dropdown);
     }
 
     // --- 4. Logic & Listeners ---
     onAuthStateChanged(auth, user => {
-        const desktopBell = document.getElementById('desktop-notification-btn');
-        const mobileBell = document.getElementById('mobile-notification-btn');
+        const loginBtn = document.getElementById('login-btn');
+        const userProfile = document.getElementById('user-profile');
 
         if (user) {
-            if (desktopBell) desktopBell.style.display = 'inline-flex';
-            if (mobileBell) mobileBell.style.display = ''; // Let CSS handle mobile-only visibility
-
-            // Re-init header to remove "Login" link from nav if present
-            // But be careful of infinite recursion if initHeader calls this listener.
-            // initHeader DOES NOT call listener, it establishes it.
-            // But we need to refresh the links.
-            // Let's manually toggle the Mobile Login Link visibility if it exists.
-            const navLogin = document.querySelector('.nav-links a.mobile-only');
-            if (navLogin) navLogin.style.display = 'none';
+            // Logged In State
+            if (loginBtn) loginBtn.style.display = 'none';
+            if (userProfile) userProfile.style.display = 'flex';
 
             try {
                 startNotificationListener(user.uid);
@@ -179,11 +89,14 @@ export function initHeader() {
                 console.error("Error initializing notifications:", error);
             }
         } else {
-            if (desktopBell) desktopBell.style.display = 'none';
-            if (mobileBell) mobileBell.style.display = 'none';
+            // Logged Out State
+            if (loginBtn) loginBtn.style.display = 'inline-flex';
+            if (userProfile) userProfile.style.display = 'none';
 
-            const navLogin = document.querySelector('.nav-links a.mobile-only');
-            if (navLogin) navLogin.style.display = 'inline-block';
+            if (unsubscribeNotifs) {
+                unsubscribeNotifs();
+                unsubscribeNotifs = null;
+            }
         }
     });
 
@@ -207,11 +120,11 @@ export function initHeader() {
     }
 
     // Toggle Dropdown
-    const desktopBell = document.getElementById('desktop-notification-btn');
-    if (desktopBell) {
-        desktopBell.onclick = (e) => {
+    const notificationBtn = document.getElementById('header-notification-btn');
+    if (notificationBtn) {
+        notificationBtn.onclick = (e) => {
             e.stopPropagation();
-            toggleDropdown(desktopBell);
+            toggleDropdown(notificationBtn);
         };
     }
 }
@@ -246,18 +159,15 @@ function startNotificationListener(userId) {
 }
 
 function updateBellUI(count) {
-    const desktopBadge = document.querySelector('#desktop-notification-btn .badg');
-    const mobileBadge = document.querySelector('#mobile-notification-btn .notif-badge');
+    const badge = document.getElementById('header-notification-badge');
 
     if (count > 0) {
-        if (desktopBadge) desktopBadge.style.display = 'block';
-        if (mobileBadge) {
-            mobileBadge.style.display = 'block';
-            mobileBadge.innerText = count > 9 ? '9+' : count;
+        if (badge) {
+            badge.style.display = 'block';
+            badge.innerText = count > 9 ? '9+' : count;
         }
     } else {
-        if (desktopBadge) desktopBadge.style.display = 'none';
-        if (mobileBadge) mobileBadge.style.display = 'none';
+        if (badge) badge.style.display = 'none';
     }
 }
 
@@ -340,16 +250,13 @@ async function handleNotificationClick(id, type, link) {
 // Close dropdown on click outside
 window.addEventListener('click', (e) => {
     const dropdown = document.getElementById('notification-dropdown');
-    const desktopBell = document.getElementById('desktop-notification-btn');
-    const mobileBell = document.getElementById('mobile-notification-btn');
+    const bellBtn = document.getElementById('header-notification-btn');
 
     if (dropdown && dropdown.style.display === 'block') {
-        // Check if click is outside dropdown and not on any bell button
         const isClickInside = dropdown.contains(e.target);
-        const isClickOnDesktopBell = desktopBell && desktopBell.contains(e.target);
-        const isClickOnMobileBell = mobileBell && mobileBell.contains(e.target);
+        const isClickOnBell = bellBtn && bellBtn.contains(e.target);
 
-        if (!isClickInside && !isClickOnDesktopBell && !isClickOnMobileBell) {
+        if (!isClickInside && !isClickOnBell) {
             dropdown.style.display = 'none';
         }
     }

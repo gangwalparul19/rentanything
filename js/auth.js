@@ -54,154 +54,106 @@ export function initAuth() {
 
     // Monitor Auth State
     onAuthStateChanged(auth, async (user) => {
-        console.log("Auth State Changed:", user ? "Logged In" : "Logged Out");
-        console.log("Login Btn Check:", loginBtn);
+        // Core Auth State Logic (UI visibility is now handled by header-manager.js)
         if (user) {
-            // User is signed in
-            if (loginBtn) loginBtn.style.display = 'none';
-        } else {
-            // User is signed out
-            if (loginBtn) {
-                console.log("Showing Login Button (Forced)");
-                // Force visibility with !important
-                loginBtn.style.setProperty('display', 'inline-flex', 'important');
-            } else {
-                console.error("Login Button NOT FOUND in DOM");
-            }
-            if (userProfile) userProfile.style.display = 'none';
-        }
-
-        if (user) {
-
-
             // Register for Push Notifications
-            console.log("🔔 Initializing Push Notifications for User...");
             subscribeToPushNotifications().catch(err => console.error("Push registration failed:", err));
 
-            // Mobile Notification Bell Visibility
-            const mobileNotifBtn = document.getElementById('mobile-notification-btn');
-            if (mobileNotifBtn) mobileNotifBtn.style.display = '';
-
-            // Mobile Chat Button Visibility
-            const mobileChatBtn = document.getElementById('mobile-chat-btn');
-            if (mobileChatBtn) mobileChatBtn.style.display = '';
-
-
-            // Notification Badge Logic
+            // Import Firestore modules once for the user session
             const { collection, query, where, onSnapshot } = await import('firebase/firestore');
             const { db } = await import('./firebase-config.js');
 
-            onSnapshot(q, (snapshot) => {
-                let totalUnread = 0;
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.unreadCounts && data.unreadCounts[user.uid]) {
-                        totalUnread += data.unreadCounts[user.uid];
-                    }
-                });
+            // 2. Chat Badge Logic
+            async function updateChatBadge(userId) {
+                const chatBadge = document.getElementById('header-chat-badge');
+                const chatBtn = document.getElementById('header-chat-btn');
 
-                // Update UI - Badge Only
-                const badge = document.getElementById('header-chat-badge');
-                if (badge) {
-                    if (totalUnread > 0) {
-                        badge.textContent = totalUnread > 99 ? '99+' : totalUnread;
-                        badge.style.display = 'block';
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                }
-            });
+                if (!chatBadge) return;
 
-            // --- 2. System Notifications (Bell) ---
-            // Bell logic is handled by header-manager.js
-            // We only need to ensure the mobile bell (if any) is synced or rely on header-manager.
-            // Removing duplicate bell injection from here.
+                try {
+                    const q = query(collection(db, "chats"), where("participants", "array-contains", userId));
 
-            // Setup Mark All Read (Global)
-            window.markAllRead = async () => {
-                const { getDocs, query, collection, where, writeBatch } = await import('firebase/firestore');
-                const qMa = query(collection(db, "notifications"), where("userId", "==", user.uid), where("read", "==", false));
-                const snapMa = await getDocs(qMa);
-                const batch = writeBatch(db);
-                snapMa.forEach(d => {
-                    batch.update(d.ref, { read: true });
-                });
-                await batch.commit();
-            };
+                    onSnapshot(q, (snapshot) => {
+                        let unreadCount = 0;
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            // Assuming 'lastMessage' exists and has 'senderId' and 'read' properties
+                            // And that 'unreadCounts' is no longer the primary source for badge
+                            // If 'unreadCounts' is still used, adjust this logic.
+                            // For now, checking if the last message is unread and not sent by the current user.
+                            if (data.lastMessage && data.lastMessage.senderId !== userId && !data.lastMessage.read) {
+                                unreadCount++;
+                            }
+                        });
 
-            if (userProfile) {
-                userProfile.style.display = 'flex';
-                // ... rest of profile code
-                // Dropdown HTML structure
-                // Only update if not already rendered to avoid image reload flickering (429 fix)
-                if (!document.getElementById('user-dropdown-menu')) {
-                    userProfile.innerHTML = `
-                        <div class="user-dropdown-container">
-                            <img id="user-avatar-btn" src="${user.photoURL || 'https://placehold.co/40'}" 
-                                alt="Profile" title="Click for menu"
-                                referrerpolicy="no-referrer"
-                                onerror="this.onerror=null;this.src='https://placehold.co/40?text=U';">
-                            <div class="user-dropdown-menu" id="user-dropdown-menu">
-                                <div class="dropdown-header">
-                                    <span class="dropdown-user-name">${user.displayName || 'User'}</span>
-                                    <span class="dropdown-user-email">${user.email}</span>
-                                </div>
-                                <a href="profile.html" class="dropdown-item">
-                                    <i class="fa-regular fa-id-card"></i> My Profile
-                                </a>
-                                <a href="my-bookings.html" class="dropdown-item">
-                                    <i class="fa-solid fa-basket-shopping"></i> My Rentals
-                                </a>
-                                <a href="my-listings.html" class="dropdown-item">
-                                    <i class="fa-solid fa-list-check"></i> My Listings
-                                </a>
-                                <div class="dropdown-divider"></div>
-                                <button id="logout-btn-dropdown" class="dropdown-item" style="width:100%; text-align:left; border:none; background:none; cursor:pointer;">
-                                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
-                                </button>
-                            </div>
-                        </div>
-                    `;
-
-                    // Event Listeners for Dropdown
-                    const avatarBtn = document.getElementById('user-avatar-btn');
-                    const dropdownMenu = document.getElementById('user-dropdown-menu'); // Re-select
-
-                    avatarBtn.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        dropdownMenu.classList.toggle('show');
+                        if (unreadCount > 0) {
+                            chatBadge.style.display = 'block';
+                            chatBadge.innerText = unreadCount > 9 ? '9+' : unreadCount;
+                            if (chatBtn) chatBtn.classList.add('has-unread');
+                        } else {
+                            chatBadge.style.display = 'none';
+                            if (chatBtn) chatBtn.classList.remove('has-unread');
+                        }
                     });
+                } catch (error) {
+                    console.error("Error updating chat badge:", error);
+                }
+            }
+            // Call the chat badge update function
+            updateChatBadge(user.uid);
+
+            // Populate User Profile Dropdown
+            if (userProfile) {
+                // Only render if not already rendered
+                if (!document.getElementById('user-dropdown-menu')) {
+                    userProfile.insertAdjacentHTML('beforeend', `
+                        <div class="user-dropdown-menu" id="user-dropdown-menu">
+                            <div class="dropdown-header">
+                                <span class="dropdown-user-name">${user.displayName || 'User'}</span>
+                                <span class="dropdown-user-email">${user.email}</span>
+                            </div>
+                            <a href="profile.html" class="dropdown-item">
+                                <i class="fa-regular fa-id-card"></i> My Profile
+                            </a>
+                            <a href="my-bookings.html" class="dropdown-item">
+                                <i class="fa-solid fa-basket-shopping"></i> My Rentals
+                            </a>
+                            <a href="my-listings.html" class="dropdown-item">
+                                <i class="fa-solid fa-list-check"></i> My Listings
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button id="logout-btn-dropdown" class="dropdown-item" style="width:100%; text-align:left; border:none; background:none; cursor:pointer;">
+                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                            </button>
+                        </div>
+                    `);
+
+                    // Avatar Click Event
+                    if (userAvatar) {
+                        userAvatar.src = user.photoURL || 'https://placehold.co/40';
+                        userAvatar.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const dropdown = document.getElementById('user-dropdown-menu');
+                            if (dropdown) dropdown.classList.toggle('show');
+                        });
+                    }
 
                     // Close on click outside
                     document.addEventListener('click', () => {
-                        if (dropdownMenu && dropdownMenu.classList.contains('show')) dropdownMenu.classList.remove('show');
+                        const dropdownMenu = document.getElementById('user-dropdown-menu');
+                        if (dropdownMenu && dropdownMenu.classList.contains('show')) {
+                            dropdownMenu.classList.remove('show');
+                        }
                     });
 
-                    // Hide mobile buttons on logic if needed (handled in onAuthStateChanged mostly, but good to be safe)
-                    // Actually, onAuthStateChanged handles UI reset on signOut/reload most times.
-                    // But let's add the safe cleanup if we can find the right place.
-                    // The previous replace failed because it looked for specific lines not in this view range?
-                    // Line 296 in previous view was where the logic was...
-                    // Let's stick to onAuthStateChanged managing it. 
-                    // Wait, onAuthStateChanged has an existing block for "else" (logged out).
-                    // I should check finding that block instead of inside the dropdown logic.
-
                     // Logout Logic
-                    document.getElementById('logout-btn-dropdown').addEventListener('click', async () => {
-                        await auth.signOut();
-                        window.location.reload();
+                    document.addEventListener('click', (e) => {
+                        if (e.target && e.target.id === 'logout-btn-dropdown' || e.target.closest('#logout-btn-dropdown')) {
+                            auth.signOut().then(() => window.location.reload());
+                        }
                     });
                 }
             }
-        } else {
-            // User is signed out
-            console.log("User logged out");
-            if (loginBtn) loginBtn.style.display = 'inline-flex';
-            if (userProfile) userProfile.style.display = 'none';
-
-            // Hide mobile chat button
-            const mobileChatBtn = document.getElementById('mobile-chat-btn');
-            if (mobileChatBtn) mobileChatBtn.style.display = 'none';
         }
     });
 }
