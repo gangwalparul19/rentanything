@@ -238,21 +238,21 @@ match /chats/{chatId} {
       allow write: if isAuthenticated() && userId == request.auth.uid;
     }
 
-    // ========== STATS COLLECTIONS (WIDE OPEN FOR INIT - DELETE AFTER!) ==========
+    // ========== STATS COLLECTIONS ==========
     // Platform-wide statistics (aggregated counts)
     match /stats/platform_stats {
       // Anyone can read stats (for public dashboards)
       allow read: if true;
-      // WIDE OPEN: No auth required (DELETE THIS PAGE AFTER INIT!)
-      allow write: if true;
+      // Only admins can write (prevent tampering)
+      allow write: if isAuthenticated() && isAdmin();
     }
     
     // User-specific stats
     match /stats/user_stats/{userId} {
       // Users can read their own stats, admins can read all
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      // WIDE OPEN: No auth required (RESTORE SECURITY AFTER!)
-      allow write: if true;
+      // Only admins can write (prevent score manipulation)
+      allow write: if isAuthenticated() && isAdmin();
     }
 
     match /platform_stats/{statId} {

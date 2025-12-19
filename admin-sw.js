@@ -1,5 +1,5 @@
 // Service Worker for RentAnything Admin Panel
-const CACHE_NAME = 'rentanything-admin-v31';
+const CACHE_NAME = 'rentanything-admin-v33';
 const ASSETS_TO_CACHE = [
     '/admin.html',
     '/admin-manifest.json',
@@ -47,14 +47,36 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - serve from cache, fallback to network
 self.addEventListener('fetch', (event) => {
-    // Skip service worker for Firestore and external requests
-    if (event.request.url.includes('firestore.googleapis.com') ||
-        event.request.url.includes('firebase') ||
-        event.request.url.includes('google') ||
-        event.request.url.includes('googleapis')) {
+    const url = event.request.url;
+
+    // ===== ALWAYS BYPASS CACHE FOR DATABASE/API URLS =====
+    // Ensures admin sees LIVE data, not stale cached data
+    const shouldBypassCache =
+        // Firestore & Firebase
+        url.includes('firestore.googleapis.com') ||
+        url.includes('firebasestorage.googleapis.com') ||
+        url.includes('firebase') ||
+        url.includes('googleapis.com') ||
+        // Firebase Auth
+        url.includes('identitytoolkit.googleapis.com') ||
+        url.includes('securetoken.googleapis.com') ||
+        // Firebase Realtime Database
+        url.includes('firebaseio.com') ||
+        // Stats/API endpoints
+        url.includes('/api/') ||
+        url.includes('/stats/') ||
+        // Analytics & Google Services
+        url.includes('google-analytics.com') ||
+        url.includes('analytics.google.com') ||
+        url.includes('google.com/recaptcha');
+
+    if (shouldBypassCache) {
+        // Network-only for database requests (no caching)
+        event.respondWith(fetch(event.request));
         return;
     }
 
+    // For static assets: Cache-first with network fallback
     event.respondWith(
         caches.match(event.request)
             .then((response) => {

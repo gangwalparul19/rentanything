@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rentanything-v31';
+const CACHE_NAME = 'rentanything-v33';
 const urlsToCache = [
     '/index.html',
     '/search.html',
@@ -45,6 +45,46 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // ===== EXCLUDE DATABASE/API URLs FROM CACHE =====
+    // Always fetch fresh data for these URLs (network-only strategy)
+    const url = event.request.url;
+
+    const shouldBypassCache =
+        // Firestore/Firebase
+        url.includes('firestore.googleapis.com') ||
+        url.includes('firebasestorage.googleapis.com') ||
+        url.includes('firebase') ||
+        url.includes('googleapis.com') ||
+        // Firebase Auth
+        url.includes('identitytoolkit.googleapis.com') ||
+        url.includes('securetoken.googleapis.com') ||
+        // Firebase Realtime Database
+        url.includes('firebaseio.com') ||
+        // Stats API endpoint (if you add one)
+        url.includes('/api/') ||
+        url.includes('/stats/') ||
+        // Analytics
+        url.includes('google-analytics.com') ||
+        url.includes('analytics.google.com');
+
+    // If database/API URL, always use network (no cache)
+    if (shouldBypassCache) {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                // Return offline indicator for database requests
+                return new Response(
+                    JSON.stringify({ error: 'Offline - database unavailable' }),
+                    {
+                        status: 503,
+                        headers: { 'Content-Type': 'application/json' }
+                    }
+                );
+            })
+        );
+        return;
+    }
+
+    // For other resources: Network-first with cache fallback
     event.respondWith(
         fetch(event.request)
             .then(response => {
