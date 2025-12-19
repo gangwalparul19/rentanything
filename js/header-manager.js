@@ -149,26 +149,26 @@ export function initHeader() {
                     dropdown.id = 'user-dropdown-menu';
                     dropdown.className = 'user-dropdown-menu';
                     dropdown.innerHTML = `
-                        <div class="dropdown-user-info">
-                            <div class="dropdown-user-name"></div>
-                            <div class="dropdown-user-email"></div>
-                        </div>
-                        <div class="dropdown-divider"></div>
-                        <a href="/profile.html" class="dropdown-item">
-                            <i class="fa-solid fa-user"></i> My Profile
-                        </a>
-                        <a href="/my-listings.html" class="dropdown-item">
-                            <i class="fa-solid fa-list"></i> My Listings
-                        </a>
-                        <a href="/my-bookings.html" class="dropdown-item">
-                            <i class="fa-solid fa-calendar"></i> My Bookings
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <button onclick="window.logout()" class="dropdown-item">
-                            <i class="fa-solid fa-sign-out"></i> Logout
-                        </button>
-                    `;
-                    dropdown.style.zIndex = '10000'; // Ensure dropdown is above everything
+        <div class="dropdown-user-info">
+            <div class="dropdown-user-name"></div>
+            <div class="dropdown-user-email"></div>
+        </div>
+        <div class="dropdown-divider"></div>
+        <a href="/profile.html" class="dropdown-item">
+            <i class="fa-solid fa-user"></i> My Profile
+        </a>
+        <a href="/my-listings.html" class="dropdown-item">
+            <i class="fa-solid fa-list"></i> My Listings
+        </a>
+        <a href="/my-bookings.html" class="dropdown-item">
+            <i class="fa-solid fa-calendar"></i> My Bookings
+        </a>
+        <div class="dropdown-divider"></div>
+        <button id="logout-btn-dropdown" class="dropdown-item">
+            <i class="fa-solid fa-sign-out"></i> Logout
+        </button>
+    `;
+                    dropdown.style.zIndex = '10000';
                     document.body.appendChild(dropdown);
 
                     // Setup Dropdown Click Listeners (moved outside the if block in the original, but now part of the new structure)
@@ -186,10 +186,17 @@ export function initHeader() {
                         };
                     }
 
-                    // Logout Handler
+                    // Logout Handler - This will now work because the ID matches
                     const dropLogout = document.getElementById('logout-btn-dropdown');
                     if (dropLogout) {
-                        dropLogout.onclick = () => auth.signOut().then(() => window.location.reload());
+                        dropLogout.onclick = () => {
+                            import('./toast-enhanced.js').then(m => m.showToast('Logging out...', 'info'));
+                            auth.signOut().then(() => {
+                                window.location.reload();
+                            }).catch(err => {
+                                console.error("Logout Error:", err);
+                            });
+                        };
                     }
                 }
 

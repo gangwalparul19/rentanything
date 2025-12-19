@@ -1548,27 +1548,6 @@
             }
         });
 
-        // Section Navigation
-        // UI Logic
-        function showSection(id, el) {
-            // Safety check
-            const targetSection = document.getElementById(id);
-            if (!targetSection) {
-                console.error(`Section with ID '${id}' not found!`);
-                return;
-            }
-
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            targetSection.classList.add('active');
-
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            if (el) el.classList.add('active'); // Added check for el too
-
-            const title = id.charAt(0).toUpperCase() + id.slice(1);
-            const pageTitle = document.getElementById('page-title');
-            if (pageTitle) pageTitle.innerText = title;
-        }
-
         // Logout function - calls the exported function from admin.js
         function logout() {
             if (window.logoutAdmin) {

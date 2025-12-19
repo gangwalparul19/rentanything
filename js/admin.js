@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc, getCountFromServer, orderBy, limit, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc, getCountFromServer, orderBy, limit, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { showToast } from './toast-enhanced.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
 import { sendPropertyApprovalEmail, sendPropertyRejectionEmail } from './email-notifications.js';
@@ -10,11 +10,17 @@ let analyticsData = {
     users: [],
     bookings: [],
     listings: [],
+    properties: [],
     topListings: [],
     activeUsers: []
 };
 
 let dateFilter = { start: null, end: null };
+
+// --- NOTIFICATION SYSTEM ---
+let unsubscribeNotifs = null;
+let notifications = [];
+
 
 // --- ADMIN CHECK ---
 /**
@@ -72,6 +78,12 @@ async function adminGoogleSignIn() {
 window.logoutAdmin = async function () {
     if (confirm('Are you sure you want to logout?')) {
         try {
+            // Clean up notification listener
+            if (unsubscribeNotifs) {
+                unsubscribeNotifs();
+                unsubscribeNotifs = null;
+            }
+
             await signOut(auth);
             showToast('Logged out successfully', 'info');
             window.location.reload();
@@ -151,6 +163,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (mainContent) mainContent.style.display = 'block';
 
             loadDashboard();
+
+            // Initialize notification system for admin
+            try {
+                startNotificationListener(user.uid);
+            } catch (error) {
+                console.error("Error initializing admin notifications:", error);
+            }
         } else {
             // Not logged in - show Google Sign-In
             // No user logged in - show login screen
@@ -290,7 +309,211 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // === Notification Bell Button ===
+    const notificationBell = document.getElementById('notification-bell');
+    if (notificationBell) {
+        notificationBell.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown(notificationBell);
+        });
+    }
+
+    // === Close notification dropdown on outside click ===
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('notification-dropdown');
+        const bellBtn = document.getElementById('notification-bell');
+
+        if (dropdown && dropdown.style.display === 'block') {
+            const isClickInside = dropdown.contains(e.target);
+            const isClickOnBell = bellBtn && bellBtn.contains(e.target);
+
+            if (!isClickInside && !isClickOnBell) {
+                dropdown.style.display = 'none';
+            }
+        }
+    });
 });
+
+
+// --- NOTIFICATION SYSTEM FUNCTIONS ---
+
+/**
+ * Start listening for admin notifications in real-time
+ * @param {string} userId - Admin user ID
+ */
+function startNotificationListener(userId) {
+    if (unsubscribeNotifs) unsubscribeNotifs();
+
+    const q = query(
+        collection(db, "notifications"),
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc"),
+        limit(10)
+    );
+
+    unsubscribeNotifs = onSnapshot(q, (snapshot) => {
+        notifications = [];
+        let unreadCount = 0;
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            notifications.push({ id: doc.id, ...data });
+            if (!data.read) unreadCount++;
+        });
+
+        updateBellUI(unreadCount);
+        renderDropdown();
+    });
+}
+
+/**
+ * Update notification bell badge UI
+ * @param {number} count - Number of unread notifications
+ */
+function updateBellUI(count) {
+    const badge = document.getElementById('notification-badge');
+
+    if (count > 0) {
+        if (badge) {
+            badge.style.display = 'flex';
+            badge.innerText = count > 9 ? '9+' : count;
+        }
+    } else {
+        if (badge) badge.style.display = 'none';
+    }
+}
+
+/**
+ * Toggle notification dropdown visibility
+ * @param {HTMLElement} triggerBtn - Button that triggered the dropdown
+ */
+function toggleDropdown(triggerBtn) {
+    const dropdown = document.getElementById('notification-dropdown');
+    const isVisible = dropdown.style.display === 'block';
+
+    if (isVisible) {
+        dropdown.style.display = 'none';
+    } else {
+        // Position it
+        const rect = triggerBtn.getBoundingClientRect();
+        dropdown.style.top = (rect.bottom + 10) + 'px';
+
+        // Prevent overflow right
+        if (window.innerWidth - rect.left < 400) {
+            dropdown.style.right = '1rem';
+            dropdown.style.left = 'auto';
+        } else {
+            dropdown.style.left = (rect.left - 150) + 'px'; // Center roughly
+        }
+
+        dropdown.style.display = 'block';
+    }
+}
+
+/**
+ * Render notifications in the dropdown
+ */
+function renderDropdown() {
+    const list = document.getElementById('notification-list');
+    const countEl = document.getElementById('notif-count');
+
+    if (!list) return;
+
+    // Update count
+    const unreadCount = notifications.filter(n => !n.read).length;
+    if (countEl) countEl.innerText = unreadCount;
+
+    if (notifications.length === 0) {
+        list.innerHTML = `<div style="padding:2rem 1rem; text-align:center; color:#64748b;">
+            <i class="fa-regular fa-bell-slash" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+            No notifications yet
+        </div>`;
+        return;
+    }
+
+    list.innerHTML = notifications.map(n => `
+        <div class="notification-item" data-notif-id="${n.id}" data-notif-type="${n.type || ''}" data-notif-link="${n.link || ''}" 
+             style="padding:1rem 1.5rem; border-bottom:1px solid #e2e8f0; cursor:pointer; background: ${n.read ? 'white' : '#f0f9ff'}; transition: background 0.2s;"
+             onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='${n.read ? 'white' : '#f0f9ff'}'">
+            <div style="display: flex; align-items: start; gap: 0.75rem;">
+                <div style="flex-shrink: 0; width: 8px; height: 8px; border-radius: 50%; background: ${n.read ? 'transparent' : '#ef4444'}; margin-top: 0.5rem;"></div>
+                <div style="flex: 1;">
+                    <div style="font-weight:600; font-size:0.9rem; margin-bottom:0.25rem; color: #0f172a;">${n.title || n.message}</div>
+                    ${n.body ? `<div style="font-size:0.85rem; color:#475569; line-height: 1.4;">${n.body}</div>` : ''}
+                    <div style="font-size:0.75rem; color:#94a3b8; margin-top:0.4rem;">
+                        <i class="fa-regular fa-clock"></i> ${n.createdAt ? new Date(n.createdAt.seconds * 1000).toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }) : 'Just now'}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+
+    // Add click listeners after rendering
+    document.querySelectorAll('.notification-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const id = item.dataset.notifId;
+            const type = item.dataset.notifType;
+            const link = item.dataset.notifLink;
+            handleNotificationClick(id, type, link);
+        });
+    });
+}
+
+/**
+ * Handle notification click - mark as read and navigate
+ * @param {string} id - Notification ID
+ * @param {string} type - Notification type
+ * @param {string} link - Custom link (optional)
+ */
+async function handleNotificationClick(id, type, link) {
+    // 1. Mark as read
+    try {
+        const notifRef = doc(db, "notifications", id);
+        await updateDoc(notifRef, { read: true });
+    } catch (e) {
+        console.error("Error marking notification as read:", e);
+    }
+
+    // 2. Close dropdown
+    const dropdown = document.getElementById('notification-dropdown');
+    if (dropdown) dropdown.style.display = 'none';
+
+    // 3. Navigate based on type or link
+    if (link) {
+        if (link.startsWith('http')) {
+            window.open(link, '_blank');
+        } else {
+            window.location.href = link;
+        }
+    } else {
+        // Default navigation based on notification type
+        switch (type) {
+            case 'property_approval':
+            case 'new_property':
+                showSection('property-approvals', document.querySelector('.nav-item[onclick*="property-approvals"]'));
+                break;
+            case 'new_report':
+            case 'report':
+                showSection('reports', document.querySelector('.nav-item[onclick*="reports"]'));
+                break;
+            case 'verification_request':
+                showSection('verifications', document.querySelector('.nav-item[onclick*="verifications"]'));
+                break;
+            case 'new_dispute':
+                showSection('disputes', document.querySelector('.nav-item[onclick*="disputes"]'));
+                break;
+            default:
+                // Stay on current page or go to dashboard
+                showSection('dashboard', document.querySelector('.nav-item[onclick*="dashboard"]'));
+        }
+    }
+}
 
 
 // --- LOAD DASHBOARD ---
@@ -626,6 +849,12 @@ async function loadAllData() {
         analyticsData.listings = [];
         listingsSnap.forEach(doc => {
             analyticsData.listings.push({ id: doc.id, ...doc.data() });
+        });
+
+        const propertiesSnap = await getDocs(collection(db, "properties"));
+        analyticsData.properties = [];
+        propertiesSnap.forEach(doc => {
+            analyticsData.properties.push({ id: doc.id, ...doc.data() });
         });
 
     } catch (error) {
@@ -1976,3 +2205,127 @@ window.exportBookings = async function () {
         showToast('Export failed', 'error');
     }
 };
+
+// --- IMAGE MODERATION ---
+async function loadImageModeration() {
+    const gallery = document.getElementById('image-gallery');
+    if (!gallery) return;
+
+    gallery.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading gallery...</div>';
+
+    // Use listings from analyticsData
+    const listings = analyticsData.listings;
+
+    if (listings.length === 0) {
+        gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 2rem;">No images found in listings.</p>';
+        return;
+    }
+
+    let html = '';
+    listings.forEach(listing => {
+        // Collect all images (main image + images array)
+        const images = [];
+        if (listing.image) images.push(listing.image);
+        if (listing.images && Array.isArray(listing.images)) {
+            listing.images.forEach(img => { if (img !== listing.image) images.push(img); });
+        }
+
+        images.forEach(img => {
+            html += `
+                <div class="card" style="padding: 0.5rem; margin-bottom: 0;">
+                    <img src="${img}" referrerpolicy="no-referrer" style="width: 100%; height: 160px; object-fit: cover; border-radius: 0.5rem; cursor: pointer;" 
+                         onclick="window.viewImage('${img}')" onerror="this.src='https://placehold.co/200x150?text=Error'">
+                    <div style="margin-top: 0.5rem; font-size: 0.8rem;">
+                        <strong>${listing.title.substring(0, 20)}...</strong><br>
+                        <span style="color: var(--secondary);">${listing.ownerName || 'Unknown Owner'}</span>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
+    gallery.innerHTML = html || '<p style="grid-column: 1/-1; text-align: center;">No images to display.</p>';
+}
+
+// --- SYSTEM HEALTH ---
+async function loadSystemHealth() {
+    // Fill basic stats from analyticsData
+    document.getElementById('health-users').innerText = analyticsData.users.length;
+    document.getElementById('health-listings').innerText = analyticsData.listings.length;
+    document.getElementById('health-bookings').innerText = analyticsData.bookings.length;
+    document.getElementById('health-properties').innerText = analyticsData.properties.length;
+
+    // Calculate quality metrics
+    let totalImages = 0;
+    let listingsWithNoImages = 0;
+    let flaggedCount = 0;
+    let priceIssues = 0;
+    let keywordMatches = 0;
+    const suspiciousKeywords = ['scam', 'fake', 'test', 'dummy', 'spam'];
+
+    analyticsData.listings.forEach(l => {
+        // Image stats
+        const imgCount = l.images ? l.images.length : (l.image ? 1 : 0);
+        totalImages += imgCount;
+        if (imgCount === 0) listingsWithNoImages++;
+
+        // Flagged logic
+        if (l.status === 'rejected' || l.status === 'flagged') flaggedCount++;
+
+        // Price issue logic (e.g., abnormally high/low prices)
+        const price = parseFloat(l.price || (l.rates ? l.rates.daily : 0));
+        if (price > 100000 || price <= 1) priceIssues++;
+
+        // Keyword matches
+        const content = (l.title + ' ' + (l.description || '')).toLowerCase();
+        if (suspiciousKeywords.some(word => content.includes(word))) keywordMatches++;
+    });
+
+    // Populate the Health UI
+    document.getElementById('health-total-images').innerText = totalImages;
+    document.getElementById('health-no-images').innerText = listingsWithNoImages;
+    document.getElementById('health-avg-images').innerText = analyticsData.listings.length > 0 ? (totalImages / analyticsData.listings.length).toFixed(1) : 0;
+    document.getElementById('health-flagged').innerText = flaggedCount;
+    document.getElementById('health-price-issues').innerText = priceIssues;
+    document.getElementById('health-keyword-matches').innerText = keywordMatches;
+}
+
+async function performGlobalSearch(searchTerm) {
+    const resultsContent = document.getElementById('search-results-content');
+    const resultsContainer = document.getElementById('search-results');
+    resultsContent.innerHTML = '<div style="padding:1rem; text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Searching...</div>';
+    resultsContainer.style.display = 'block';
+
+    try {
+        // Simple client-side filtering of already loaded analyticsData
+        const userMatches = analyticsData.users.filter(u =>
+            (u.displayName || '').toLowerCase().includes(searchTerm) ||
+            (u.email || '').toLowerCase().includes(searchTerm)
+        ).slice(0, 3);
+
+        const listingMatches = analyticsData.listings.filter(l =>
+            (l.title || '').toLowerCase().includes(searchTerm)
+        ).slice(0, 3);
+
+        if (userMatches.length === 0 && listingMatches.length === 0) {
+            resultsContent.innerHTML = '<div style="padding:1rem; color:var(--secondary);">No results found</div>';
+            return;
+        }
+
+        resultsContent.innerHTML = `
+            ${userMatches.map(u => `
+                <div class="search-item" onclick="window.viewUserActivity('${u.id}', '${u.displayName}')" style="padding:0.75rem; cursor:pointer; border-bottom:1px solid #f1f5f9;">
+                    <i class="fa-solid fa-user" style="color:var(--primary);"></i> ${u.displayName || 'User'} <small>(${u.email})</small>
+                </div>
+            `).join('')}
+            ${listingMatches.map(l => `
+                <div class="search-item" onclick="window.open('/product.html?id=${l.id}', '_blank')" style="padding:0.75rem; cursor:pointer; border-bottom:1px solid #f1f5f9;">
+                    <i class="fa-solid fa-box" style="color:var(--success);"></i> ${l.title}
+                </div>
+            `).join('')}
+        `;
+    } catch (error) {
+        resultsContent.innerHTML = '<div style="padding:1rem; color:red;">Search error</div>';
+    }
+}
+window.performGlobalSearch = performGlobalSearch;

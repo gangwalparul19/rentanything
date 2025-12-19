@@ -52,6 +52,18 @@ export function initAuth() {
         });
     }
 
+    // FIX: Define a global logout function for elements using inline onclick
+    window.logout = async () => {
+        try {
+            await signOut(auth);
+            showToast('Logged out.', 'info');
+            setTimeout(() => window.location.reload(), 1000);
+        } catch (error) {
+            console.error("Logout Failed:", error);
+            showToast("Logout failed", 'error');
+        }
+    };
+
     // Monitor Auth State
     onAuthStateChanged(auth, async (user) => {
         if (user) {

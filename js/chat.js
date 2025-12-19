@@ -275,37 +275,34 @@ async function startOrOpenChat(targetOwnerId, listingId) {
             listingTitle = listingSnap.data().title;
         }
 
-        // Update Header UI with real data
+        // Update Header UI
         chatNameEl.innerText = targetUser.name;
         chatImgEl.src = targetUser.photo;
         chatItemEl.innerText = listingTitle;
         window.currentChatOtherUserId = targetOwnerId;
 
-        // Check/Create Chat in Background
-        const chatSnap = await getDoc(chatRef);
-        if (!chatSnap.exists()) {
-            await setDoc(chatRef, {
-                participants: [currentUser.uid, targetOwnerId],
-                listingId: listingId,
-                listingTitle: listingTitle,
-                participantData: {
-                    [currentUser.uid]: {
-                        name: currentUser.displayName,
-                        photo: currentUser.photoURL
-                    },
-                    [targetOwnerId]: targetUser
+        // FIX: Use setDoc directly with { merge: true }
+        // This allows creating the chat without needing to "read" it first
+        await setDoc(chatRef, {
+            participants: [currentUser.uid, targetOwnerId],
+            listingId: listingId,
+            listingTitle: listingTitle,
+            participantData: {
+                [currentUser.uid]: {
+                    name: currentUser.displayName,
+                    photo: currentUser.photoURL
                 },
-                lastMessage: 'Chat started',
-                unreadCounts: {
-                    [currentUser.uid]: 0,
-                    [targetOwnerId]: 1
-                },
-                updatedAt: serverTimestamp(),
-                createdAt: serverTimestamp()
-            });
-        }
+                [targetOwnerId]: targetUser
+            },
+            // Only set these fields if the document is being created (merge:true handles this)
+            lastMessage: 'Chat started',
+            updatedAt: serverTimestamp(),
+            createdAt: serverTimestamp()
+        }, { merge: true });
+
     } catch (e) {
         console.error("Error setting up chat:", e);
+        showToast("Could not initialize chat: " + e.message, "error");
     }
 
     // Finalize URL
