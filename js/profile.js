@@ -294,7 +294,7 @@ if (profileForm) {
 
             // 1. Upload Profile Image
             if (newImageFile) {
-                const storageRef = ref(storage, `profile_images/${currentUser.uid}_${Date.now()}`);
+                const storageRef = ref(storage, `profiles/${currentUser.uid}/${currentUser.uid}_${Date.now()}`);
                 await uploadBytes(storageRef, newImageFile);
                 photoURL = await getDownloadURL(storageRef);
             }
@@ -303,7 +303,7 @@ if (profileForm) {
             let idDocUrl = null;
             if (newIdFile) {
                 const ext = newIdFile.name.split('.').pop();
-                const idRef = ref(storage, `private_docs/${currentUser.uid}/govt_id.${ext}`);
+                const idRef = ref(storage, `id_docs/${currentUser.uid}/govt_id.${ext}`);
                 await uploadBytes(idRef, newIdFile);
                 idDocUrl = await getDownloadURL(idRef);
             }
