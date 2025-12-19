@@ -57,15 +57,6 @@ async function toggleFavorite(productId, btn) {
     }
 }
 
-// ... (renderProduct modifications below)
-
-// Replace the renderProduct function to include the Favorite Logic
-// Wait, replacing the whole function is huge.
-// I will insert the favorite check AFTER rendering the HTML.
-// I can specifically target the end of the `try { ... render HTML ... }` block inside renderProduct or just append logic.
-
-// Let's modify renderProduct to add the listener and initial check.
-
 // Expose toast to window
 window.showToast = showToast;
 
@@ -790,10 +781,11 @@ async function renderProduct() {
         // -- REVIEWS SECTION --
         // ... (Existing Review Logic - Keeping it simpler here to save space in replacement, assuming it was working)
         // Actually I should keep the review logic. I'll paste it back.
+        window.currentProduct = { id: productId, ...product };
         loadReviews(productId, container);
 
         // -- RECOMMENDATIONS --
-        loadRecommendations(product, productId, container);
+        loadRecommendations(product.category, productId);
 
 
         // Setup Real-Time Booking Listener ONLY if Renting

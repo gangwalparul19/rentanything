@@ -8,6 +8,7 @@ import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
 import { initFooter } from './footer-manager.js';
 import { debounce } from './utils.js';
+import { showEmptyState } from './empty-states.js';
 
 let allListings = [];
 let allBookings = [];
@@ -352,8 +353,6 @@ function filterAndRender() {
     renderPaginatedResults();
     updateChips(term, selectedCats, minPrice, maxPrice, dateStart);
 }
-
-import { showEmptyState } from './empty-states.js';
 
 function renderGrid(items) {
     const grid = document.getElementById('results-grid');
