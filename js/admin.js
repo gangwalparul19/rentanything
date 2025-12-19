@@ -406,28 +406,44 @@ window.toggleNotifications = function () {
 
     if (isVisible) {
         dropdown.style.display = 'none';
-        // Clear styles when hidden to reset for next toggle
+        // Clear logic if needed, but for fixed positioning we can leave resets
         dropdown.style.top = '';
         dropdown.style.left = '';
         dropdown.style.right = '';
         dropdown.style.width = '';
+        dropdown.style.transform = '';
+        dropdown.style.height = '';
+        dropdown.style.maxHeight = '';
+        dropdown.style.position = '';
+        dropdown.style.zIndex = '';
+        dropdown.style.bottom = '';
     } else {
-        // Just Use CSS defaults or hardcoded values for stability
-        // The header is at the top, so standard positioning works best.
+        // Enforce Fixed Position settings every time it opens
+        dropdown.style.position = 'fixed';
+        dropdown.style.zIndex = '3000';
+        dropdown.style.bottom = 'auto'; // CRITICAL: Prevent bottom anchoring
 
         if (window.innerWidth <= 768) {
-            // Mobile
-            dropdown.style.top = '4.5rem';
-            dropdown.style.left = '1rem';
-            dropdown.style.right = '1rem';
-            dropdown.style.width = 'auto'; // Full width with margins
+            // Mobile: Centered top
+            dropdown.style.top = '75px'; // Below header
+            dropdown.style.left = '50%';
+            dropdown.style.transform = 'translateX(-50%)';
+            dropdown.style.right = 'auto';
+            dropdown.style.width = '90%';
+            dropdown.style.maxWidth = '400px';
         } else {
-            // Desktop - Top Right Alignment
-            dropdown.style.top = '5.5rem'; // Just below header
-            dropdown.style.right = '2rem'; // Aligned with right padding
-            dropdown.style.left = 'auto';  // Reset left
+            // Desktop: Top Right
+            dropdown.style.top = '90px'; // Approx 5.5rem
+            dropdown.style.right = '30px';
+            dropdown.style.left = 'auto';
+            dropdown.style.transform = 'none';
             dropdown.style.width = '380px';
         }
+
+        // Reset height to avoid "bottom" look if content is small but height was fixed
+        dropdown.style.height = 'auto';
+        dropdown.style.maxHeight = '80vh';
+
         dropdown.style.display = 'block';
     }
 };
