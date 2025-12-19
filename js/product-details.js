@@ -28,47 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderProduct();
 });
 
-// Helper: Toggle Favorite
-async function toggleFavorite(productId, btn) {
-    const user = auth.currentUser;
-    if (!user) {
-        showToast("Login to save items!", "info");
-        return;
-    }
-
-    // Disable to prevent spam
-    btn.disabled = true;
-    const icon = btn.querySelector('i');
-
-    try {
-        const favRef = doc(db, "favorites", `${user.uid}_${productId}`);
-        const docSnap = await getDoc(favRef);
-
-        if (docSnap.exists()) {
-            // Remove
-            await deleteDoc(favRef);
-            icon.classList.remove('fa-solid');
-            icon.classList.add('fa-regular');
-            icon.style.color = 'var(--primary)'; // Reset color logic if needed
-            showToast("Removed from favorites", "info");
-        } else {
-            // Add
-            await setDoc(favRef, {
-                userId: user.uid,
-                listingId: productId,
-                createdAt: serverTimestamp()
-            });
-            icon.classList.remove('fa-regular');
-            icon.classList.add('fa-solid');
-            icon.style.color = '#ef4444'; // Red heart
-            showToast("Saved to favorites!", "success");
-        }
-    } catch (e) {
-        console.error("Fav Error:", e);
-    } finally {
-        btn.disabled = false;
-    }
-}
+// Helper: Toggle Favorite (Moved to bottom)
 
 // Expose toast to window
 window.showToast = showToast;
