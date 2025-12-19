@@ -2,7 +2,7 @@
 // Firebase Imports
 import { db, auth } from './firebase-config.js';
 import { showLoader, hideLoader } from './loader.js';
-import { doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, Timestamp, setDoc, deleteDoc, limit } from 'firebase/firestore';
+import { doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, Timestamp, setDoc, deleteDoc, limit, onSnapshot } from 'firebase/firestore';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
@@ -13,7 +13,6 @@ import { initShareMenu, shareToWhatsApp, shareToFacebook, shareToTwitter, shareT
 import { calculateCO2Savings } from './carbon-calculator.js';
 import { gallery } from './image-gallery.js';
 
-// ... (Existing code)
 
 // Helper: Toggle Favorite
 async function toggleFavorite(productId, btn) {
@@ -328,8 +327,6 @@ async function setupRealtimeBookingListener(productId) {
     if (bookingListener) {
         bookingListener();
     }
-
-    const { onSnapshot } = await import('firebase/firestore');
 
     const q = query(
         collection(db, "bookings"),
@@ -1083,6 +1080,13 @@ const RELATED_CATEGORIES = {
 
 async function loadRecommendations(category, currentId) {
     const recContainer = document.getElementById('recommendation-container');
+
+    // FIX: If recommendation container doesn't exist, just return
+    if (!recContainer) {
+        console.log('Recommendation container not found on this page');
+        return;
+    }
+
     recContainer.innerHTML = '<div class="loader-spinner" style="margin:2rem auto;"></div>';
 
     try {
