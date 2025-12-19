@@ -610,6 +610,13 @@ async function renderProduct() {
             }
         } catch (e) { console.error("Owner Fetch Error", e); }
 
+        // FIX: Don't let the booking listener failure stop the page from loading
+        if (transactionTypes.includes('rent')) {
+            setupRealtimeBookingListener(productId).catch(err => {
+                console.warn("Availability calendar not available for guests");
+            });
+        }
+
 
         // -- Action Sections (Rent/Buy/Donate) --
         let actionsHtml = '';
