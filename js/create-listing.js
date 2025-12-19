@@ -594,6 +594,14 @@ if (form) {
                 await addDoc(collection(db, "listings"), listingData);
                 hideLoader();
                 showToast("Listing submitted for approval! ⏳", 'success');
+
+                // Notify Admin via WhatsApp
+                setTimeout(() => {
+                    const adminPhone = "919372776019";
+                    const msg = `📦 *New Item Listed*\n\nUser: ${currentUser.displayName || 'Unknown'}\nItem: ${listingData.title}\nPrice: ₹${listingData.rates?.daily || listingData.price || 'N/A'}\n\nPlease review in Admin Panel.`;
+                    window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+                }, 1000);
+
             } else {
                 const docRef = doc(db, "listings", currentListingId);
                 await updateDoc(docRef, listingData);
@@ -603,7 +611,7 @@ if (form) {
 
             setTimeout(() => {
                 window.location.href = isEditMode ? 'my-listings.html' : '/';
-            }, 1500);
+            }, 2500);
 
         } catch (error) {
             console.error("Error saving listing:", error);

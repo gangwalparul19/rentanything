@@ -209,9 +209,16 @@ function setupFormSubmission() {
             hideLoader();
             showToast('Property submitted for approval! You\'ll be notified once it\'s reviewed. 📝', 'success');
 
+            // Notify Admin via WhatsApp
+            setTimeout(() => {
+                const adminPhone = "919372776019";
+                const msg = `🚀 *New Property Submitted*\n\nUser: ${auth.currentUser.displayName || 'Unknown'}\nTitle: ${propertyData.title}\nRent: ₹${propertyData.monthlyRent}\n\nPlease review in Admin Panel.`;
+                window.open(`https://wa.me/${adminPhone}?text=${encodeURIComponent(msg)}`, '_blank');
+            }, 1000);
+
             setTimeout(() => {
                 window.location.href = '/my-properties.html';
-            }, 1500);
+            }, 2500);
 
         } catch (error) {
             console.error('Error listing property:', error);

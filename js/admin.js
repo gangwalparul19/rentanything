@@ -406,25 +406,27 @@ function toggleDropdown(triggerBtn) {
 
     if (isVisible) {
         dropdown.style.display = 'none';
+        // Clear styles when hidden to reset for next toggle
+        dropdown.style.top = '';
+        dropdown.style.left = '';
+        dropdown.style.right = '';
+        dropdown.style.width = '';
     } else {
-        // Mobile Handling
+        // Just Use CSS defaults or hardcoded values for stability
+        // The header is at the top, so standard positioning works best.
+
         if (window.innerWidth <= 768) {
+            // Mobile
             dropdown.style.top = '4.5rem';
             dropdown.style.left = '1rem';
             dropdown.style.right = '1rem';
-            dropdown.style.width = 'auto';
+            dropdown.style.width = 'auto'; // Full width with margins
         } else {
-            // Desktop Positioning
-            const rect = triggerBtn.getBoundingClientRect();
-            dropdown.style.top = (rect.bottom + 10) + 'px';
-
-            // Prevent overflow right
-            if (window.innerWidth - rect.left < 400) {
-                dropdown.style.right = '1rem';
-                dropdown.style.left = 'auto';
-            } else {
-                dropdown.style.left = (rect.left - 150) + 'px'; // Center roughly
-            }
+            // Desktop - Top Right Alignment
+            dropdown.style.top = '5.5rem'; // Just below header
+            dropdown.style.right = '2rem'; // Aligned with right padding
+            dropdown.style.left = 'auto';  // Reset left
+            dropdown.style.width = '380px';
         }
         dropdown.style.display = 'block';
     }
