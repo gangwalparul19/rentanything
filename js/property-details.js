@@ -47,7 +47,14 @@ async function loadPropertyDetails() {
         const property = { id: propertySnap.id, ...propertySnap.data() };
 
         // Increment view count
-        await updateDoc(propertyRef, { views: increment(1) });
+        try {
+            // Attempt to increment view count, but don't let failure stop the page
+            updateDoc(propertyRef, { views: increment(1) }).catch(() => {
+                console.warn("Could not update view count (likely guest user)");
+            });
+        } catch (e) {
+            // Silently ignore or log
+        }
 
         renderPropertyDetails(property);
 

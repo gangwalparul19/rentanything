@@ -2,7 +2,7 @@
 // Firebase Imports
 import { db, auth } from './firebase-config.js';
 import { showLoader, hideLoader } from './loader.js';
-import { doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, Timestamp, setDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, addDoc, collection, serverTimestamp, query, where, getDocs, Timestamp, setDoc, deleteDoc, limit } from 'firebase/firestore';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
@@ -537,6 +537,7 @@ async function renderProduct() {
         }
 
         const product = docSnap.data();
+        window.currentProduct = { id: productId, ...product };
         const transactionTypes = product.transactionTypes || ['rent']; // Default to rent
 
         // ============ UPDATE DYNAMIC METADATA FOR SOCIAL SHARING ============
@@ -612,9 +613,7 @@ async function renderProduct() {
 
         // FIX: Don't let the booking listener failure stop the page from loading
         if (transactionTypes.includes('rent')) {
-            setupRealtimeBookingListener(productId).catch(err => {
-                console.warn("Availability calendar not available for guests");
-            });
+            setupRealtimeBookingListener(productId).catch(() => { });
         }
 
 
