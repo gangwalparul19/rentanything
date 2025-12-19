@@ -25,16 +25,15 @@ service cloud.firestore {
     // ========== USERS COLLECTION ========== 
     // TIGHTENED: Protect Personal Identifiable Information (PII)
     match /users/{userId} {
-      // Read: Users can only read their own full profile OR public fields of others
+      // Get: Users can read their own profile, admins can read any profile
       allow get: if isAuthenticated() && (
-        // Own profile: full access
         isOwner(userId) || 
-        // Admins: full access
         isAdmin()
       );
       
-      // List queries restricted to admins only (prevent enumeration of users)
-      allow list: if isAdmin();
+      // List queries: Admins can list all users (for dashboard/stats)
+      // Regular users CANNOT enumerate users
+      allow list: if isAuthenticated() && isAdmin();
       
       // Create: Only the user themselves can create their profile
       allow create: if isAuthenticated() && 
@@ -61,6 +60,14 @@ service cloud.firestore {
     match /public_profiles/{userId} {
       allow read: if true; // Anyone can read public profiles
       allow write: if isOwner(userId) || isAdmin();
+    }
+    
+    // ========== LISTINGS COLLECTION ==========
+    match /listings/{listingId} {
+      allow read: if true; // Public listings
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin() || 
+        (isAuthenticated() && resource.data.ownerId == request.auth.uid);
     }
     
     // ========== BOOKINGS COLLECTION ==========

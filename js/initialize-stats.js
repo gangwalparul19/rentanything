@@ -3,11 +3,24 @@
  * Run this script once to populate the stats document with actual counts
  */
 
-import { db } from './firebase-config.js';
+import { db, auth } from './firebase-config.js';
 import { collection, getDocs, query, where, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 async function initializeStats() {
     console.log('🔧 Initializing platform stats...');
+
+    // Check if user is authenticated
+    if (!auth.currentUser) {
+        throw new Error('❌ Not authenticated. Please log in as admin first.');
+    }
+
+    // Check if user is admin
+    const adminEmails = ['gangwalparul19@gmail.com', 'rentanythingindia@gmail.com'];
+    if (!adminEmails.includes(auth.currentUser.email)) {
+        throw new Error('❌ Admin access required. Your email: ' + auth.currentUser.email);
+    }
+
+    console.log(`✅ Authenticated as admin: ${auth.currentUser.email}`);
 
     try {
         // Count users
