@@ -400,6 +400,85 @@ function renderGrid(items) {
     `}).join('');
 }
 
+window.toggleSaved = async (btn) => {
+    const listingId = btn.closest('.listing-card').href.split('=')[1];
+    // Import and call the favorite logic from your shared auth/util or define here
+    showToast("Feature coming soon: Save to Wishlist", "info");
+};
+
 function updateChips(term, cats, min, max, date) {
-    // Optional: Render chips logic
+    const chipsContainer = document.getElementById('active-filters');
+    if (!chipsContainer) return;
+
+    let chips = [];
+
+    // Search term chip
+    if (term) {
+        chips.push(`
+            <div class="filter-chip">
+                Search: "${term}" 
+                <i class="fa-solid fa-times" onclick="document.getElementById('search-input').value=''; filterAndRender();" style="cursor:pointer;"></i>
+            </div>
+        `);
+    }
+
+    // Category chips
+    cats.forEach(cat => {
+        chips.push(`
+            <div class="filter-chip">
+                ${cat.charAt(0).toUpperCase() + cat.slice(1)} 
+                <i class="fa-solid fa-times" onclick="document.querySelector('#category-filters input[value=&quot;${cat}&quot;]').checked=false; filterAndRender();" style="cursor:pointer;"></i>
+            </div>
+        `);
+    });
+
+    // Price range chip
+    if (min > 0 || max < 100000) {
+        chips.push(`
+            <div class="filter-chip">
+                ₹${min} - ₹${max} 
+                <i class="fa-solid fa-times" onclick="document.getElementById('min-price').value=''; document.getElementById('max-price').value=''; filterAndRender();" style="cursor:pointer;"></i>
+            </div>
+        `);
+    }
+
+    // Date range chip
+    if (date) {
+        const dates = calendarInstance.selectedDates;
+        const dateStr = dates.length > 1
+            ? `${dates[0].toLocaleDateString()} - ${dates[1].toLocaleDateString()}`
+            : dates[0].toLocaleDateString();
+        chips.push(`
+            <div class="filter-chip">
+                ${dateStr} 
+                <i class="fa-solid fa-times" onclick="calendarInstance.clear(); filterAndRender();" style="cursor:pointer;"></i>
+            </div>
+        `);
+    }
+
+    // Verified only chip
+    const verifiedCheckbox = document.getElementById('verified-only');
+    if (verifiedCheckbox?.checked) {
+        chips.push(`
+            <div class="filter-chip">
+                Verified Only 
+                <i class="fa-solid fa-times" onclick="document.getElementById('verified-only').checked=false; filterAndRender();" style="cursor:pointer;"></i>
+            </div>
+        `);
+    }
+
+    // Transaction type chips
+    const selectedTypes = Array.from(document.querySelectorAll('#transaction-filters input:checked'));
+    selectedTypes.forEach(cb => {
+        const type = cb.value;
+        chips.push(`
+            <div class="filter-chip">
+                ${type.charAt(0).toUpperCase() + type.slice(1)} 
+                <i class="fa-solid fa-times" onclick="document.querySelector('#transaction-filters input[value=&quot;${type}&quot;]').checked=false; filterAndRender();" style="cursor:pointer;"></i>
+            </div>
+        `);
+    });
+
+    // Render chips or show nothing
+    chipsContainer.innerHTML = chips.join('');
 }

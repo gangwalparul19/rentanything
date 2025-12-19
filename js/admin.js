@@ -2329,3 +2329,68 @@ async function performGlobalSearch(searchTerm) {
     }
 }
 window.performGlobalSearch = performGlobalSearch;
+
+// --- MISSING FUNCTIONS IMPLEMENTATION ---
+
+/**
+ * Logout function alias for admin.html onclick handler
+ */
+window.logout = function () {
+    window.logoutAdmin();
+};
+
+/**
+ * Toggle notification dropdown - alias for toggleDropdown
+ */
+window.toggleNotifications = function () {
+    const notificationBell = document.getElementById('notification-bell');
+    if (notificationBell) {
+        toggleDropdown(notificationBell);
+    }
+};
+
+/**
+ * Toggle sidebar for mobile view
+ */
+window.toggleSidebar = function () {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+
+    if (sidebar && overlay) {
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+    }
+};
+
+/**
+ * Open generic modal
+ * @param {string} modalId - ID of the modal element to open
+ */
+window.openModal = function (modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+    }
+};
+
+/**
+ * Close generic modal
+ * @param {string} modalId - Optional ID of specific modal, otherwise closes the modal with class 'active'
+ */
+window.closeModal = function (modalId) {
+    if (modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+    } else {
+        // Close any active modal
+        const activeModals = document.querySelectorAll('.modal-overlay.active, .modal-container.active');
+        activeModals.forEach(modal => {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        });
+    }
+};
