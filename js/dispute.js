@@ -93,14 +93,20 @@ async function loadUserBookings() {
 // Setup event listeners
 function setupEventListeners() {
     // Booking selection
-    document.getElementById('booking-select').addEventListener('change', (e) => {
-        if (e.target.value) {
-            selectedBooking = JSON.parse(e.target.selectedOptions[0].dataset.booking);
-        }
-    });
+    const bookingSelect = document.getElementById('booking-select');
+    if (bookingSelect) {
+        bookingSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                selectedBooking = JSON.parse(e.target.selectedOptions[0].dataset.booking);
+            }
+        });
+    }
 
     // Evidence upload
-    document.getElementById('evidence-input').addEventListener('change', handleEvidenceSelect);
+    const evidenceInput = document.getElementById('evidence-input');
+    if (evidenceInput) {
+        evidenceInput.addEventListener('change', handleEvidenceSelect);
+    }
 }
 
 // Step navigation

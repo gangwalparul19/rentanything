@@ -123,17 +123,22 @@ function getPosition(e) {
     return { x: clientX - rect.left, y: clientY - rect.top };
 }
 
-canvas.addEventListener('mousedown', startDraw);
-canvas.addEventListener('mousemove', draw);
-canvas.addEventListener('mouseup', stopDraw);
-canvas.addEventListener('touchstart', startDraw);
-canvas.addEventListener('touchmove', draw);
-canvas.addEventListener('touchend', stopDraw);
+// Guard: Only attach listeners if we're on the agreement page
+if (canvas) {
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDraw);
+    canvas.addEventListener('touchstart', startDraw);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDraw);
+}
 
-clearBtn.addEventListener('click', () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    finalSignBtn.disabled = true;
-});
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        finalSignBtn.disabled = true;
+    });
+}
 
 
 function renderSignatures() {

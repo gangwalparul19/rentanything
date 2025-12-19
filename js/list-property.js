@@ -96,6 +96,8 @@ function setupImageUpload() {
     const imageInput = document.getElementById('property-images');
     const imagePreview = document.getElementById('image-preview');
 
+    if (!imageInput || !imagePreview) return;
+
     imageInput.addEventListener('change', async (e) => {
         const files = Array.from(e.target.files);
 
@@ -121,9 +123,12 @@ function setupImageUpload() {
     });
 
     // Click to trigger file input
-    imagePreview.parentElement.querySelector('.file-upload-label').addEventListener('click', () => {
-        imageInput.click();
-    });
+    const uploadLabel = imagePreview.parentElement?.querySelector('.file-upload-label');
+    if (uploadLabel) {
+        uploadLabel.addEventListener('click', () => {
+            imageInput.click();
+        });
+    }
 }
 
 /**

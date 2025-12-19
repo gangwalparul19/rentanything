@@ -27,35 +27,38 @@ onAuthStateChanged(auth, (user) => {
 });
 
 // 1. Post Request
-requestForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentUser) {
-        showToast("Please login to post a request", "error");
-        return;
-    }
+// Guard: Only attach listener if the form exists
+if (requestForm) {
+    requestForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser) {
+            showToast("Please login to post a request", "error");
+            return;
+        }
 
-    const title = document.getElementById('req-title').value;
-    const desc = document.getElementById('req-desc').value;
+        const title = document.getElementById('req-title').value;
+        const desc = document.getElementById('req-desc').value;
 
-    try {
-        await addDoc(collection(db, "requests"), {
-            title: title,
-            description: desc,
-            userId: currentUser.uid,
-            userName: currentUser.displayName || 'Neighbor',
-            userPhoto: currentUser.photoURL,
-            status: 'open',
-            createdAt: serverTimestamp()
-        });
+        try {
+            await addDoc(collection(db, "requests"), {
+                title: title,
+                description: desc,
+                userId: currentUser.uid,
+                userName: currentUser.displayName || 'Neighbor',
+                userPhoto: currentUser.photoURL,
+                status: 'open',
+                createdAt: serverTimestamp()
+            });
 
-        showToast("Request posted!", "success");
-        window.closeModal();
-        requestForm.reset();
-    } catch (e) {
-        console.error("Error posting:", e);
-        showToast("Failed to post request", "error");
-    }
-});
+            showToast("Request posted!", "success");
+            window.closeModal();
+            requestForm.reset();
+        } catch (e) {
+            console.error("Error posting:", e);
+            showToast("Failed to post request", "error");
+        }
+    });
+}
 
 // 2. Load Requests
 function loadRequests() {

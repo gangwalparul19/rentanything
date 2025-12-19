@@ -125,70 +125,76 @@ async function loadProfile(uid) {
 }
 
 // Image Selection
-imageUploadWrapper.addEventListener('click', () => {
-    profileImageInput.click();
-});
+if (imageUploadWrapper) {
+    imageUploadWrapper.addEventListener('click', () => {
+        profileImageInput.click();
+    });
+}
 
-profileImageInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        // SECURITY FIX: Comprehensive file validation
-        const { validateImageFile } = await import('./file-validator.js');
-        const validation = validateImageFile(file);
+if (profileImageInput) {
+    profileImageInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            // SECURITY FIX: Comprehensive file validation
+            const { validateImageFile } = await import('./file-validator.js');
+            const validation = validateImageFile(file);
 
-        if (!validation.valid) {
-            showToast(validation.error, "error");
-            profileImageInput.value = ''; // Reset input
-            return;
-        }
-
-        // Show notification for large files
-        if (file.size > 2 * 1024 * 1024) {
-            showToast('Compressing large image...', 'info');
-        }
-
-        // Preview Original immediately for better UX
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-            profilePreview.src = evt.target.result;
-        };
-        reader.readAsDataURL(file);
-
-        try {
-            console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
-            // Use enhanced compressor with profile-optimized settings
-            const compressedFile = await compressImage(file, {
-                maxWidth: 800,  // Profile images don't need to be huge
-                targetSizeMB: 0.5, // Target 500KB for profile pictures
-                maxQuality: 0.85
-            });
-            console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
-
-            newImageFile = compressedFile;
-
-            if (file.size > 2 * 1024 * 1024) {
-                const reduction = ((1 - compressedFile.size / file.size) * 100).toFixed(0);
-                showToast(`✅ Image compressed by ${reduction}%`, 'success');
+            if (!validation.valid) {
+                showToast(validation.error, "error");
+                profileImageInput.value = ''; // Reset input
+                return;
             }
-        } catch (error) {
-            console.error("Compression error:", error);
-            showToast("Failed to process image. Try another.", "error");
-            newImageFile = null; // Reset
+
+            // Show notification for large files
+            if (file.size > 2 * 1024 * 1024) {
+                showToast('Compressing large image...', 'info');
+            }
+
+            // Preview Original immediately for better UX
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                profilePreview.src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            try {
+                console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
+                // Use enhanced compressor with profile-optimized settings
+                const compressedFile = await compressImage(file, {
+                    maxWidth: 800,  // Profile images don't need to be huge
+                    targetSizeMB: 0.5, // Target 500KB for profile pictures
+                    maxQuality: 0.85
+                });
+                console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
+
+                newImageFile = compressedFile;
+
+                if (file.size > 2 * 1024 * 1024) {
+                    const reduction = ((1 - compressedFile.size / file.size) * 100).toFixed(0);
+                    showToast(`✅ Image compressed by ${reduction}%`, 'success');
+                }
+            } catch (error) {
+                console.error("Compression error:", error);
+                showToast("Failed to process image. Try another.", "error");
+                newImageFile = null; // Reset
+            }
         }
-    }
-});
+    });
+}
 
 // Toggle "Other" Society Input
-societySelect.addEventListener('change', () => {
-    if (societySelect.value === "Other Hinjewadi Phase 3") {
-        otherSocietyWrapper.style.display = 'block';
-        otherSocietyInput.setAttribute('required', 'true');
-    } else {
-        otherSocietyWrapper.style.display = 'none';
-        otherSocietyInput.removeAttribute('required');
-        otherSocietyInput.value = ''; // Clear if hidden
-    }
-});
+if (societySelect) {
+    societySelect.addEventListener('change', () => {
+        if (societySelect.value === "Other Hinjewadi Phase 3") {
+            otherSocietyWrapper.style.display = 'block';
+            otherSocietyInput.setAttribute('required', 'true');
+        } else {
+            otherSocietyWrapper.style.display = 'none';
+            otherSocietyInput.removeAttribute('required');
+            otherSocietyInput.value = ''; // Clear if hidden
+        }
+    });
+}
 
 // --- GOVT ID LOGIC ---
 const idInput = document.getElementById('id-file-input');
@@ -238,109 +244,111 @@ async function checkIdStatus(uid, data) {
 
 
 // Form Submission
-profileForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentUser) return;
+if (profileForm) {
+    profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentUser) return;
 
-    saveBtn.disabled = true;
-    saveBtn.innerText = 'Saving...';
-    showLoader("Saving your profile...");
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+        showLoader("Saving your profile...");
 
-    try {
-        let photoURL = profilePreview.src;
+        try {
+            let photoURL = profilePreview.src;
 
-        // 1. Upload Profile Image
-        if (newImageFile) {
-            const storageRef = ref(storage, `profile_images/${currentUser.uid}_${Date.now()}`);
-            await uploadBytes(storageRef, newImageFile);
-            photoURL = await getDownloadURL(storageRef);
-        }
-
-        // 2. Upload Govt ID (New)
-        let idDocUrl = null;
-        if (newIdFile) {
-            const ext = newIdFile.name.split('.').pop();
-            const idRef = ref(storage, `private_docs/${currentUser.uid}/govt_id.${ext}`);
-            await uploadBytes(idRef, newIdFile);
-            idDocUrl = await getDownloadURL(idRef);
-        }
-
-        // Sanitize
-        const sanitize = (str) => {
-            if (!str) return str;
-            const temp = document.createElement('div');
-            temp.textContent = str;
-            return temp.innerHTML;
-        };
-
-        // 3. Update Firestore
-        const profileData = {
-            displayName: sanitize(displayNameInput.value),
-            phoneNumber: sanitize(phoneNumberInput.value),
-            society: sanitize(societySelect.value),
-            flatNumber: sanitize(flatNumberInput.value),
-            gender: sanitize(genderSelect.value),
-            bio: sanitize(bioInput.value),
-            photoURL: photoURL,
-            email: currentUser.email,
-            updatedAt: serverTimestamp()
-        };
-
-        if (idDocUrl) {
-            profileData.idDocumentUrl = idDocUrl;
-            profileData.idVerificationStatus = 'pending';
-        }
-
-        // Handle Other Society
-        if (societySelect.value === "Other Hinjewadi Phase 3") {
-            const customSociety = otherSocietyInput.value.trim();
-            if (customSociety) {
-                profileData.societyRequest = customSociety;
-                profileData.society = "Pending: " + customSociety;
-                // Add to admin requests
-                try {
-                    await addDoc(collection(db, "society_requests"), {
-                        userId: currentUser.uid,
-                        userName: displayNameInput.value,
-                        requestedSociety: customSociety,
-                        status: 'pending',
-                        createdAt: serverTimestamp()
-                    });
-                } catch (e) { console.error(e); }
+            // 1. Upload Profile Image
+            if (newImageFile) {
+                const storageRef = ref(storage, `profile_images/${currentUser.uid}_${Date.now()}`);
+                await uploadBytes(storageRef, newImageFile);
+                photoURL = await getDownloadURL(storageRef);
             }
-        } else {
-            profileData.society = societySelect.value;
-            profileData.societyRequest = null;
+
+            // 2. Upload Govt ID (New)
+            let idDocUrl = null;
+            if (newIdFile) {
+                const ext = newIdFile.name.split('.').pop();
+                const idRef = ref(storage, `private_docs/${currentUser.uid}/govt_id.${ext}`);
+                await uploadBytes(idRef, newIdFile);
+                idDocUrl = await getDownloadURL(idRef);
+            }
+
+            // Sanitize
+            const sanitize = (str) => {
+                if (!str) return str;
+                const temp = document.createElement('div');
+                temp.textContent = str;
+                return temp.innerHTML;
+            };
+
+            // 3. Update Firestore
+            const profileData = {
+                displayName: sanitize(displayNameInput.value),
+                phoneNumber: sanitize(phoneNumberInput.value),
+                society: sanitize(societySelect.value),
+                flatNumber: sanitize(flatNumberInput.value),
+                gender: sanitize(genderSelect.value),
+                bio: sanitize(bioInput.value),
+                photoURL: photoURL,
+                email: currentUser.email,
+                updatedAt: serverTimestamp()
+            };
+
+            if (idDocUrl) {
+                profileData.idDocumentUrl = idDocUrl;
+                profileData.idVerificationStatus = 'pending';
+            }
+
+            // Handle Other Society
+            if (societySelect.value === "Other Hinjewadi Phase 3") {
+                const customSociety = otherSocietyInput.value.trim();
+                if (customSociety) {
+                    profileData.societyRequest = customSociety;
+                    profileData.society = "Pending: " + customSociety;
+                    // Add to admin requests
+                    try {
+                        await addDoc(collection(db, "society_requests"), {
+                            userId: currentUser.uid,
+                            userName: displayNameInput.value,
+                            requestedSociety: customSociety,
+                            status: 'pending',
+                            createdAt: serverTimestamp()
+                        });
+                    } catch (e) { console.error(e); }
+                }
+            } else {
+                profileData.society = societySelect.value;
+                profileData.societyRequest = null;
+            }
+
+            const userRef = doc(db, "users", currentUser.uid);
+            await setDoc(userRef, profileData, { merge: true });
+
+            // 4. Update Auth
+            await updateProfile(currentUser, {
+                displayName: displayNameInput.value,
+                photoURL: photoURL
+            });
+
+            // 5. Update Header
+            const headerAvatar = document.getElementById('user-avatar');
+            if (headerAvatar) headerAvatar.src = photoURL;
+
+            // Update ID Badge UI immediately
+            if (idDocUrl) {
+                idStatusBadge.textContent = "PENDING";
+                idStatusBadge.style.background = '#fff7ed';
+                idStatusBadge.style.color = '#c2410c';
+            }
+
+            showToast("Profile updated successfully!", "success");
+
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            showToast("Failed to save: " + error.message, "error");
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.innerText = 'Save Changes';
+            hideLoader();
         }
-
-        const userRef = doc(db, "users", currentUser.uid);
-        await setDoc(userRef, profileData, { merge: true });
-
-        // 4. Update Auth
-        await updateProfile(currentUser, {
-            displayName: displayNameInput.value,
-            photoURL: photoURL
-        });
-
-        // 5. Update Header
-        const headerAvatar = document.getElementById('user-avatar');
-        if (headerAvatar) headerAvatar.src = photoURL;
-
-        // Update ID Badge UI immediately
-        if (idDocUrl) {
-            idStatusBadge.textContent = "PENDING";
-            idStatusBadge.style.background = '#fff7ed';
-            idStatusBadge.style.color = '#c2410c';
-        }
-
-        showToast("Profile updated successfully!", "success");
-
-    } catch (error) {
-        console.error("Error saving profile:", error);
-        showToast("Failed to save: " + error.message, "error");
-    } finally {
-        saveBtn.disabled = false;
-        saveBtn.innerText = 'Save Changes';
-        hideLoader();
-    }
-});
+    });
+}
