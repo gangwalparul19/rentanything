@@ -44,15 +44,17 @@ export async function startChatWithOwner(ownerId, listingId = null, listingTitle
     }
 }
 
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-    initHeader();
-    // 2. Attaches listeners to the elements created in step 1
-    initMobileMenu();
-    initAuth();
-    initTheme();
-    initFooter();
-});
+// Init - Only run on chat page
+if (document.getElementById('chat-app')) {
+    document.addEventListener('DOMContentLoaded', () => {
+        initHeader();
+        // 2. Attaches listeners to the elements created in step 1
+        initMobileMenu();
+        initAuth();
+        initTheme();
+        initFooter();
+    });
+}
 
 let currentUser = null;
 let activeChatId = null;
@@ -70,28 +72,30 @@ const chatNameEl = document.getElementById('chat-name');
 const chatItemEl = document.getElementById('chat-item');
 const chatImgEl = document.getElementById('chat-img');
 
-// Auth Listener
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        currentUser = user;
-        loadConversations();
+// Auth Listener - Only run on chat page
+if (document.getElementById('chat-app')) {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            loadConversations();
 
-        // Check for URL params to start a new chat
-        const urlParams = new URLSearchParams(window.location.search);
-        const startOwnerId = urlParams.get('ownerId');
-        const startListingId = urlParams.get('listingId');
+            // Check for URL params to start a new chat
+            const urlParams = new URLSearchParams(window.location.search);
+            const startOwnerId = urlParams.get('ownerId');
+            const startListingId = urlParams.get('listingId');
 
-        if (startOwnerId && startListingId) {
-            await startOrOpenChat(startOwnerId, startListingId);
+            if (startOwnerId && startListingId) {
+                await startOrOpenChat(startOwnerId, startListingId);
+            }
+
+        } else {
+            // Redirect if not logged in
+            setTimeout(() => {
+                if (!auth.currentUser) window.location.href = '/?login=true';
+            }, 1000);
         }
-
-    } else {
-        // Redirect if not logged in
-        setTimeout(() => {
-            if (!auth.currentUser) window.location.href = '/?login=true';
-        }, 1000);
-    }
-});
+    });
+}
 
 // 1. Load Conversations (Sidebar)
 function loadConversations() {
@@ -102,6 +106,7 @@ function loadConversations() {
     );
 
     onSnapshot(q, (snapshot) => {
+        if (!conversationsList) return; // Guard for non-chat pages
         conversationsList.innerHTML = '';
         if (snapshot.empty) {
             showEmptyState('#conversations-list', 'chat');

@@ -62,7 +62,16 @@ async function build() {
             'firestore.rules',
             'storage.rules',
             '_redirects',
-            'vercel.json'
+            'vercel.json',
+            // PWA Icons
+            'android-chrome-192x192.png',
+            'android-chrome-512x512.png',
+            'apple-touch-icon.png',
+            'favicon-16x16.png',
+            'favicon-32x32.png',
+            // Additional assets
+            'banner2.png',
+            'banner3.png'
         ];
 
         extraFiles.forEach(file => {
