@@ -105,7 +105,9 @@ function renderBookingCard(booking) {
                     </button>
                 ` : ''}
                 ${booking.status === 'pending' ? `
-                    <button class="btn btn-outline" style="color: #ef4444; border-color: #ef4444;" disabled title="Cancel logic not implemented yet">Cancel</button>
+                    <button class="btn btn-outline" style="color: #ef4444; border-color: #ef4444;" onclick="window.cancelBooking('${booking.id}')">
+                        <i class="fa-solid fa-times"></i> Cancel
+                    </button>
                 ` : ''}
 
                 ${['confirmed', 'active', 'completed'].includes(booking.status) ? `
@@ -259,6 +261,49 @@ window.confirmBooking = async (bookingId, action) => {
     } catch (error) {
         console.error('Error updating booking:', error);
         showToast('Failed to update booking', 'error');
+    }
+};
+
+// Cancel Booking (for renters cancelling their pending bookings)
+window.cancelBooking = async (bookingId) => {
+    if (!confirm('Are you sure you want to cancel this booking request?')) return;
+
+    try {
+        const bookingRef = doc(db, 'bookings', bookingId);
+        const bookingSnap = await getDoc(bookingRef);
+
+        if (!bookingSnap.exists()) {
+            showToast('Booking not found', 'error');
+            return;
+        }
+
+        const bookingData = bookingSnap.data();
+
+        await updateDoc(bookingRef, {
+            status: 'cancelled',
+            cancelledAt: serverTimestamp(),
+            cancelledBy: auth.currentUser.uid
+        });
+
+        // Notify owner about cancellation
+        await addDoc(collection(db, 'notifications'), {
+            userId: bookingData.ownerId,
+            type: 'booking_cancelled',
+            title: 'Booking Cancelled',
+            message: `Booking for "${bookingData.listingTitle}" has been cancelled by the renter.`,
+            bookingId: bookingId,
+            read: false,
+            createdAt: serverTimestamp()
+        });
+
+        // Notify waitlisted users (if any)
+        await notifyWaitlistedUsers(bookingData.listingId, bookingData.listingTitle);
+
+        showToast('Booking cancelled successfully', 'success');
+        fetchBookings(auth.currentUser.uid);
+    } catch (error) {
+        console.error('Error cancelling booking:', error);
+        showToast('Failed to cancel booking', 'error');
     }
 };
 

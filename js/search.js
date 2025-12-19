@@ -398,7 +398,7 @@ function renderGrid(items) {
             <div class="listing-footer" style="display:flex; justify-content:space-between; align-items:center; padding:0.5rem 1rem 1rem;">
                  <span style="font-size: 0.8rem; color: var(--gray);">${types.length > 1 ? types.map(t => t.charAt(0).toUpperCase() + t.slice(1)).join(' • ') : types[0].charAt(0).toUpperCase() + types[0].slice(1)}</span>
                 <div style="display:flex; align-items:center;">
-                    <button class="btn-icon" onclick="event.preventDefault(); toggleSaved(this)" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--gray);">
+                    <button class="btn-icon" onclick="event.preventDefault(); event.stopPropagation(); toggleSaved(this, event)" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color:var(--gray);">
                         <i class="fa-regular fa-bookmark"></i>
                     </button>
                     ${item.userPhoto ? `<img src="${item.userPhoto}" referrerpolicy="no-referrer" style="width:30px; height:30px; border-radius:50%; margin-left:0.5rem;">` : ''}
@@ -421,10 +421,50 @@ function renderGrid(items) {
     }
 }
 
-window.toggleSaved = async (btn) => {
-    const listingId = btn.closest('.listing-card').href.split('=')[1];
-    // Import and call the favorite logic from your shared auth/util or define here
-    showToast("Feature coming soon: Save to Wishlist", "info");
+window.toggleSaved = async (btn, event) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    const user = auth.currentUser;
+    if (!user) {
+        showToast("Login to save items", "info");
+        return;
+    }
+
+    const card = btn.closest('.listing-card');
+    const listingId = card.href.split('=')[1];
+    const icon = btn.querySelector('i');
+
+    try {
+        // Import dynamically to avoid circular deps
+        const { doc, getDoc, setDoc, deleteDoc, serverTimestamp } = await import('firebase/firestore');
+
+        const favRef = doc(db, "favorites", `${user.uid}_${listingId}`);
+        const docSnap = await getDoc(favRef);
+
+        if (docSnap.exists()) {
+            // Remove from favorites
+            await deleteDoc(favRef);
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+            icon.style.color = 'var(--gray)';
+            showToast("Removed from saved", "info");
+        } else {
+            // Add to favorites
+            await setDoc(favRef, {
+                userId: user.uid,
+                listingId: listingId,
+                createdAt: serverTimestamp()
+            });
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+            icon.style.color = '#ef4444';
+            showToast("Saved! ❤️", "success");
+        }
+    } catch (error) {
+        console.error("Error toggling favorite:", error);
+        showToast("Failed to save", "error");
+    }
 };
 
 function updateChips(term, cats, min, max, date) {

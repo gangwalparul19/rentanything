@@ -893,6 +893,27 @@ function setupInteractionButtons(productId, product) {
         }
         favBtn.onclick = () => toggleFavorite(productId, favBtn);
     }
+
+    // Wishlist
+    const wishlistBtn = document.getElementById('wishlist-btn');
+    if (wishlistBtn) {
+        // Check if already in wishlist
+        checkWishlistStatus(productId).then(isInWishlist => {
+            if (isInWishlist) {
+                wishlistBtn.innerHTML = '<i class="fa-solid fa-heart"></i> In Wishlist';
+                wishlistBtn.style.color = '#ef4444';
+            }
+        });
+
+        wishlistBtn.onclick = () => {
+            if (!auth.currentUser) {
+                showToast('Please login to add items to wishlist', 'error');
+                return;
+            }
+            showWishlistModal(productId, product.title, product.image);
+        };
+    }
+
     // Share
     const shareTrigger = document.querySelector('.share-trigger');
     if (shareTrigger) {
