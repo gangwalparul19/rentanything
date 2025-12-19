@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rentanything-v37';
+const CACHE_NAME = 'rentanything-v38';
 const urlsToCache = [
     '/index.html',
     '/search.html',
@@ -45,6 +45,29 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
+    // For HTML pages: ALWAYS use network-first to prevent stale page issues
+    if (event.request.headers.get('accept')?.includes('text/html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then(response => {
+                    // Cache successful HTML responses
+                    if (response.status === 200) {
+                        const responseClone = response.clone();
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(event.request, responseClone);
+                        });
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    // Network failed, try cache
+                    return caches.match(event.request);
+                })
+        );
+        return;
+    }
+
+    // For other resources: Network-first with cache fallback
     event.respondWith(
         fetch(event.request)
             .then(response => {

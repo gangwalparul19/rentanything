@@ -251,81 +251,84 @@ function scrollToBottom() {
 }
 
 // 3. Send Message - OPTIMISTIC UI
-messageForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const text = messageInput.value.trim();
-    if (!text || !activeChatId) return;
+// Guard: Only attach listener if we're on the chat page
+if (messageForm) {
+    messageForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = messageInput.value.trim();
+        if (!text || !activeChatId) return;
 
-    // Generate temporary ID for optimistic message
-    const tempId = `temp_${Date.now()}`;
-    const optimisticMessage = {
-        id: tempId,
-        text: text,
-        senderId: currentUser.uid,
-        createdAt: new Date(), // Local time for immediate display
-        status: 'sending' // Track sending status
-    };
-
-    try {
-        messageInput.value = ''; // Clear early for UX
-
-        // OPTIMISTIC UI: Render message immediately
-        renderMessage(optimisticMessage);
-        scrollToBottom();
-
-        // Send to Firestore in background
-        const docRef = await addDoc(collection(db, `chats/${activeChatId}/messages`), {
+        // Generate temporary ID for optimistic message
+        const tempId = `temp_${Date.now()}`;
+        const optimisticMessage = {
+            id: tempId,
             text: text,
             senderId: currentUser.uid,
-            createdAt: serverTimestamp()
-        });
-
-        // Update optimistic message to confirmed state
-        const optimisticElement = document.querySelector(`[data-message-id="${tempId}"]`);
-        if (optimisticElement) {
-            optimisticElement.dataset.messageId = docRef.id;
-            optimisticElement.classList.remove('sending');
-            optimisticElement.classList.add('sent');
-
-            // Remove sending indicator
-            const sendingIndicator = optimisticElement.querySelector('.sending-indicator');
-            if (sendingIndicator) sendingIndicator.remove();
-        }
-
-        // Update Chat Metadata
-        const chatRef = doc(db, "chats", activeChatId);
-
-        let updateData = {
-            lastMessage: text,
-            updatedAt: serverTimestamp()
+            createdAt: new Date(), // Local time for immediate display
+            status: 'sending' // Track sending status
         };
 
-        if (window.currentChatOtherUserId) {
-            updateData[`unreadCounts.${window.currentChatOtherUserId}`] = getIncrement(1);
+        try {
+            messageInput.value = ''; // Clear early for UX
+
+            // OPTIMISTIC UI: Render message immediately
+            renderMessage(optimisticMessage);
+            scrollToBottom();
+
+            // Send to Firestore in background
+            const docRef = await addDoc(collection(db, `chats/${activeChatId}/messages`), {
+                text: text,
+                senderId: currentUser.uid,
+                createdAt: serverTimestamp()
+            });
+
+            // Update optimistic message to confirmed state
+            const optimisticElement = document.querySelector(`[data-message-id="${tempId}"]`);
+            if (optimisticElement) {
+                optimisticElement.dataset.messageId = docRef.id;
+                optimisticElement.classList.remove('sending');
+                optimisticElement.classList.add('sent');
+
+                // Remove sending indicator
+                const sendingIndicator = optimisticElement.querySelector('.sending-indicator');
+                if (sendingIndicator) sendingIndicator.remove();
+            }
+
+            // Update Chat Metadata
+            const chatRef = doc(db, "chats", activeChatId);
+
+            let updateData = {
+                lastMessage: text,
+                updatedAt: serverTimestamp()
+            };
+
+            if (window.currentChatOtherUserId) {
+                updateData[`unreadCounts.${window.currentChatOtherUserId}`] = getIncrement(1);
+            }
+
+            await updateDoc(chatRef, updateData);
+
+        } catch (error) {
+            console.error("Error sending:", error);
+
+            // Update optimistic message to error state
+            const optimisticElement = document.querySelector(`[data-message-id="${tempId}"]`);
+            if (optimisticElement) {
+                optimisticElement.classList.add('error');
+                optimisticElement.querySelector('.sending-indicator')?.remove();
+
+                // Add retry button
+                const errorIndicator = document.createElement('div');
+                errorIndicator.className = 'error-indicator';
+                errorIndicator.style.cssText = 'color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem;';
+                errorIndicator.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Failed to send. <span style="text-decoration:underline; cursor:pointer;" onclick="location.reload()">Retry</span>';
+                optimisticElement.appendChild(errorIndicator);
+            }
+
+            showToast(`Failed to send: ${error.message}`, "error");
         }
-
-        await updateDoc(chatRef, updateData);
-
-    } catch (error) {
-        console.error("Error sending:", error);
-
-        // Update optimistic message to error state
-        const optimisticElement = document.querySelector(`[data-message-id="${tempId}"]`);
-        if (optimisticElement) {
-            optimisticElement.classList.add('error');
-            optimisticElement.querySelector('.sending-indicator')?.remove();
-
-            // Add retry button
-            const errorIndicator = document.createElement('div');
-            errorIndicator.className = 'error-indicator';
-            errorIndicator.style.cssText = 'color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem;';
-            errorIndicator.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Failed to send. <span style="text-decoration:underline; cursor:pointer;" onclick="location.reload()">Retry</span>';
-            optimisticElement.appendChild(errorIndicator);
-        }
-
-        showToast(`Failed to send: ${error.message}`, "error");
-    }
-});
+    });
+}
 
 
 // 4. Start/Open Chat from Product Page - INSTANT & OPTIMIZED
