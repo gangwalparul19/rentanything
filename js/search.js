@@ -12,8 +12,11 @@ let allListings = [];
 let allBookings = [];
 let allSocieties = new Set(); // Store unique locations
 let calendarInstance;
+
+// Pagination variables
 let currentPage = 1;
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 8; // Changed to 8 items per page
+let filteredResults = [];
 
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
@@ -70,56 +73,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 let verifiedUserIds = new Set();
 
-// Helper: Toggle View
-window.toggleMapView = () => {
-    const grid = document.getElementById('results-grid');
-    const map = document.getElementById('map-view');
-    const btn = document.getElementById('map-toggle-btn');
-
-    if (map.style.display === 'none') {
-        map.style.display = 'block';
-        grid.style.display = 'none';
-        btn.innerHTML = '<i class="fa-solid fa-list"></i> List View';
-        btn.classList.add('btn-primary');
-        btn.classList.remove('btn-outline');
-        updateMapCounts();
-    } else {
-        map.style.display = 'none';
-        grid.style.display = 'grid';
-        btn.innerHTML = '<i class="fa-solid fa-map"></i> Tower Map';
-        btn.classList.remove('btn-primary');
-        btn.classList.add('btn-outline');
-    }
-}
-
-let activeTowerFilter = null;
-window.filterByTower = (tower) => {
-    activeTowerFilter = tower;
-    showToast(`Showing listings in Tower ${tower}`, 'info');
-
-    // Switch back to grid visualization but filtered
-    window.toggleMapView(); // Go back to list
-    filterAndRender(); // Re-render with new filter
-
-    // Update active filters UI
-    const chips = document.getElementById('active-filters');
-    chips.innerHTML += `<div class="filter-chip">Tower ${tower} <i class="fa-solid fa-times" onclick="activeTowerFilter=null; filterAndRender(); this.parentElement.remove();"></i></div>`;
-}
-
-function updateMapCounts() {
-    // Count items per tower
-    const counts = { A: 0, B: 0, C: 0 };
-    // Filter against current active filters first (except tower)
-    const currentList = getFilteredList();
-
-    currentList.forEach(item => {
-        if (item.tower) counts[item.tower]++;
-    });
-
-    document.getElementById('count-a').innerText = `(${counts.A} items)`;
-    document.getElementById('count-b').innerText = `(${counts.B} items)`;
-    document.getElementById('count-c').innerText = `(${counts.C} items)`;
-}
+// Tower Map logic removed - using pagination instead
 
 // Extract strict filtering logic for reuse
 function getFilteredList() {
@@ -253,9 +207,70 @@ window.clearFilters = () => {
 };
 
 
+// Pagination Functions
 window.loadMore = () => {
     currentPage++;
-    filterAndRender();
+    renderPaginatedResults();
+}
+
+window.goToPreviousPage = () => {
+    if (currentPage > 1) {
+        currentPage--;
+        renderPaginatedResults();
+        window.scrollToTop();
+    }
+}
+
+window.goToNextPage = () => {
+    const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderPaginatedResults();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+function renderPaginatedResults() {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedItems = filteredResults.slice(startIndex, endIndex);
+
+    renderGrid(paginatedItems);
+    updatePaginationUI();
+}
+
+function updatePaginationUI() {
+    const totalPages = Math.ceil(filteredResults.length / ITEMS_PER_PAGE);
+    const paginationContainer = document.getElementById('pagination-container');
+
+    if (!paginationContainer || filteredResults.length === 0) {
+        if (paginationContainer) paginationContainer.style.display = 'none';
+        return;
+    }
+
+    paginationContainer.style.display = 'flex';
+    paginationContainer.innerHTML = `
+        <button 
+            class="btn btn-outline" 
+            onclick="goToPreviousPage()" 
+            ${currentPage === 1 ? 'disabled' : ''}
+            style="${currentPage === 1 ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+            <i class="fa-solid fa-chevron-left"></i> Previous
+        </button>
+        
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
+            <span>Page ${currentPage} of ${totalPages}</span>
+            <span style="color: var(--gray); font-size: 0.9rem;">(${filteredResults.length} items)</span>
+        </div>
+        
+        <button 
+            class="btn btn-outline" 
+            onclick="goToNextPage()" 
+            ${currentPage === totalPages ? 'disabled' : ''}
+            style="${currentPage === totalPages ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+            Next <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    `;
 }
 
 function filterAndRender() {
@@ -328,21 +343,12 @@ function filterAndRender() {
         return true;
     });
 
-    const visibleResults = results.slice(0, currentPage * ITEMS_PER_PAGE);
+    // Store filtered results and reset to page 1
+    filteredResults = results;
+    currentPage = 1;
 
-    // Show/Hide Load More Button
-    const loadMoreBtn = document.getElementById('pagination-container');
-    if (loadMoreBtn) {
-        if (results.length > visibleResults.length) {
-            loadMoreBtn.style.display = 'block';
-            const btn = document.getElementById('load-more-btn');
-            if (btn) btn.onclick = window.loadMore;
-        } else {
-            loadMoreBtn.style.display = 'none';
-        }
-    }
-
-    renderGrid(visibleResults);
+    // Render paginated results
+    renderPaginatedResults();
     updateChips(term, selectedCats, minPrice, maxPrice, dateStart);
 }
 

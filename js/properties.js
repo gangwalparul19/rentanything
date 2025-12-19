@@ -7,6 +7,11 @@ import { collection, query, where, getDocs, orderBy, limit } from 'firebase/fire
 import { initHeader } from './header-manager.js';
 import { showLoader, hideLoader } from './loader.js';
 
+// Pagination variables
+let currentPage = 1;
+const ITEMS_PER_PAGE = 8;
+let allFilteredProperties = [];
+
 document.addEventListener('DOMContentLoaded', () => {
     initHeader();
     loadSocieties(); // Load society dropdown
@@ -47,7 +52,7 @@ async function loadProperties(filters = {}) {
             collection(db, 'properties'),
             where('status', '==', 'available'),
             orderBy('createdAt', 'desc'),
-            limit(20)
+            limit(50) // Increased limit for pagination
         );
 
         const querySnapshot = await getDocs(q);
@@ -78,12 +83,76 @@ async function loadProperties(filters = {}) {
             );
         }
 
-        renderProperties(filteredProperties);
+        // Store filtered results and reset to page 1
+        allFilteredProperties = filteredProperties;
+        currentPage = 1;
+
+        renderPaginatedProperties();
 
     } catch (error) {
         console.error('Error loading properties:', error);
     } finally {
         hideLoader();
+    }
+}
+
+function renderPaginatedProperties() {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const paginatedProperties = allFilteredProperties.slice(startIndex, endIndex);
+
+    renderProperties(paginatedProperties);
+    updatePaginationUI();
+}
+
+function updatePaginationUI() {
+    const totalPages = Math.ceil(allFilteredProperties.length / ITEMS_PER_PAGE);
+    const paginationContainer = document.getElementById('pagination-container');
+
+    if (!paginationContainer || allFilteredProperties.length === 0) {
+        if (paginationContainer) paginationContainer.style.display = 'none';
+        return;
+    }
+
+    paginationContainer.style.display = 'flex';
+    paginationContainer.innerHTML = `
+        <button 
+            class="btn btn-outline" 
+            onclick="goToPreviousPage()" 
+            ${currentPage === 1 ? 'disabled' : ''}
+            style="${currentPage === 1 ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+            <i class="fa-solid fa-chevron-left"></i> Previous
+        </button>
+        
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 500;">
+            <span>Page ${currentPage} of ${totalPages}</span>
+            <span style="color: var(--gray); font-size: 0.9rem;">(${allFilteredProperties.length} properties)</span>
+        </div>
+        
+        <button 
+            class="btn btn-outline" 
+            onclick="goToNextPage()" 
+            ${currentPage === totalPages ? 'disabled' : ''}
+            style="${currentPage === totalPages ? 'opacity: 0.5; cursor: not-allowed;' : ''}">
+            Next <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    `;
+}
+
+window.goToPreviousPage = () => {
+    if (currentPage > 1) {
+        currentPage--;
+        renderPaginatedProperties();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+}
+
+window.goToNextPage = () => {
+    const totalPages = Math.ceil(allFilteredProperties.length / ITEMS_PER_PAGE);
+    if (currentPage < totalPages) {
+        currentPage++;
+        renderPaginatedProperties();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 }
 
