@@ -13,6 +13,7 @@ import { compressImage } from './image-compressor.js'; // Import enhanced compre
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    initHeader()
     initMobileMenu();
     initTheme();
 

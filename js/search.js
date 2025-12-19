@@ -20,10 +20,11 @@ let filteredResults = [];
 
 // Init
 document.addEventListener('DOMContentLoaded', async () => {
-    initMobileMenu();
-    initTheme();
-    initAuth();
     initHeader();
+    // 2. Attaches listeners to the elements created in step 1
+    initMobileMenu();
+    initAuth();
+    initTheme();
 
     // Init Date Picker
     calendarInstance = flatpickr("#date-filter", {

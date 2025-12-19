@@ -179,10 +179,11 @@ function renderListings(listings) {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    initMobileMenu();
-    initTheme();
-    initAuth();
     initHeader();
+    // 2. Attaches listeners to the elements created in step 1
+    initMobileMenu();
+    initAuth();
+    initTheme();
 
     // Load real data
     fetchListings();

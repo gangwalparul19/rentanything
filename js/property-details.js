@@ -15,7 +15,10 @@ const urlParams = new URLSearchParams(window.location.search);
 const propertyId = urlParams.get('id');
 
 document.addEventListener('DOMContentLoaded', () => {
-    initHeader();
+    initHeader();      // 1. Inject links and setup UI auth
+    initMobileMenu();  // 2. Make hamburger menu clickable
+    initTheme();       // 3. Setup light/dark mode
+    initAuth();        // 4. Setup login button listeners
 
     if (!propertyId) {
         document.getElementById('property-container').innerHTML = `

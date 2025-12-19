@@ -10,7 +10,10 @@ import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-    initHeader();
+    initHeader();      // 1. Inject links and setup UI auth
+    initMobileMenu();  // 2. Make hamburger menu clickable
+    initTheme();       // 3. Setup light/dark mode
+    initAuth();        // 4. Setup login button listeners
 
     onAuthStateChanged(auth, (user) => {
         if (user) {

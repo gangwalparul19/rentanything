@@ -11,10 +11,11 @@ import { subscribeToPushNotifications } from './notification-manager.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    initMobileMenu();
-    initTheme();
-    initAuth();
     initHeader();
+    // 2. Attaches listeners to the elements created in step 1
+    initMobileMenu();
+    initAuth();
+    initTheme();
 });
 
 let currentUser = null;

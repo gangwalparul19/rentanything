@@ -11,7 +11,13 @@ import { showToast } from './toast-enhanced.js';
 import { showEmptyState } from './empty-states.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initialize Header FIRST to inject navigation links and setup UI auth listeners
+    initHeader();
+
+    // 2. Initialize Mobile Menu AFTER header links are in the DOM
     initMobileMenu();
+
+    // 3. Initialize other systems
     initTheme();
     initAuth();
 });
