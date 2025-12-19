@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thread - Community Forum</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/forum.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="/"><img src="/images/logo.svg" alt="RentAnything"
+                        onerror="this.onerror=null; this.innerHTML='<h2 style=\'margin:0\'>RentAnything</h2>';"></a>
+            </div>
+            <div class="nav-links"></div>
+            <div class="header-actions"></div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb -->
+    <div class="container breadcrumb">
+        <a href="/forum.html"><i class="fas fa-arrow-left"></i> Back to Forum</a>
+    </div>
+
+    <!-- Main Content -->
+    <main class="thread-container">
+        <div class="container">
+            <!-- Thread Loading State -->
+            <div id="thread-loading" class="loading-state">
+                <i class="fas fa-spinner fa-spin fa-2x"></i>
+                <p>Loading thread...</p>
+            </div>
+
+            <!-- Thread Content -->
+            <div id="thread-content" style="display: none;">
+                <!-- Thread Header -->
+                <div class="thread-header">
+                    <div class="thread-meta">
+                        <span class="thread-category" id="thread-category-badge"></span>
+                        <span class="thread-date" id="thread-date"></span>
+                        <span class="thread-views"><i class="fas fa-eye"></i> <span id="thread-views">0</span>
+                            views</span>
+                    </div>
+                    <h1 id="thread-title"></h1>
+                    <div class="thread-tags" id="thread-tags"></div>
+                </div>
+
+                <!-- Thread Body -->
+                <div class="thread-body">
+                    <div class="post-card thread-post">
+                        <div class="post-author">
+                            <img id="thread-author-photo" src="" alt="">
+                            <div>
+                                <div class="author-name" id="thread-author-name"></div>
+                                <div class="post-time" id="thread-time"></div>
+                            </div>
+                        </div>
+                        <div class="post-content" id="thread-content-text"></div>
+                        <div class="post-actions">
+                            <button class="action-btn" id="thread-like-btn">
+                                <i class="far fa-heart"></i>
+                                <span id="thread-likes">0</span>
+                            </button>
+                            <button class="action-btn reply-btn">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Replies Section -->
+                <div class="replies-section">
+                    <div class="replies-header">
+                        <h3><i class="fas fa-comments"></i> <span id="reply-count">0</span> Replies</h3>
+                    </div>
+
+                    <!-- Reply Form -->
+                    <div class="reply-form-container">
+                        <form id="reply-form">
+                            <textarea id="reply-content" placeholder="Write your reply..." rows="4" required></textarea>
+                            <div class="reply-form-actions">
+                                <small><span id="reply-count-char">0</span>/1000 characters</small>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Post Reply
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Replies List -->
+                    <div id="replies-container" class="replies-list">
+                        <!-- Replies will be loaded here -->
+                    </div>
+
+                    <!-- No Replies State -->
+                    <div id="no-replies" class="empty-state" style="display: none;">
+                        <i class="fas fa-comment-slash fa-2x"></i>
+                        <p>No replies yet. Be the first to respond!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thread Not Found -->
+            <div id="thread-not-found" class="empty-state" style="display: none;">
+                <i class="fas fa-exclamation-triangle fa-3x"></i>
+                <h3>Thread Not Found</h3>
+                <p>This thread may have been deleted or doesn't exist.</p>
+                <a href="/forum.html" class="btn btn-primary">Back to Forum</a>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script type="module" src="/js/forum-thread-ui.js"></script>
+</body>
+
+</html>

@@ -21,26 +21,29 @@ export const forumCategories = [
  * @param {object} options - Sort and filter options
  * @returns {array} Array of threads
  */
-export async function loadThreads(societyId, categoryId = null, options = {}) {
+export async function loadThreads(societyId = null, categoryId = null, options = {}) {
     try {
-        let q = query(
-            collection(db, 'forum_threads'),
-            where('societyId', '==', societyId)
-        );
+        let queryConstraints = [];
+
+        // Only filter by societyId if provided (for society-specific forums)
+        if (societyId) {
+            queryConstraints.push(where('societyId', '==', societyId));
+        }
 
         if (categoryId) {
-            q = query(q, where('categoryId', '==', categoryId));
+            queryConstraints.push(where('categoryId', '==', categoryId));
         }
 
         // Apply sorting
         const sortBy = options.sortBy || 'lastActivityAt';
-        q = query(q, orderBy(sortBy, 'desc'));
+        queryConstraints.push(orderBy(sortBy, 'desc'));
 
         // Apply limit
         if (options.limit) {
-            q = query(q, limit(options.limit));
+            queryConstraints.push(limit(options.limit));
         }
 
+        const q = query(collection(db, 'forum_threads'), ...queryConstraints);
         const snapshot = await getDocs(q);
         const threads = [];
 

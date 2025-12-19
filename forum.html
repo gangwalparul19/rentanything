@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Forum - RentAnything</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/forum.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-content">
+            <div class="logo">
+                <a href="/"><img src="/images/logo.svg" alt="RentAnything"
+                        onerror="this.onerror=null; this.innerHTML='<h2 style=\'margin:0\'>RentAnything</h2>';"></a>
+            </div>
+            <div class="nav-links"></div>
+            <div class="header-actions"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="forum-container">
+        <!-- Forum Header -->
+        <div class="forum-header">
+            <div class="container">
+                <div class="forum-header-content">
+                    <div>
+                        <h1><i class="fas fa-comments"></i> Community Forum</h1>
+                        <p>Share knowledge, ask questions, and connect with the community</p>
+                    </div>
+                    <button class="btn btn-primary" id="new-thread-btn">
+                        <i class="fas fa-plus"></i> New Thread
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container forum-content">
+            <!-- Search and Filter Bar -->
+            <div class="forum-toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search threads...">
+                </div>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-category="all">
+                        <i class="fas fa-list"></i> All
+                    </button>
+                    <button class="filter-btn" data-category="advice">
+                        <i class="fas fa-question-circle"></i> Request Advice
+                    </button>
+                    <button class="filter-btn" data-category="general">
+                        <i class="fas fa-comments"></i> General Discussion
+                    </button>
+                </div>
+            </div>
+
+            <!-- Thread List -->
+            <div id="threads-container" class="threads-list">
+                <!-- Threads will be loaded here -->
+                <div class="loading-state">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading threads...</p>
+                </div>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-comments fa-3x"></i>
+                <h3>No threads yet</h3>
+                <p>Be the first to start a discussion!</p>
+                <button class="btn btn-primary" onclick="document.getElementById('new-thread-btn').click()">
+                    Create First Thread
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- New Thread Modal -->
+    <div id="new-thread-modal" class="modal">
+        <div class="modal-content forum-modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-plus-circle"></i> Create New Thread</h2>
+                <button class="modal-close" id="close-modal-btn">&times;</button>
+            </div>
+            <form id="new-thread-form">
+                <div class="form-group">
+                    <label for="thread-category">Category *</label>
+                    <select id="thread-category" required>
+                        <option value="">Select a category...</option>
+                        <option value="advice">💡 Request for Advice</option>
+                        <option value="general">💬 General Discussion</option>
+                        <option value="feedback">📢 Feedback & Suggestions</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="thread-title">Title *</label>
+                    <input type="text" id="thread-title" placeholder="What's your question or topic?" maxlength="150"
+                        required>
+                    <small class="char-count"><span id="title-count">0</span>/150</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="thread-content">Description *</label>
+                    <textarea id="thread-content" rows="8" placeholder="Provide details about your question or topic..."
+                        maxlength="2000" required></textarea>
+                    <small class="char-count"><span id="content-count">0</span>/2000</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="thread-tags">Tags (optional)</label>
+                    <input type="text" id="thread-tags"
+                        placeholder="e.g., furniture, electronics, tips (comma-separated)">
+                    <small>Add tags to help others find your thread</small>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="cancel-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Post Thread
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/js/forum-ui.js"></script>
+</body>
+
+</html>
