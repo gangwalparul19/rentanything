@@ -262,15 +262,19 @@ async function handleBooking() {
 
         // 3. Send Email via Cloud Function (Custom SMTP)
         try {
-            // Fetch Owner's Email from 'users' collection
-            let ownerEmail = "owner_placeholder@example.com";
+            // Fetch owner details from users collection
+            let ownerEmail = product.ownerEmail || "rentanythingindia@gmail.com"; // Fallback
+            let isOwnerVerified = false;
+
             try {
-                const ownerSnap = await getDoc(doc(db, "users", product.ownerId));
-                if (ownerSnap.exists()) {
-                    ownerEmail = ownerSnap.data().email;
+                const ownerDoc = await getDoc(doc(db, "users", product.ownerId));
+                if (ownerDoc.exists()) {
+                    const ownerData = ownerDoc.data();
+                    ownerEmail = ownerData.email || ownerEmail; // Use fetched email
+                    isOwnerVerified = ownerData.idVerificationStatus === 'verified';
                 }
             } catch (e) {
-                console.error("Could not fetch owner email:", e);
+                console.error("Owner Fetch Error", e);
             }
 
             const { httpsCallable, getFunctions } = await import('firebase/functions');

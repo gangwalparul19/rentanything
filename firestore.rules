@@ -68,38 +68,10 @@ service cloud.firestore {
     // ========== BOOKINGS COLLECTION ==========
     // TIGHTENED: Only involved parties can access booking data (contains payment info, addresses, etc.)
     match /bookings/{bookingId} {
-      // Read: ONLY the renter, owner, or admin can read a booking
-      allow read: if isAuthenticated() && (
-        resource.data.renterId == request.auth.uid ||
-        resource.data.ownerId == request.auth.uid ||
-        isAdmin()
-      );
-      
-      // Create: Only authenticated users, must be the renter
-      allow create: if isAuthenticated() && 
-        request.resource.data.renterId == request.auth.uid &&
-        // Validate required fields exist to prevent incomplete data
-        request.resource.data.keys().hasAll([
-          'renterId', 'ownerId', 'listingId', 
-          'startDate', 'endDate', 'status'
-        ]);
-      
-      // Update: Only involved parties can update
-      allow update: if isAuthenticated() && (
-        // Renter can update (e.g., cancel)
-        resource.data.renterId == request.auth.uid ||
-        // Owner can update (e.g., approve/reject)
-        resource.data.ownerId == request.auth.uid ||
-        // Admin can moderate
-        isAdmin()
-      ) &&
-      // Prevent tampering with critical fields
-      (
-        // Status changes are allowed
-        request.resource.data.renterId == resource.data.renterId &&
-        request.resource.data.ownerId == resource.data.ownerId &&
-        request.resource.data.listingId == resource.data.listingId
-      );
+      // Allow everyone to read so they can check availability on the calendar
+      allow read: if true; 
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (isOwner(resource.data.renterId) || isOwner(resource.data.ownerId) || isAdmin());
       
       // Delete: Only admin (for audit trail purposes)
       allow delete: if isAdmin();
