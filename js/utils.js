@@ -125,3 +125,18 @@ export async function copyToClipboard(text) {
         return false;
     }
 }
+
+/**
+ * Escape HTML special characters to prevent XSS attacks
+ * @param {string} unsafe - Potentially unsafe string
+ * @returns {string} Safe escaped string
+ */
+export function escapeHtml(unsafe) {
+    if (typeof unsafe !== 'string') return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}

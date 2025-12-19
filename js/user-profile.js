@@ -143,7 +143,9 @@ async function loadPublicProfile() {
 
     } catch (error) {
         console.error("Error loading public profile:", error);
-        container.innerHTML = `<div style="text-align:center;"><h2>Error loading profile ⚠️</h2><p>${error.message}</p></div>`;
+        // Sanitize error message to prevent XSS
+        const safeMessage = error.message?.replace(/</g, '&lt;').replace(/>/g, '&gt;') || 'Unknown error';
+        container.innerHTML = `<div style="text-align:center;"><h2>Error loading profile ⚠️</h2><p>${safeMessage}</p></div>`;
     }
 }
 

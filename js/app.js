@@ -103,7 +103,9 @@ async function fetchListings() {
     } catch (error) {
         console.error("Error fetching listings:", error);
         if (listingsContainer) {
-            listingsContainer.innerHTML = `<p style="text-align: center; grid-column: 1/-1;">Error loading listings. ${error.message}</p>`;
+            // Sanitize error message to prevent XSS
+            const safeMessage = error.message?.replace(/</g, '&lt;').replace(/>/g, '&gt;') || 'Unknown error';
+            listingsContainer.innerHTML = `<p style="text-align: center; grid-column: 1/-1;">Error loading listings. ${safeMessage}</p>`;
         }
     } finally {
         hideLoader();

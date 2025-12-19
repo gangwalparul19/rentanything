@@ -59,6 +59,7 @@ if (document.getElementById('chat-app')) {
 let currentUser = null;
 let activeChatId = null;
 let unsubscribeMessages = null;
+let unsubscribeConversations = null;
 
 // DOM Elements
 const conversationsList = document.getElementById('conversations-list');
@@ -99,13 +100,18 @@ if (document.getElementById('chat-app')) {
 
 // 1. Load Conversations (Sidebar)
 function loadConversations() {
+    // Cleanup existing listener to prevent memory leaks
+    if (unsubscribeConversations) {
+        unsubscribeConversations();
+    }
+
     const q = query(
         collection(db, "chats"),
         where("participants", "array-contains", currentUser.uid),
         orderBy("updatedAt", "desc")
     );
 
-    onSnapshot(q, (snapshot) => {
+    unsubscribeConversations = onSnapshot(q, (snapshot) => {
         if (!conversationsList) return; // Guard for non-chat pages
         conversationsList.innerHTML = '';
         if (snapshot.empty) {
@@ -443,3 +449,15 @@ if (window.innerWidth <= 768) {
         chatHeader.prepend(mobileBackBtn);
     }
 }
+
+// Cleanup listeners on page unload to prevent memory leaks
+window.addEventListener('beforeunload', () => {
+    if (unsubscribeMessages) {
+        unsubscribeMessages();
+        unsubscribeMessages = null;
+    }
+    if (unsubscribeConversations) {
+        unsubscribeConversations();
+        unsubscribeConversations = null;
+    }
+});

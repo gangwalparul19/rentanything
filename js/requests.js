@@ -21,6 +21,7 @@ const requestsContainer = document.getElementById('requests-container');
 const requestForm = document.getElementById('request-form');
 
 let currentUser = null;
+let unsubscribeRequests = null;
 
 onAuthStateChanged(auth, (user) => {
     currentUser = user;
@@ -64,7 +65,7 @@ if (requestForm) {
 function loadRequests() {
     const q = query(collection(db, "requests"), orderBy("createdAt", "desc"));
 
-    onSnapshot(q, (snapshot) => {
+    unsubscribeRequests = onSnapshot(q, (snapshot) => {
         requestsContainer.innerHTML = '';
         if (snapshot.empty) {
             requestsContainer.innerHTML = `
@@ -176,3 +177,11 @@ window.replyToRequest = async (targetUserId, reqTitle) => {
         showToast("Error starting chat", "error");
     }
 };
+
+// Cleanup listener on page unload to prevent memory leaks
+window.addEventListener('beforeunload', () => {
+    if (unsubscribeRequests) {
+        unsubscribeRequests();
+        unsubscribeRequests = null;
+    }
+});

@@ -443,3 +443,11 @@ window.addEventListener('keydown', (e) => {
         }
     }
 });
+
+// Cleanup notification listener on page unload
+window.addEventListener('beforeunload', () => {
+    if (unsubscribeNotifs) {
+        unsubscribeNotifs();
+        unsubscribeNotifs = null;
+    }
+});

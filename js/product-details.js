@@ -641,7 +641,9 @@ async function renderProduct() {
 
         // FIX: Don't let the booking listener failure stop the page from loading
         if (transactionTypes.includes('rent')) {
-            setupRealtimeBookingListener(productId).catch(() => { });
+            setupRealtimeBookingListener(productId).catch(err => {
+                console.error('Booking listener setup failed:', err);
+            });
         }
 
 
@@ -851,7 +853,9 @@ async function renderProduct() {
 
     } catch (error) {
         console.error("Error fetching product:", error);
-        container.innerHTML = `<div style="text-align:center; grid-column: 1/-1;"><h2>Error loading product ⚠️</h2><p>${error.message}</p></div>`;
+        // Sanitize error message to prevent XSS
+        const safeMessage = error.message?.replace(/</g, '&lt;').replace(/>/g, '&gt;') || 'Unknown error';
+        container.innerHTML = `<div style="text-align:center; grid-column: 1/-1;"><h2>Error loading product ⚠️</h2><p>${safeMessage}</p></div>`;
     }
 }
 
