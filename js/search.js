@@ -73,8 +73,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 let verifiedUserIds = new Set();
 
-// Tower Map logic removed - using pagination instead
-
 // Extract strict filtering logic for reuse
 function getFilteredList() {
     const term = document.getElementById('search-input').value.toLowerCase();

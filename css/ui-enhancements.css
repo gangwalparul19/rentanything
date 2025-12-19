@@ -1,0 +1,373 @@
+/* ========================================
+   UI/UX ENHANCEMENTS - Phase 1
+   ========================================
+   Enhanced visual effects, animations, and interactions
+   ======================================== */
+
+/* ============ Enhanced Card Hover Effects ============ */
+.listing-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.listing-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(37, 99, 235, 0) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.listing-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+        0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 10px 10px -5px rgba(0, 0, 0, 0.04),
+        0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.listing-card:hover::before {
+    opacity: 1;
+}
+
+/* Image zoom effect on card hover */
+.listing-card:hover .card-image img {
+    transform: scale(1.05);
+}
+
+.card-image img {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============ Button Click Animations ============ */
+.btn,
+.btn-primary,
+.btn-outline,
+.btn-icon {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* Ripple effect */
+.btn::after,
+.btn-primary::after,
+.btn-outline::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.btn:active::after,
+.btn-primary:active::after,
+.btn-outline:active::after {
+    width: 300px;
+    height: 300px;
+}
+
+/* Button press effect */
+.btn:active,
+.btn-primary:active,
+.btn-outline:active {
+    transform: scale(0.96);
+}
+
+/* Disabled state smooth transition */
+.btn:disabled,
+.btn-primary:disabled,
+.btn-outline:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    transition: opacity 0.2s ease;
+}
+
+/* ============ Back to Top Button ============ */
+#back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--primary, #2563eb);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+#back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+#back-to-top:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.5);
+}
+
+#back-to-top:active {
+    transform: translateY(-2px);
+}
+
+/* Scroll progress ring */
+#back-to-top::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #60a5fa;
+    transition: transform 0.3s ease;
+}
+
+/* ============ Enhanced Loading Skeletons ============ */
+.skeleton {
+    background: linear-gradient(90deg,
+            #f0f0f0 25%,
+            #e0e0e0 50%,
+            #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 0.5rem;
+}
+
+.skeleton-text {
+    height: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-title {
+    height: 1.5rem;
+    width: 70%;
+    margin-bottom: 1rem;
+}
+
+.skeleton-card {
+    height: 300px;
+    border-radius: 1rem;
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+/* ============ Enhanced Toast Notifications ============ */
+.toast {
+    min-width: 300px;
+    max-width: 500px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Progress bar for auto-dismiss */
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: currentColor;
+    opacity: 0.6;
+    animation: toast-progress 4s linear;
+}
+
+@keyframes toast-progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+/* Toast icon animation */
+.toast i {
+    animation: toast-icon-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes toast-icon-bounce {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+/* Toast action buttons */
+.toast-actions {
+    margin-top: 0.5rem;
+    display: flex;
+    gap: 0.5rem;
+}
+
+.toast-action-btn {
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid currentColor;
+    background: transparent;
+    color: inherit;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toast-action-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============ Focus States (Accessibility) ============ */
+*:focus-visible {
+    outline: 2px solid var(--primary, #2563eb);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--primary, #2563eb);
+    outline-offset: 2px;
+}
+
+/* ============ Smooth Transitions ============ */
+@media (prefers-reduced-motion: no-preference) {
+    * {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* ============ Pagination Enhancements ============ */
+#pagination-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+#pagination-container button {
+    transition: all 0.2s ease;
+}
+
+#pagination-container button:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* ============ Mobile Responsiveness ============ */
+@media (max-width: 768px) {
+    #back-to-top {
+        bottom: 80px;
+        /* Above mobile bottom nav if implemented */
+        right: 1rem;
+        width: 45px;
+        height: 45px;
+    }
+
+    #pagination-container {
+        padding: 1.5rem 0;
+    }
+
+    .listing-card:hover {
+        /* Reduced hover effect on mobile for better touch experience */
+        transform: translateY(-4px) scale(1.01);
+    }
+}
+
+/* ============ Utility Classes ============ */
+.fade-in {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Pulse animation for notifications */
+.pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}

@@ -1,0 +1,303 @@
+/* ========================================
+   ADVANCED FEATURES - Phase 6
+   ========================================
+   Empty states, form enhancements, onboarding tour
+   ======================================== */
+
+/* ============ Empty States ============ */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.empty-state-illustration {
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.5s ease;
+}
+
+.empty-state-illustration svg {
+    max-width: 200px;
+    height: auto;
+}
+
+.empty-state-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--dark);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-description {
+    font-size: 1rem;
+    color: var(--secondary);
+    margin-bottom: 2rem;
+    max-width: 400px;
+}
+
+.empty-state-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* ============ Floating Labels ============ */
+.floating-label-wrapper {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.floating-label-wrapper label {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary);
+    pointer-events: none;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    background: white;
+    padding: 0 0.25rem;
+}
+
+.floating-label-wrapper.focused label,
+.floating-label-wrapper input:not(:placeholder-shown)+label,
+.floating-label-wrapper textarea:not(:placeholder-shown)+label {
+    top: 0;
+    font-size: 0.875rem;
+    color: var(--primary);
+}
+
+.floating-label-wrapper input,
+.floating-label-wrapper textarea {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+}
+
+.floating-label-wrapper.focused input,
+.floating-label-wrapper.focused textarea {
+    border-color: var(--primary);
+    outline: none;
+}
+
+/* ============ Form Validation ============ */
+.validation-message {
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.validation-message.error {
+    color: #dc2626;
+}
+
+.validation-message.error::before {
+    content: "⚠";
+}
+
+.validation-message.success {
+    color: #16a34a;
+}
+
+.validation-message.success::before {
+    content: "✓";
+}
+
+input.invalid,
+textarea.invalid,
+select.invalid {
+    border-color: #dc2626 !important;
+    background: #fef2f2;
+}
+
+input.valid,
+textarea.valid,
+select.valid {
+    border-color: #16a34a !important;
+}
+
+/* ============ Password Strength Meter ============ */
+.password-strength-meter {
+    margin-top: 0.5rem;
+}
+
+.strength-bar {
+    height: 4px;
+    background: #e5e7eb;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 0.25rem;
+}
+
+.strength-fill {
+    height: 100%;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    border-radius: 2px;
+}
+
+.strength-fill.weak {
+    background: #dc2626;
+}
+
+.strength-fill.medium {
+    background: #f59e0b;
+}
+
+.strength-fill.strong {
+    background: #16a34a;
+}
+
+.strength-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* ============ Character Counter ============ */
+.char-counter {
+    font-size: 0.875rem;
+    color: var(--secondary);
+    text-align: right;
+    margin-top: 0.25rem;
+}
+
+.char-counter.warning {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+/* ============ Onboarding Tour ============ */
+.onboarding-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+    backdrop-filter: blur(2px);
+}
+
+.onboarding-tooltip {
+    position: fixed;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+    max-width: 400px;
+    z-index: 10000;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.3s ease;
+}
+
+.onboarding-tooltip.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.tooltip-progress {
+    font-size: 0.75rem;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.75rem;
+}
+
+.onboarding-tooltip h4 {
+    font-size: 1.25rem;
+    margin: 0 0 0.5rem 0;
+    color: var(--dark);
+}
+
+.onboarding-tooltip p {
+    margin: 0 0 1.5rem 0;
+    color: var(--secondary);
+    line-height: 1.6;
+}
+
+.tooltip-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.tooltip-actions .btn {
+    font-size: 0.875rem;
+}
+
+.onboarding-highlight {
+    position: relative;
+    z-index: 10001;
+    box-shadow: 0 0 0 4px var(--primary), 0 0 0 8px rgba(37, 99, 235, 0.3);
+    border-radius: 0.5rem;
+    animation: highlightPulse 2s infinite;
+}
+
+@keyframes highlightPulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 4px var(--primary), 0 0 0 8px rgba(37, 99, 235, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 0 4px var(--primary), 0 0 0 12px rgba(37, 99, 235, 0.2);
+    }
+}
+
+/* ============ Image Optimizations ============ */
+/* Already implemented in search.js with skeleton loaders */
+img[loading="lazy"] {
+    /* Browser native lazy loading */
+}
+
+/* ============ Animations ============ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============ Mobile Responsiveness ============ */
+@media (max-width: 768px) {
+    .empty-state {
+        padding: 3rem 1rem;
+    }
+
+    .empty-state-illustration svg {
+        max-width: 150px;
+    }
+
+    .empty-state-title {
+        font-size: 1.25rem;
+    }
+
+    .onboarding-tooltip {
+        max-width: 90%;
+        padding: 1.25rem;
+    }
+
+    .tooltip-actions {
+        flex-direction: column;
+    }
+
+    .tooltip-actions .btn {
+        width: 100%;
+    }
+}

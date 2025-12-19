@@ -1,0 +1,318 @@
+/* ========================================
+   MOBILE OPTIMIZATIONS - Phase 4
+   ========================================
+   Pull-to-refresh, bottom nav, swipe gestures, touch-friendly UI
+   ======================================== */
+
+/* ============ Pull-to-Refresh ============ */
+.pull-to-refresh-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 0;
+    background: linear-gradient(to bottom, #f8fafc 0%, white 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    overflow: hidden;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.pull-icon {
+    font-size: 1.5rem;
+    color: var(--primary);
+}
+
+.pull-icon i {
+    transition: transform 0.2s ease;
+}
+
+.pull-text {
+    font-size: 0.875rem;
+    color: var(--secondary);
+    font-weight: 500;
+}
+
+.pull-to-refresh-indicator.ready {
+    background: linear-gradient(to bottom, #eff6ff 0%, white 100%);
+}
+
+.pull-to-refresh-indicator.ready .pull-icon {
+    color: #16a34a;
+}
+
+.pull-to-refresh-indicator.refreshing .pull-icon {
+    color: var(--primary);
+}
+
+/* ============ Bottom Navigation ============ */
+.bottom-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+    display: none;
+    /* Hide by default */
+}
+
+@media (max-width: 768px) {
+    .bottom-navigation {
+        display: block;
+    }
+}
+
+.bottom-nav-items {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0.5rem 0;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    color: var(--secondary);
+    transition: all 0.2s;
+    min-width: 60px;
+    position: relative;
+}
+
+.bottom-nav-item i {
+    font-size: 1.25rem;
+}
+
+.nav-label {
+    font-size: 0.7rem;
+    font-weight: 500;
+}
+
+.bottom-nav-item.active {
+    color: var(--primary);
+}
+
+.bottom-nav-item.active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 0 0 3px 3px;
+}
+
+.bottom-nav-item:active {
+    transform: scale(0.95);
+}
+
+/* ============ Swipe Gestures ============ */
+.swipe-action-indicator {
+    animation: swipeActionFade 1s ease;
+}
+
+@keyframes swipeActionFade {
+
+    0%,
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+/* Card swipe feedback */
+.listing-card {
+    touch-action: pan-y;
+    /* Allow vertical scroll, horizontal for swipe */
+}
+
+/* ============ Touch-Friendly UI ============ */
+@media (max-width: 768px) {
+
+    /* Minimum 48px touch targets */
+    button,
+    a.btn,
+    .btn-icon,
+    input[type="checkbox"],
+    input[type="radio"],
+    select {
+        min-height: 48px;
+        min-width: 48px;
+    }
+
+    /* Larger form inputs */
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
+    input[type="tel"],
+    textarea,
+    select {
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+        padding: 0.875rem 1rem;
+        min-height: 48px;
+    }
+
+    /* Increased spacing for easier tapping */
+    .btn {
+        padding: 0.875rem 1.5rem;
+    }
+
+    /* Larger checkboxes and radios */
+    .bulk-checkbox,
+    input[type="checkbox"],
+    input[type="radio"] {
+        width: 20px;
+        height: 20px;
+    }
+
+    /* Touch-friendly filters */
+    .filter-chip {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    /* Easier to tap pagination buttons */
+    #pagination-container button {
+        min-height: 48px;
+        padding: 0.75rem 1.25rem;
+    }
+
+    /* Larger action buttons on cards */
+    .listing-card .btn-icon,
+    .kpi-action-btn {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 0.75rem;
+    }
+
+    /* Modal close buttons */
+    .modal-close {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Dropdown items */
+    .autocomplete-item,
+    .saved-filter-btn {
+        min-height: 54px;
+        padding: 0.875rem 1rem;
+    }
+}
+
+/* ============ Tap Highlight Removal ============ */
+/* Remove default tap highlight on iOS */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom tap feedback */
+button:active,
+.btn:active,
+a:active {
+    opacity: 0.7;
+}
+
+/* ============ Safe Areas (Notch Support) ============ */
+@supports (padding: env(safe-area-inset-bottom)) {
+    .bottom-navigation {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    body {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+}
+
+/* ============ Smooth Scrolling ============ */
+@media (max-width: 768px) {
+    html {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* ============ Prevent Overscroll Bounce ============ */
+body {
+    overscroll-behavior-y: contain;
+}
+
+/* ============ Haptic Feedback Helper Class ============ */
+.haptic-light {
+    /* JavaScript will trigger navigator.vibrate(10) */
+}
+
+.haptic-medium {
+    /* JavaScript will trigger navigator.vibrate(20) */
+}
+
+.haptic-heavy {
+    /* JavaScript will trigger navigator.vibrate(30) */
+}
+
+/* ============ Mobile-Specific Utilities ============ */
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+
+    .mobile-only {
+        display: block !important;
+    }
+
+    .mobile-flex {
+        display: flex !important;
+    }
+
+    .mobile-grid {
+        display: grid !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-only {
+        display: none !important;
+    }
+}
+
+/* ============ Improved Touch Scrolling ============ */
+.scroll-container {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+}
+
+/* ============ Mobile Card Adjustments ============ */
+@media (max-width: 768px) {
+
+    .listing-card,
+    .kpi-card {
+        /* Less aggressive hover on mobile (tap instead) */
+    }
+
+    .listing-card:hover,
+    .kpi-card:hover {
+        transform: none;
+    }
+
+    .listing-card:active,
+    .kpi-card:active {
+        transform: scale(0.98);
+        transition: transform 0.1s;
+    }
+}
