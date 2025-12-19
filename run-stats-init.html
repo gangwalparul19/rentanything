@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ ONE-TIME Stats Initialization</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #1f2937;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .warning {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .warning strong {
+            color: #b45309;
+        }
+
+        .steps {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .steps h3 {
+            color: #374151;
+            margin-bottom: 15px;
+        }
+
+        .steps ol {
+            margin-left: 20px;
+        }
+
+        .steps li {
+            margin: 8px 0;
+            color: #4b5563;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        #output {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .success {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .info {
+            color: #3b82f6;
+        }
+
+        #deleteInstructions {
+            display: none;
+            background: #dcfce7;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        #deleteInstructions h3 {
+            color: #166534;
+            margin-bottom: 10px;
+        }
+
+        #deleteInstructions code {
+            background: #f0fdf4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #166534;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>⚡ Stats Initialization</h1>
+        <p class="subtitle">One-time setup for aggregate statistics</p>
+
+        <div class="warning">
+            <strong>⚠️ IMPORTANT:</strong> This page has TEMPORARY open permissions.
+            Run once, then delete this file and restore secure rules!
+        </div>
+
+        <div class="steps">
+            <h3>What This Does:</h3>
+            <ol>
+                <li>Counts all existing users, listings, bookings, properties</li>
+                <li>Calculates total revenue and averages</li>
+                <li>Creates <code>/stats/platform_stats</code> document</li>
+                <li>Takes ~10-30 seconds</li>
+            </ol>
+        </div>
+
+        <button id="runBtn" onclick="runInit()">🚀 Initialize Stats Now</button>
+
+        <div id="output"></div>
+
+        <div id="deleteInstructions">
+            <h3>✅ Success! Now Clean Up:</h3>
+            <ol>
+                <li><strong>Delete this file:</strong> <code>run-stats-init.html</code></li>
+                <li><strong>Restore secure rules:</strong> Replace the TEMPORARY comments in
+                    <code>firestore.rules</code> with admin-only permissions</li>
+                <li><strong>Deploy rules:</strong> <code>firebase deploy --only firestore:rules</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeStats } from './js/initialize-stats.js';
+
+        const output = document.getElementById('output');
+        const btn = document.getElementById('runBtn');
+        const deleteInstructions = document.getElementById('deleteInstructions');
+
+        window.runInit = async function () {
+            btn.disabled = true;
+            btn.textContent = '⏳ Initializing...';
+            output.style.display = 'block';
+            output.innerHTML = '<span class="info">🔧 Starting initialization...</span>\n\n';
+
+            // Redirect console to output
+            const originalLog = console.log;
+            const originalError = console.error;
+
+            console.log = function (...args) {
+                originalLog(...args);
+                const msg = args.join(' ');
+                if (msg.includes('✅')) {
+                    output.innerHTML += '<span class="success">' + msg + '</span>\n';
+                } else if (msg.includes('❌')) {
+                    output.innerHTML += '<span class="error">' + msg + '</span>\n';
+                } else {
+                    output.innerHTML += msg + '\n';
+                }
+                output.scrollTop = output.scrollHeight;
+            };
+
+            console.error = function (...args) {
+                originalError(...args);
+                output.innerHTML += '<span class="error">' + args.join(' ') + '</span>\n';
+                output.scrollTop = output.scrollHeight;
+            };
+
+            try {
+                const stats = await initializeStats();
+
+                console.log = originalLog;
+                console.error = originalError;
+
+                output.innerHTML += '\n<span class="success">========================================</span>\n';
+                output.innerHTML += '<span class="success">✅ INITIALIZATION COMPLETE!</span>\n';
+                output.innerHTML += '<span class="success">========================================</span>\n\n';
+                output.innerHTML += '<strong>Statistics Created:</strong>\n';
+                output.innerHTML += `📊 Users: ${stats.users.total} (${stats.users.verified} verified)\n`;
+                output.innerHTML += `📦 Listings: ${stats.listings.total} (${stats.listings.active} active)\n`;
+                output.innerHTML += `📅 Bookings: ${stats.bookings.total} (${stats.bookings.activeNow} active)\n`;
+                output.innerHTML += `💰 Revenue: ₹${stats.revenue.total} (avg: ₹${stats.revenue.avgPerBooking}/booking)\n`;
+                output.innerHTML += `🏠 Properties: ${stats.properties.total} (${stats.properties.available} available)\n`;
+
+                btn.textContent = '✓ Done!';
+                btn.style.background = '#10b981';
+                deleteInstructions.style.display = 'block';
+
+            } catch (error) {
+                console.log = originalLog;
+                console.error = originalError;
+
+                output.innerHTML += '\n<span class="error">========================================</span>\n';
+                output.innerHTML += '<span class="error">❌ INITIALIZATION FAILED</span>\n';
+                output.innerHTML += '<span class="error">========================================</span>\n';
+                output.innerHTML += `<span class="error">Error: ${error.message}</span>\n`;
+
+                btn.disabled = false;
+                btn.textContent = '🔄 Retry';
+            }
+        };
+    </script>
+</body>
+
+</html>
