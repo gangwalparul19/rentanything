@@ -1166,7 +1166,7 @@ async function loadPendingProperties() {
                 <td>${data.ownerName || 'Unknown'}</td>
                 <td>
                     ${data.address?.society || data.address?.building || 'N/A'}<br>
-                    <small style="color: var(--gray);">${data.address?.area}, ${data.address?.city}</small>
+                    <small style="color: var(--gray);">${data.address?.area || ''}, ${data.address?.city || ''}</small>
                 </td>
                 <td><span class="badge">${data.type || 'N/A'}</span></td>
                 <td style="font-weight:600;">₹${(data.monthlyRent || 0).toLocaleString()}/mo</td>
@@ -1201,8 +1201,19 @@ window.approveProperty = async (id) => {
             status: "available",
             approvalStatus: "approved",
             approvedAt: new Date(),
+            approvedAt: new Date(),
             approvedBy: auth.currentUser?.uid
         });
+
+        // Create notification for owner
+        if (propertyData.ownerId) {
+            await createNotification(
+                propertyData.ownerId,
+                `Your property "${propertyData.title}" has been approved! 🏠`,
+                'success',
+                { listingId: id, action: 'property_approved' }
+            );
+        }
 
         // Send approval email
         try {

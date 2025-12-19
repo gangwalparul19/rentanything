@@ -46,7 +46,7 @@ export async function sendPropertyApprovalEmail(property, ownerEmail, ownerName)
             
             <div class="property-info">
                 <strong>Property:</strong> ${property.title}<br>
-                <strong>Location:</strong> ${property.address?.area}, ${property.address?.city}<br>
+                <strong>Location:</strong> ${property.address?.area || ''}, ${property.address?.city || ''}<br>
                 <strong>Monthly Rent:</strong> ₹${property.monthlyRent?.toLocaleString()}/month
             </div>
             
