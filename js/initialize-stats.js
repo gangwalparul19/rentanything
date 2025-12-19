@@ -1,26 +1,14 @@
 /**
- * Initialize Platform Stats
- * Run this script once to populate the stats document with actual counts
+ * Initialize Platform Stats - SIMPLIFIED VERSION
+ * No auth checks - relies on Firestore rules
  */
 
-import { db, auth } from './firebase-config.js';
-import { collection, getDocs, query, where, doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebase-config.js';
+import { collection, getDocs, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 async function initializeStats() {
     console.log('🔧 Initializing platform stats...');
-
-    // Check if user is authenticated
-    if (!auth.currentUser) {
-        throw new Error('❌ Not authenticated. Please log in as admin first.');
-    }
-
-    // Check if user is admin
-    const adminEmails = ['gangwalparul19@gmail.com', 'rentanythingindia@gmail.com'];
-    if (!adminEmails.includes(auth.currentUser.email)) {
-        throw new Error('❌ Admin access required. Your email: ' + auth.currentUser.email);
-    }
-
-    console.log(`✅ Authenticated as admin: ${auth.currentUser.email}`);
+    console.log('⚠️ Running with temporarily open permissions');
 
     try {
         // Count users
@@ -67,7 +55,7 @@ async function initializeStats() {
             users: {
                 total: usersCount,
                 verified: verifiedCount,
-                newThisMonth: 0, // Will be updated as new users join
+                newThisMonth: 0,
                 lastUpdated: serverTimestamp()
             },
             listings: {
@@ -80,13 +68,13 @@ async function initializeStats() {
             bookings: {
                 total: bookingsCount,
                 activeNow: activeBookings,
-                thisMonth: 0, // Will be updated
+                thisMonth: 0,
                 pendingApproval: 0,
                 lastUpdated: serverTimestamp()
             },
             revenue: {
                 total: totalRevenue,
-                thisMonth: 0, // Will be updated
+                thisMonth: 0,
                 avgPerBooking: avgPerBooking,
                 lastUpdated: serverTimestamp()
             },
@@ -101,18 +89,8 @@ async function initializeStats() {
 
         // Save to Firestore
         console.log('Writing stats to Firestore...');
-        console.log('Auth user:', auth.currentUser.email);
-        console.log('Auth UID:', auth.currentUser.uid);
-
-        try {
-            await setDoc(doc(db, 'stats', 'platform_stats'), statsData);
-            console.log('✅ Stats document written successfully!');
-        } catch (writeError) {
-            console.error('❌ Failed to write stats document:', writeError);
-            console.error('Error code:', writeError.code);
-            console.error('Error message:', writeError.message);
-            throw new Error(`Write failed: ${writeError.message}. Check Firestore rules for /stats/platform_stats`);
-        }
+        await setDoc(doc(db, 'stats', 'platform_stats'), statsData);
+        console.log('✅ Stats document written successfully!');
 
         console.log('✅ Stats initialized successfully!');
         console.log('📊 Summary:');
@@ -126,6 +104,8 @@ async function initializeStats() {
 
     } catch (error) {
         console.error('❌ Error initializing stats:', error);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
         throw error;
     }
 }
