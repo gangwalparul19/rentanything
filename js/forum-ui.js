@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initTheme();
     initAuth();
+    initFooter();
 
     setupEventListeners();
 });

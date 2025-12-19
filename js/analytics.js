@@ -11,6 +11,7 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { showLoader, hideLoader } from './loader.js';
+import { initFooter } from './footer-manager.js';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initTheme();
     initAuth();
+    initFooter();
 
     onAuthStateChanged(auth, (user) => {
         if (user) {

@@ -17,8 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initHeader()
     initMobileMenu();
     initTheme();
-
     initAuth(); // Initialize header state
+    initFooter();
     loadSocieties(); // Fetch dynamic list
 });
 
