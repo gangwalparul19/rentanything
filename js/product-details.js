@@ -16,6 +16,7 @@ import { startChatWithOwner } from './chat.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('Product Details Page Loaded');
     initHeader();      // 1. Inject HTML links and setup UI auth
     initMobileMenu();  // 2. Make menu clickable
     initTheme();       // 3. Setup dark/light mode
@@ -590,7 +591,7 @@ async function renderProduct() {
             </div>`;
         }
 
-        console.log('images: ', product.images.length);
+        console.log('images: ', product.images ? product.images.length : 0);
 
         // -- Rates / Price HTML --
         let ratesHtml = '';
