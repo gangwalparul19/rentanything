@@ -12,7 +12,18 @@ import { showToast } from './toast-enhanced.js';
 import { initShareMenu, shareToWhatsApp, shareToFacebook, shareToTwitter, shareToLinkedIn, shareViaEmail, copyShareLink, shareNative } from './social-share.js';
 import { calculateCO2Savings } from './carbon-calculator.js';
 import { gallery } from './image-gallery.js';
+import { startChatWithOwner } from './chat.js';
 
+// Init
+document.addEventListener('DOMContentLoaded', () => {
+    initHeader();      // 1. Inject HTML links and setup UI auth
+    initMobileMenu();  // 2. Make menu clickable
+    initTheme();       // 3. Setup dark/light mode
+    initAuth();        // 4. Setup login button events
+    initFooter();
+    initShareMenu();
+    renderProduct();
+});
 
 // Helper: Toggle Favorite
 async function toggleFavorite(productId, btn) {
@@ -65,42 +76,51 @@ function getQueryParam(param) {
     return urlParams.get(param);
 }
 
-// Helper: Update Page Metadata for Social Sharing
+// Booking UI Logic
+function renderBookingCard(product, productId) {
+    const section = document.getElementById('booking-section');
+    if (!section) return;
+
+    if (product.transactionTypes?.includes('rent')) {
+        section.innerHTML = `
+            <div class="booking-card">
+                <div class="booking-header">Reserve for Rent 📅</div>
+                <div id="inline-calendar-container" style="margin-bottom: 1rem;">
+                     <input type="text" id="booking-calendar" style="display:none;">
+                </div>
+                <select id="time-slot" class="booking-input">
+                    <option value="">Select Pickup Time</option>
+                    <option value="morning">🌅 09:00 AM - 11:00 AM</option>
+                    <option value="evening">🌙 06:00 PM - 08:00 PM</option>
+                </select>
+                <button class="btn btn-primary" onclick="window.handleBooking()" style="width: 100%; margin-top: 1rem;">
+                    Request to Rent
+                </button>
+            </div>`;
+
+        // Init Flatpickr immediately
+        calendarInstance = flatpickr("#booking-calendar", {
+            mode: "range",
+            inline: true,
+            minDate: "today"
+        });
+    }
+}
+
+// SEO and Page Metadata Helpers
 function updatePageMetadata(product, productId) {
-    // 1. Update Page Title
     const price = product.rates?.daily || product.salePrice || 'Free';
     const priceText = product.transactionTypes?.includes('donate') ? 'FREE' : `₹${price}`;
     document.title = `${product.title} - ${priceText} | RentAnything`;
 
-    // 2. Update or Create Meta Description
-    const description = product.description || `${product.title} available for rent`;
-    updateMetaTag('name', 'description', description.substring(0, 160)); // Limit to 160 chars
-
-    // 3. Update Open Graph Tags (Facebook, WhatsApp, LinkedIn)
-    updateMetaTag('property', 'og:title', `${product.title} - ${priceText}`);
-    updateMetaTag('property', 'og:description', description.substring(0, 200));
-    updateMetaTag('property', 'og:image', product.image || 'https://placehold.co/1200x630');
-    updateMetaTag('property', 'og:url', window.location.href);
-    updateMetaTag('property', 'og:type', 'product');
-    updateMetaTag('property', 'og:site_name', 'RentAnything');
-
-    // Add product-specific OG tags
-    if (product.rates?.daily) {
-        updateMetaTag('property', 'product:price:amount', product.rates.daily);
-        updateMetaTag('property', 'product:price:currency', 'INR');
+    // Update Meta Description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
     }
-
-    // 4. Update Twitter Card Tags
-    updateMetaTag('name', 'twitter:card', 'summary_large_image');
-    updateMetaTag('name', 'twitter:title', `${product.title} - ${priceText}`);
-    updateMetaTag('name', 'twitter:description', description.substring(0, 200));
-    updateMetaTag('name', 'twitter:image', product.image || 'https://placehold.co/1200x630');
-
-    // 5. Update canonical URL
-    updateLinkTag('canonical', window.location.href);
-
-    // 6. Add structured data (JSON-LD) for Google Rich Results
-    addStructuredData(product, productId, priceText);
+    metaDesc.content = (product.description || "").substring(0, 160);
 }
 
 // Helper: Update or create meta tag
@@ -517,7 +537,8 @@ window.addEventListener('beforeunload', () => {
 
 // Logic: Render Product Details
 async function renderProduct() {
-    const productId = getQueryParam('id');
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
     const container = document.querySelector('.product-container');
 
     if (!container) return;
@@ -544,6 +565,8 @@ async function renderProduct() {
         // ============ UPDATE DYNAMIC METADATA FOR SOCIAL SHARING ============
         updatePageMetadata(product, productId);
 
+        console.log(product);
+
         // -- Gallery HTML --
         let galleryHtml = `
         <div class="main-image-wrapper" style="position: relative;">
@@ -566,6 +589,8 @@ async function renderProduct() {
                 `).join('')}
             </div>`;
         }
+
+        console.log('images: ', product.images.length);
 
         // -- Rates / Price HTML --
         let ratesHtml = '';
@@ -602,6 +627,7 @@ async function renderProduct() {
 
         // Fetch Owner Data
         let isOwnerVerified = false;
+        console.log('ownerId: ', product.ownerId);
         try {
             if (product.ownerId) {
                 const ownerRef = doc(db, 'users', product.ownerId);
@@ -785,11 +811,16 @@ async function renderProduct() {
             </div>
         `;
 
+        console.log('Before calling loadReviews');
+
         // -- REVIEWS SECTION --
         // ... (Existing Review Logic - Keeping it simpler here to save space in replacement, assuming it was working)
         // Actually I should keep the review logic. I'll paste it back.
         window.currentProduct = { id: productId, ...product };
         loadReviews(productId, container);
+
+        // Render Booking or Sale details
+        renderBookingCard(product, productId);
 
         // -- RECOMMENDATIONS --
         loadRecommendations(product.category, productId);
@@ -825,31 +856,31 @@ async function renderProduct() {
 
 // Extracted Helpers to keep renderProduct clean(er)
 async function loadReviews(productId, container) {
-    // ... (Similar to before)
-    // For now, to minimize risk of massive replacement failure, I will rely on the fact that I'm declaring these as part of the replacement content.
-    // Wait, if I replace renderProduct and define new functions inside the replacement string, they need to be valid.
-    // I'll stick to putting the logic IN renderProduct for now to match the style, but concise.
-    // To be safe, I will re-include the review logic block I saw in the file view.
-
     try {
-        const qReviews = query(collection(db, "reviews"), where("listingId", "==", productId));
-        const reviewSnap = await getDocs(qReviews);
-        let reviewsHtml = '';
-        let reviewCount = 0;
-        reviewSnap.forEach(doc => {
-            const r = doc.data();
-            reviewCount++;
-            reviewsHtml += `<div style="padding: 1rem; border-bottom: 1px solid #f1f5f9;"><b>${r.reviewerName}</b>: ${r.comment}</div>`;
-        });
+        const q = query(collection(db, "reviews"), where("listingId", "==", productId));
+        const snap = await getDocs(q);
 
-        if (reviewCount > 0) {
-            container.innerHTML += `
-                    <div style="grid-column: 1/-1; margin-top: 3rem; background: white; padding: 2rem; border-radius: 1rem;">
-                        <h2>Reviews (${reviewCount})</h2>
-                        ${reviewsHtml}
-                    </div>`;
-        }
-    } catch (e) { }
+        if (snap.empty) return;
+
+        const reviewsSection = document.createElement('div');
+        reviewsSection.style.cssText = "grid-column: 1/-1; margin-top: 3rem; background: white; padding: 2rem; border-radius: 1rem;";
+        reviewsSection.innerHTML = `<h2>Reviews (${snap.size})</h2>`;
+
+        snap.forEach(doc => {
+            const r = doc.data();
+            reviewsSection.innerHTML += `
+                <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                        <strong>${r.reviewerName || 'Neighbor'}</strong>
+                        <span>${'⭐'.repeat(r.rating || 5)}</span>
+                    </div>
+                    <p style="margin:0; color:var(--gray);">${r.comment}</p>
+                </div>`;
+        });
+        container.appendChild(reviewsSection);
+    } catch (e) {
+        console.error("Reviews load error:", e);
+    }
 }
 
 function setupInteractionButtons(productId, product) {
@@ -903,54 +934,24 @@ function setupImageGallery(product) {
     });
 }
 
-// Import chat initialization function
-import { startChatWithOwner } from './chat.js';
-
-// Handle Buy button click - starts chat with owner
+// Handle Buy (Chat) Click
 window.handleBuy = async function () {
-    try {
-        // Check authentication
-        if (!auth.currentUser) {
-            showToast("Login to contact seller", "info");
-            return;
-        }
-
-        // Get product data from global scope (set during renderProduct)
-        if (!window.currentProduct) {
-            showToast("Product information not loaded", "error");
-            return;
-        }
-
-        const product = window.currentProduct;
-
-        // Start chat directly (no DOM manipulation!)
-        await startChatWithOwner(
-            product.ownerId,
-            product.id,
-            product.title
-        );
-    } catch (error) {
-        console.error('Error starting chat:', error);
-        showToast(error.message || "Failed to start chat", "error");
+    if (!auth.currentUser) {
+        showToast("Login to contact owner", "info");
+        return;
     }
-}
+    if (!window.currentProduct) return;
+
+    await startChatWithOwner(
+        window.currentProduct.ownerId,
+        window.currentProduct.id,
+        window.currentProduct.title
+    );
+};
 
 window.handleClaim = function () {
     window.handleBuy(); // Same logic, just opening chat
 }
-
-
-// Init
-document.addEventListener('DOMContentLoaded', () => {
-    initHeader();      // 1. Inject HTML links and setup UI auth
-    initMobileMenu();  // 2. Make menu clickable
-    initTheme();       // 3. Setup dark/light mode
-    initAuth();        // 4. Setup login button events
-    initFooter();
-    initShareMenu();
-
-    renderProduct();
-});
 
 // Wishlist Modal HTML (inject into DOM)
 function createWishlistModal() {
@@ -1084,62 +1085,42 @@ const RELATED_CATEGORIES = {
 
 async function loadRecommendations(category, currentId) {
     const recContainer = document.getElementById('recommendation-container');
-
-    // FIX: If recommendation container doesn't exist, just return
-    if (!recContainer) {
-        console.log('Recommendation container not found on this page');
-        return;
-    }
+    if (!recContainer) return; // Prevent "Cannot set innerHTML of null"
 
     recContainer.innerHTML = '<div class="loader-spinner" style="margin:2rem auto;"></div>';
 
     try {
-        // Strategy 1: Same Category
-        let q = query(
+        const q = query(
             collection(db, "listings"),
             where("category", "==", category),
-            where("status", "==", "approved"),
+            where("status", "in", ["active", "approved"]),
             limit(4)
         );
-        let snap = await getDocs(q);
+        const snap = await getDocs(q);
         let items = [];
-
         snap.forEach(doc => {
             if (doc.id !== currentId) items.push({ id: doc.id, ...doc.data() });
         });
 
-        // Strategy 2: Related Categories (if fewer than 4 items)
-        if (items.length < 4 && RELATED_CATEGORIES[category]) {
-            const relatedCats = RELATED_CATEGORIES[category];
-            for (const relatedCat of relatedCats) {
-                if (items.length >= 4) break;
-
-                const q2 = query(
-                    collection(db, "listings"),
-                    where("category", "==", relatedCat),
-                    where("status", "==", "approved"),
-                    limit(2)
-                );
-                const snap2 = await getDocs(q2);
-                snap2.forEach(doc => {
-                    if (doc.id !== currentId && !items.find(i => i.id === doc.id)) {
-                        items.push({ id: doc.id, ...doc.data() });
-                    }
-                });
-            }
-        }
-
-        // Render
         if (items.length === 0) {
-            recContainer.innerHTML = `<p style="text-align:center; color:var(--gray); width:100%;">No similar items found right now.</p>`;
+            recContainer.innerHTML = `<p style="text-align:center; color:var(--gray); width:100%;">No similar items found.</p>`;
             return;
         }
 
-        recContainer.innerHTML = items.slice(0, 4).map(item => renderListingCard(item)).join('');
-
+        recContainer.innerHTML = items.map(item => `
+            <div class="product-card" onclick="window.location.href='/product.html?id=${item.id}'">
+                <div class="product-img-wrapper" style="height: 180px;">
+                    <img src="${item.image}" alt="${item.title}">
+                </div>
+                <div class="product-info">
+                     <h3 style="font-size: 1rem;">${item.title}</h3>
+                     <div class="product-price">₹${item.rates?.daily || item.salePrice || 0}</div>
+                </div>
+            </div>
+        `).join('');
     } catch (error) {
-        console.error("Error loading recs:", error);
-        recContainer.innerHTML = `<p style="text-align:center; color:red;">Failed to load recommendations.</p>`;
+        console.error("Recs error:", error);
+        recContainer.innerHTML = "";
     }
 }
 
