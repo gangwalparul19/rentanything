@@ -556,8 +556,6 @@ async function handleNotificationClick(id, type, link) {
 // ===== IMPORTS =====
 import { getPlatformStats } from './stats-service.js';
 
-// --- REAL-TIME DASHBOARD with onSnapshot ---
-
 // Store unsubscribe functions for cleanup
 let unsubscribeBookings = null;
 let unsubscribePendingProps = null;
