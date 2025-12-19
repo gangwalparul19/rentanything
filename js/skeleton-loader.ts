@@ -8,8 +8,8 @@
  * @param {number} count - Number of skeleton cards
  * @returns {string} HTML string
  */
-export function generateSkeletonCards(count = 6) {
-    const skeletons = [];
+export function generateSkeletonCards(count: number = 6): string {
+    const skeletons: string[] = [];
     for (let i = 0; i < count; i++) {
         skeletons.push(`
             <div class="skeleton-card">
@@ -24,11 +24,28 @@ export function generateSkeletonCards(count = 6) {
 }
 
 /**
+ * Generate skeleton details HTML (for Product Details page)
+ * @returns {string} HTML string
+ */
+export function generateSkeletonDetails(): string {
+    return `
+        <div class="skeleton-details">
+            <div class="skeleton-image-large" style="height: 400px; width: 100%; border-radius: 1rem; margin-bottom: 2rem;"></div>
+            <div class="skeleton-title" style="height: 40px; width: 60%; margin-bottom: 1rem;"></div>
+            <div class="skeleton-text" style="height: 20px; width: 40%; margin-bottom: 2rem;"></div>
+            <div class="skeleton-text" style="height: 20px; width: 100%; margin-bottom: 0.5rem;"></div>
+            <div class="skeleton-text" style="height: 20px; width: 100%; margin-bottom: 0.5rem;"></div>
+            <div class="skeleton-text" style="height: 20px; width: 80%; margin-bottom: 2rem;"></div>
+        </div>
+    `;
+}
+
+/**
  * Show skeleton loader in container
  * @param {string|HTMLElement} container - Container element or selector
  * @param {number} count - Number of skeletons
  */
-export function showSkeletonLoader(container, count = 6) {
+export function showSkeletonLoader(container: string | HTMLElement, count: number = 6): void {
     const element = typeof container === 'string' ? document.querySelector(container) : container;
     if (element) {
         element.innerHTML = generateSkeletonCards(count);
@@ -40,7 +57,7 @@ export function showSkeletonLoader(container, count = 6) {
  * @param {string|HTMLElement} container - Container element or selector
  * @param {string} content - HTML content to show
  */
-export function hideSkeletonLoader(container, content) {
+export function hideSkeletonLoader(container: string | HTMLElement, content: string): void {
     const element = typeof container === 'string' ? document.querySelector(container) : container;
     if (element) {
         element.innerHTML = content;

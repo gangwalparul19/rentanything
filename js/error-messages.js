@@ -67,3 +67,76 @@ export const INFO_MESSAGES = {
     SAVING: 'Saving...',
     PLEASE_WAIT: 'Please wait...',
 };
+
+// ====== ERROR CODE MAPPING ======
+const FIREBASE_ERROR_MAP = {
+    'permission-denied': ERROR_MESSAGES.PERMISSION_DENIED,
+    'unavailable': ERROR_MESSAGES.SERVICE_UNAVAILABLE,
+    'not-found': ERROR_MESSAGES.NOT_FOUND,
+    'unauthenticated': ERROR_MESSAGES.LOGIN_REQUIRED,
+    'auth/popup-closed-by-user': 'Login cancelled',
+    'auth/network-request-failed': 'Network error. Check your connection.',
+};
+
+/**
+ * Centralized error handler for consistent error handling across the app
+ * @param {Error} error - The error object
+ * @param {string} context - Description of what operation failed (e.g., "loading profile")
+ * @param {Object} options - Options
+ * @param {boolean} options.showToast - Whether to show a toast (default: true)
+ * @param {boolean} options.logToConsole - Whether to log to console (default: true)
+ * @param {string} options.fallbackMessage - Fallback message if no mapping found
+ * @returns {string} The user-friendly error message
+ */
+export function handleError(error, context = 'operation', options = {}) {
+    const {
+        showToast = true,
+        logToConsole = true,
+        fallbackMessage = ERROR_MESSAGES.SOMETHING_WRONG
+    } = options;
+
+    // Log to console for debugging
+    if (logToConsole) {
+        console.error(`Error during ${context}:`, error);
+    }
+
+    // Get user-friendly message
+    let userMessage = fallbackMessage;
+
+    // Check for Firebase error codes
+    if (error?.code) {
+        userMessage = FIREBASE_ERROR_MAP[error.code] || fallbackMessage;
+    }
+    // Check for standard error message
+    else if (error?.message) {
+        // Don't expose raw error messages that might contain sensitive info
+        // Only use message if it's likely user-friendly (short, no stack traces)
+        if (error.message.length < 100 && !error.message.includes('at ')) {
+            userMessage = error.message;
+        }
+    }
+
+    // Show toast notification if showToast is enabled
+    if (showToast && typeof window !== 'undefined' && window.showToast) {
+        window.showToast(userMessage, 'error');
+    }
+
+    return userMessage;
+}
+
+/**
+ * Wrapper for async operations with consistent error handling
+ * @param {Function} asyncFn - Async function to execute
+ * @param {string} context - Description of the operation
+ * @param {Object} options - Error handling options
+ * @returns {Promise<[result, error]>} Tuple of [result, error]
+ */
+export async function safeAsync(asyncFn, context = 'operation', options = {}) {
+    try {
+        const result = await asyncFn();
+        return [result, null];
+    } catch (error) {
+        const message = handleError(error, context, options);
+        return [null, { error, message }];
+    }
+}

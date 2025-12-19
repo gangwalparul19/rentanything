@@ -12,11 +12,13 @@ import { showToast } from './toast-enhanced.js';
 import { initShareMenu, shareToWhatsApp, shareToFacebook, shareToTwitter, shareToLinkedIn, shareViaEmail, copyShareLink, shareNative } from './social-share.js';
 import { calculateCO2Savings } from './carbon-calculator.js';
 import { gallery } from './image-gallery.js';
+import { dedupedFetch } from './utils';
 import { startChatWithOwner } from './chat.js';
+import { FocusTrap } from './accessibility.js';
+import { generateSkeletonDetails } from './skeleton-loader';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Product Details Page Loaded');
     initHeader();      // 1. Inject HTML links and setup UI auth
     initMobileMenu();  // 2. Make menu clickable
     initTheme();       // 3. Setup dark/light mode
@@ -198,6 +200,8 @@ function addStructuredData(product, productId, priceText) {
 
 // Global variable for Flatpickr instance
 let calendarInstance;
+
+
 
 // Booking Logic
 async function handleBooking() {
@@ -548,7 +552,7 @@ async function renderProduct() {
         return;
     }
 
-    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem;"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>`;
+    container.innerHTML = generateSkeletonDetails();
 
     try {
         const docRef = doc(db, "listings", productId);
@@ -565,8 +569,6 @@ async function renderProduct() {
 
         // ============ UPDATE DYNAMIC METADATA FOR SOCIAL SHARING ============
         updatePageMetadata(product, productId);
-
-        console.log(product);
 
         // -- Gallery HTML --
         let galleryHtml = `
@@ -590,8 +592,6 @@ async function renderProduct() {
                 `).join('')}
             </div>`;
         }
-
-        console.log('images: ', product.images ? product.images.length : 0);
 
         // -- Rates / Price HTML --
         let ratesHtml = '';
@@ -628,11 +628,15 @@ async function renderProduct() {
 
         // Fetch Owner Data
         let isOwnerVerified = false;
-        console.log('ownerId: ', product.ownerId);
         try {
             if (product.ownerId) {
                 const ownerRef = doc(db, 'users', product.ownerId);
-                const ownerSnap = await getDoc(ownerRef);
+                // Deduped fetch for owner data
+                const ownerSnap = await dedupedFetch(
+                    `user-${product.ownerId}`,
+                    () => getDoc(ownerRef)
+                );
+
                 if (ownerSnap.exists()) {
                     isOwnerVerified = ownerSnap.data().isVerified || false;
                 }
@@ -814,8 +818,6 @@ async function renderProduct() {
             </div>
         `;
 
-        console.log('Before calling loadReviews');
-
         // -- REVIEWS SECTION --
         // ... (Existing Review Logic - Keeping it simpler here to save space in replacement, assuming it was working)
         // Actually I should keep the review logic. I'll paste it back.
@@ -888,14 +890,78 @@ async function loadReviews(productId, container) {
     }
 }
 
+async function toggleFavorite(listingId, btn, product) {
+    if (!auth.currentUser) {
+        showToast("Login to save items", "info");
+        return;
+    }
+
+    const icon = btn.querySelector('i');
+    const wasSaved = icon.classList.contains('fa-solid'); // Check solid class
+
+    // 1. Optimistic UI Update
+    if (wasSaved) {
+        // Revert to empty
+        btn.innerHTML = '<i class="fa-regular fa-heart"></i> Add to Favorites';
+        btn.classList.remove('active');
+    } else {
+        // Set to filled
+        btn.innerHTML = '<i class="fa-solid fa-heart"></i> Saved';
+        btn.classList.add('active');
+
+        // Animation
+        const i = btn.querySelector('i');
+        i.style.transform = 'scale(1.2)';
+        setTimeout(() => i.style.transform = 'scale(1)', 200);
+    }
+
+    try {
+        const favRef = doc(db, "favorites", `${auth.currentUser.uid}_${listingId}`);
+        const docSnap = await getDoc(favRef);
+
+        if (docSnap.exists()) {
+            await deleteDoc(favRef);
+            showToast("Removed from favorites", "info");
+        } else {
+            await setDoc(favRef, {
+                userId: auth.currentUser.uid,
+                listingId: listingId,
+                title: product.title,
+                image: product.image,
+                savedAt: serverTimestamp()
+            });
+            showToast("Saved to favorites", "success");
+        }
+    } catch (error) {
+        console.error("Favorite toggle error:", error);
+
+        // 2. Rollback UI
+        if (wasSaved) {
+            btn.innerHTML = '<i class="fa-solid fa-heart"></i> Saved';
+            btn.classList.add('active');
+        } else {
+            btn.innerHTML = '<i class="fa-regular fa-heart"></i> Add to Favorites';
+            btn.classList.remove('active');
+        }
+        showToast("Failed to update favorite", "error");
+    }
+}
+
 function setupInteractionButtons(productId, product) {
     // Favorites
     const favBtn = document.getElementById('fav-btn');
     if (favBtn) {
         if (auth.currentUser) {
-            // check status
+            // Check status
+            const favRef = doc(db, "favorites", `${auth.currentUser.uid}_${productId}`);
+            getDoc(favRef).then(snap => {
+                if (snap.exists()) {
+                    favBtn.innerHTML = '<i class="fa-solid fa-heart"></i> Saved';
+                    favBtn.classList.add('active');
+                }
+            });
         }
-        favBtn.onclick = () => toggleFavorite(productId, favBtn);
+        favBtn.onclick = () => toggleFavorite(productId, favBtn, product);
     }
 
     // Wishlist
@@ -922,7 +988,8 @@ function setupInteractionButtons(productId, product) {
     const shareTrigger = document.querySelector('.share-trigger');
     if (shareTrigger) {
         shareTrigger.onclick = () => {
-            document.querySelector('.share-dropdown').classList.toggle('active');
+            const dropdown = document.querySelector('.share-dropdown');
+            if (dropdown) dropdown.classList.toggle('active');
         };
     }
 }
@@ -982,11 +1049,11 @@ window.handleClaim = function () {
 // Wishlist Modal HTML (inject into DOM)
 function createWishlistModal() {
     const modalHTML = `
-        <div id="wishlist-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div id="wishlist-modal" role="dialog" aria-modal="true" aria-labelledby="wishlist-title" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
             <div style="background:white; border-radius:1rem; padding:2rem; max-width:500px; width:90%; box-shadow:0 20px 25px -5px rgba(0,0,0,0.3);">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                    <h2 style="margin:0;">Add to Wishlist 💖</h2>
-                    <button onclick="closeWishlistModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--gray);">&times;</button>
+                    <h2 id="wishlist-title" style="margin:0;">Add to Wishlist 💖</h2>
+                    <button onclick="closeWishlistModal()" aria-label="Close" style="background:none; border:none; font-size:1.5rem; cursor:pointer; color:var(--gray);">&times;</button>
                 </div>
                 
                 <div style="margin-bottom:1rem;">
@@ -1014,26 +1081,46 @@ function createWishlistModal() {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = modalHTML;
     document.body.appendChild(tempDiv.firstElementChild);
+
+    // Close on escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.getElementById('wishlist-modal').style.display === 'flex') {
+            closeWishlistModal();
+        }
+    });
 }
 
 // Show wishlist modal
 let currentWishlistItem = null;
+let wishlistTrap = null;
 
 window.showWishlistModal = (listingId, listingTitle, listingImage) => {
     currentWishlistItem = { listingId, listingTitle, listingImage };
 
-    if (!document.getElementById('wishlist-modal')) {
+    const modal = document.getElementById('wishlist-modal');
+    if (!modal) {
         createWishlistModal();
     }
 
-    document.getElementById('wishlist-modal').style.display = 'flex';
+    // Refresh ref in case created
+    const modalEl = document.getElementById('wishlist-modal');
+    modalEl.style.display = 'flex';
     document.getElementById('wishlist-notes').value = '';
     document.getElementById('wishlist-priority').value = 'medium';
+
+    // Init Logic for Focus Trap
+    if (!wishlistTrap) {
+        wishlistTrap = new FocusTrap(modalEl);
+    }
+    wishlistTrap.activate();
 };
 
 window.closeWishlistModal = () => {
     document.getElementById('wishlist-modal').style.display = 'none';
     currentWishlistItem = null;
+    if (wishlistTrap) {
+        wishlistTrap.deactivate();
+    }
 };
 
 window.confirmAddToWishlist = async () => {

@@ -1,6 +1,9 @@
 /**
  * Empty State Templates
  * Reusable empty state HTML generators
+ * 
+ * NOTE: This file consolidates both empty-state.js and empty-states.js
+ * The simpler function-based approach is preferred over the class-based one.
  */
 
 export const emptyStates = {

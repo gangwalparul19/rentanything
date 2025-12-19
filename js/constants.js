@@ -59,3 +59,23 @@ export const TRANSACTION_TYPES = {
     SELL: 'sell',
     DONATE: 'donate'
 };
+
+// ====== FIRESTORE LIMITS ======
+export const FIRESTORE_IN_QUERY_LIMIT = 10; // Max items in 'in' query
+export const FIRESTORE_BATCH_SIZE = 500; // Max writes per batch
+export const FIRESTORE_ADMIN_LIST_LIMIT = 50; // Admin panel list limits
+
+// ====== NOTIFICATIONS ======
+export const NOTIFICATIONS_DISPLAY_LIMIT = 10;
+export const UNREAD_BADGE_MAX_DISPLAY = 9; // Shows "9+" for more
+
+// ====== CACHE SETTINGS ======
+export const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+export const DATA_CACHE_TTL_MS = 60 * 1000; // 1 minute
+
+// ====== ACTIVITY THRESHOLDS ======
+export const ACTIVE_USER_DAYS_THRESHOLD = 7; // Days since last activity to count as "active"
+
+// ====== DEBOUNCE/THROTTLE ======
+export const DEBOUNCE_DEFAULT_MS = 300;
+export const THROTTLE_DEFAULT_MS = 300;

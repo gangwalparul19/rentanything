@@ -9,11 +9,23 @@
 /* Lazy loading images - only fade out if explicitly marked as loading */
 img.lazy-loading {
     opacity: 0;
-    transition: opacity 0.3s ease-in;
+    filter: blur(10px);
+    transition: opacity 0.3s ease-in, filter 0.3s ease-in;
 }
 
 img.lazy-loaded,
 img[loading="lazy"] {
+    opacity: 1;
+}
+
+/* Blur-up progressive loading */
+img.blur-up {
+    filter: blur(10px);
+    transition: filter 0.4s ease-out, opacity 0.4s ease-out;
+}
+
+img.blur-up.loaded {
+    filter: blur(0);
     opacity: 1;
 }
 

@@ -11,6 +11,7 @@ import { compressImage } from './image-compressor.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 import { FormValidator } from './form-validator.js';
+import { escapeHtml } from './utils';
 
 // Initialize Global UI Components
 document.addEventListener('DOMContentLoaded', () => {
@@ -558,11 +559,7 @@ if (form) {
             }
 
             // Sanitize Input (XSS Prevention)
-            const sanitize = (str) => {
-                const temp = document.createElement('div');
-                temp.textContent = str;
-                return temp.innerHTML;
-            };
+            const sanitize = escapeHtml;
 
             const transactionTypes = [];
             if (isRent) transactionTypes.push('rent');

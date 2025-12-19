@@ -11,6 +11,8 @@ import { initHeader } from './header-manager.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 import { compressImage } from './image-compressor.js'; // Import enhanced compressor
+import { dedupedFetch, escapeHtml } from './utils';
+import { FormValidator } from './form-validator.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -20,7 +22,39 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuth(); // Initialize header state
     initFooter();
     loadSocieties(); // Fetch dynamic list
+    setupFormValidation();
 });
+
+function setupFormValidation() {
+    const form = document.getElementById('profile-form');
+    if (!form) return;
+
+    new FormValidator(form, {
+        displayName: {
+            required: true,
+            minLength: 2,
+            maxLength: 50,
+            messages: {
+                required: 'Name is required',
+                minLength: 'Name too short'
+            }
+        },
+        phoneNumber: {
+            required: true,
+            pattern: /^[0-9]{10}$/,
+            messages: {
+                required: 'Phone number is required',
+                pattern: 'Must be 10 digits'
+            }
+        },
+        bio: {
+            maxLength: 500,
+            messages: {
+                maxLength: 'Bio cannot exceed 500 characters'
+            }
+        }
+    });
+}
 
 const profileForm = document.getElementById('profile-form');
 const displayNameInput = document.getElementById('displayName');
@@ -84,7 +118,11 @@ async function loadSocieties() {
 async function loadProfile(uid) {
     try {
         const docRef = doc(db, "users", uid);
-        const docSnap = await getDoc(docRef);
+        // Deduped profile fetch
+        const docSnap = await dedupedFetch(
+            `user-profile-${uid}`,
+            () => getDoc(docRef)
+        );
 
         if (docSnap.exists()) {
             const data = docSnap.data();
@@ -158,14 +196,12 @@ if (profileImageInput) {
             reader.readAsDataURL(file);
 
             try {
-                console.log(`Original size: ${(file.size / 1024).toFixed(2)} KB`);
                 // Use enhanced compressor with profile-optimized settings
                 const compressedFile = await compressImage(file, {
                     maxWidth: 800,  // Profile images don't need to be huge
                     targetSizeMB: 0.5, // Target 500KB for profile pictures
                     maxQuality: 0.85
                 });
-                console.log(`Compressed size: ${(compressedFile.size / 1024).toFixed(2)} KB`);
 
                 newImageFile = compressedFile;
 
@@ -273,12 +309,8 @@ if (profileForm) {
             }
 
             // Sanitize
-            const sanitize = (str) => {
-                if (!str) return str;
-                const temp = document.createElement('div');
-                temp.textContent = str;
-                return temp.innerHTML;
-            };
+            // Sanitize
+            const sanitize = escapeHtml;
 
             // 3. Update Firestore
             const profileData = {

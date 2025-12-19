@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc, getC
 import { showToast } from './toast-enhanced.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
 import { sendPropertyApprovalEmail, sendPropertyRejectionEmail } from './email-notifications.js';
+import { VirtualScroller } from './virtual-scroller.js';
 
 // Global data storage for export
 let analyticsData = {
@@ -692,79 +693,102 @@ async function loadDashboard() {
         }
     };
 
+    let disputeScroller = null;
+
     function renderDisputes(disputes) {
         const tbody = document.getElementById('disputes-table');
+        const container = tbody.parentElement.parentElement; // .card (scrollable container)
+
+        // Clear existing scroller if any
+        if (disputeScroller) {
+            disputeScroller.destroy();
+            disputeScroller = null;
+        }
 
         if (disputes.length === 0) {
             tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--gray);">No disputes found</td></tr>';
             return;
         }
 
-        tbody.innerHTML = disputes.map(dispute => {
-            const date = dispute.createdAt ?
-                new Date(dispute.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
+        // Initialize Virtual Scroller
+        disputeScroller = new VirtualScroller({
+            container: container,
+            items: disputes,
+            itemHeight: 70, // Estimated height of a row
+            buffer: 5,
+            onRender: (visibleItems, startIndex, totalHeight, paddingTop, paddingBottom) => {
+                const spacerTop = `<tr style="height: ${paddingTop}px; pointer-events: none;"><td colspan="9" style="padding:0; border:none;"></td></tr>`;
+                const spacerBottom = `<tr style="height: ${paddingBottom}px; pointer-events: none;"><td colspan="9" style="padding:0; border:none;"></td></tr>`;
 
-            const statusColors = {
-                'open': 'background: #dbeafe; color: #1e40af;',
-                'under_review': 'background: #fef3c7; color: #92400e;',
-                'awaiting_info': 'background: #fed7aa; color: #9a3412;',
-                'resolved': 'background: #d1fae5; color: #065f46;',
-                'dismissed': 'background: #fee2e2; color: #991b1b;'
-            };
+                const rows = visibleItems.map((dispute, index) => {
+                    const date = dispute.createdAt ?
+                        new Date(dispute.createdAt.seconds * 1000).toLocaleDateString() : 'N/A';
 
-            const priorityColors = {
-                'low': 'background: #e0f2fe; color: #075985;',
-                'medium': 'background: #fef3c7; color: #92400e;',
-                'high': 'background: #fecaca; color: #991b1b;',
-                'urgent': 'background: #fee2e2; color: #7f1d1d;'
-            };
+                    const statusColors = {
+                        'open': 'background: #dbeafe; color: #1e40af;',
+                        'under_review': 'background: #fef3c7; color: #92400e;',
+                        'awaiting_info': 'background: #fed7aa; color: #9a3412;',
+                        'resolved': 'background: #d1fae5; color: #065f46;',
+                        'dismissed': 'background: #fee2e2; color: #991b1b;'
+                    };
 
-            const typeLabels = {
-                'damaged_item': 'Damaged Item',
-                'late_return': 'Late Return',
-                'not_as_described': 'Not as Described',
-                'payment_issue': 'Payment Issue',
-                'no_show': 'No Show',
-                'safety_concern': 'Safety Concern',
-                'other': 'Other'
-            };
+                    const priorityColors = {
+                        'low': 'background: #e0f2fe; color: #075985;',
+                        'medium': 'background: #fef3c7; color: #92400e;',
+                        'high': 'background: #fecaca; color: #991b1b;',
+                        'urgent': 'background: #fee2e2; color: #7f1d1d;'
+                    };
 
-            return `
-        < tr >
-                    <td><code style="font-size: 0.75rem;">${dispute.id.substring(0, 8)}...</code></td>
-                    <td>
-                        <strong>${dispute.listingTitle || 'N/A'}</strong><br>
-                        <small style="color: var(--gray);">${dispute.bookingId?.substring(0, 12) || 'N/A'}</small>
-                    </td>
-                    <td>
-                        ${dispute.reporterName || 'Unknown'}<br>
-                        <small style="color: var(--gray);">${dispute.reporterType}</small>
-                    </td>
-                    <td>${typeLabels[dispute.disputeType] || dispute.disputeType}</td>
-                    <td>
-                        <span style="padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600; ${statusColors[dispute.status] || ''}">
-                            ${dispute.status.replace('_', ' ').toUpperCase()}
-                        </span>
-                    </td>
-                    <td>
-                        <span style="padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600; ${priorityColors[dispute.priority] || ''}">
-                            ${dispute.priority.toUpperCase()}
-                        </span>
-                    </td>
-                    <td>${date}</td>
-                    <td>
-                        <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
-                            ${dispute.evidenceUrls?.length || 0} file(s)
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn-secondary" onclick="viewDisputeDetails('${dispute.id}')" style="font-size: 0.85rem;">
-                            <i class="fa-solid fa-eye"></i> View
-                        </button>
-                    </td>
-                </tr >
-    `;
-        }).join('');
+                    const typeLabels = {
+                        'damaged_item': 'Damaged Item',
+                        'late_return': 'Late Return',
+                        'not_as_described': 'Not as Described',
+                        'payment_issue': 'Payment Issue',
+                        'no_show': 'No Show',
+                        'safety_concern': 'Safety Concern',
+                        'other': 'Other'
+                    };
+
+                    return `
+                    <tr>
+                        <td><code style="font-size: 0.75rem;">${dispute.id.substring(0, 8)}...</code></td>
+                        <td>
+                            <strong>${dispute.listingTitle || 'N/A'}</strong><br>
+                            <small style="color: var(--gray);">${dispute.bookingId?.substring(0, 12) || 'N/A'}</small>
+                        </td>
+                        <td>
+                            ${dispute.reporterName || 'Unknown'}<br>
+                            <small style="color: var(--gray);">${dispute.reporterType}</small>
+                        </td>
+                        <td>${typeLabels[dispute.disputeType] || dispute.disputeType}</td>
+                        <td>
+                            <span style="padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600; ${statusColors[dispute.status] || ''}">
+                                ${dispute.status.replace('_', ' ').toUpperCase()}
+                            </span>
+                        </td>
+                        <td>
+                            <span style="padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem; font-weight: 600; ${priorityColors[dispute.priority] || ''}">
+                                ${dispute.priority.toUpperCase()}
+                            </span>
+                        </td>
+                        <td>${date}</td>
+                        <td>
+                            <span style="background: #f3f4f6; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem;">
+                                ${dispute.evidenceUrls?.length || 0} file(s)
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-secondary" onclick="viewDisputeDetails('${dispute.id}')" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+
+                tbody.innerHTML = spacerTop + rows + spacerBottom;
+            }
+        });
     }
 
     window.viewDisputeDetails = function (disputeId) {

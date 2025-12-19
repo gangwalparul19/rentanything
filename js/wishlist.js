@@ -92,26 +92,40 @@ async function loadWishlist() {
             }
         });
 
-        // Fetch listing details for favorites
-        for (const listingId of favoriteListingIds) {
-            try {
-                const { doc: getDocRef, getDoc: fetchDoc } = await import('firebase/firestore');
-                const listingRef = getDocRef(db, 'listings', listingId);
-                const listingSnap = await fetchDoc(listingRef);
+        // Fetch listing details for favorites - BATCHED to avoid N+1 queries
+        // Firestore 'in' query supports max 10 items, so we batch them
+        if (favoriteListingIds.length > 0) {
+            const { query: createQuery, where, getDocs: fetchDocs } = await import('firebase/firestore');
 
-                if (listingSnap.exists()) {
-                    const listingData = listingSnap.data();
-                    const favData = favoriteDocsMap.get(listingId);
-                    wishlistData.push({
-                        ...favData,
-                        listingTitle: listingData.title,
-                        listingImage: listingData.image,
-                        priority: 'quick-save', // Mark as quick save
-                        notes: 'Saved from browse'
+            // Process in batches of 10 (Firestore limit for 'in' queries)
+            for (let i = 0; i < favoriteListingIds.length; i += 10) {
+                const batch = favoriteListingIds.slice(i, i + 10);
+
+                try {
+                    // Use documentId() for querying by document ID
+                    const { documentId } = await import('firebase/firestore');
+                    const batchQuery = createQuery(
+                        collection(db, 'listings'),
+                        where(documentId(), 'in', batch)
+                    );
+                    const batchSnap = await fetchDocs(batchQuery);
+
+                    batchSnap.forEach(docSnap => {
+                        const listingData = docSnap.data();
+                        const favData = favoriteDocsMap.get(docSnap.id);
+                        if (favData) {
+                            wishlistData.push({
+                                ...favData,
+                                listingTitle: listingData.title,
+                                listingImage: listingData.image,
+                                priority: 'quick-save',
+                                notes: 'Saved from browse'
+                            });
+                        }
                     });
+                } catch (e) {
+                    console.warn('Batch fetch error:', e);
                 }
-            } catch (e) {
-                console.warn('Could not fetch listing:', listingId, e);
             }
         }
 
