@@ -5,6 +5,10 @@
 import { db } from './firebase-config.js';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { initHeader } from './header-manager.js';
+import { initMobileMenu } from './navigation.js';
+import { initTheme } from './theme.js';
+import { initAuth } from './auth.js';
+import { initFooter } from './footer-manager.js';
 import { showLoader, hideLoader } from './loader.js';
 
 // Pagination variables
@@ -17,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();  // 2. Make hamburger menu clickable
     initTheme();       // 3. Setup light/dark mode
     initAuth();        // 4. Setup login button listeners
+    initFooter();
     loadSocieties(); // Load society dropdown
     loadProperties();
 });

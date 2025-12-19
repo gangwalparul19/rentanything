@@ -7,9 +7,9 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { initFooter } from './footer-manager.js';
 import { showLoader, hideLoader } from './loader.js';
 import { HOME_PAGE_LISTING_LIMIT } from './constants.js';
-import { ERROR_MESSAGES } from './error-messages.js';
 import { showToast } from './toast-enhanced.js';
 
 // console.log('RentAnything App Initialized');
@@ -184,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initAuth();
     initTheme();
-
+    initFooter();
     // Load real data
     fetchListings();
 

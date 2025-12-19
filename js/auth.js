@@ -68,7 +68,7 @@ export function initAuth() {
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             // Register for Push Notifications
-            subscribeToPushNotifications().catch(err => console.error("Push registration failed:", err));
+            subscribeToPushNotifications(false).catch(err => console.log("Push notifications unavailable:", err));
 
             // 1. Chat Badge Logic (Managed here for real-time updates)
             const { collection, query, where, onSnapshot } = await import('firebase/firestore');

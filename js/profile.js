@@ -6,6 +6,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
+import { initFooter } from './footer-manager.js';
 import { initHeader } from './header-manager.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';

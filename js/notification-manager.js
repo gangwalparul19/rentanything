@@ -29,57 +29,74 @@ function playNotificationSound() {
 
 /**
  * Request notification permission from user
+ * @param {boolean} showMessages - Whether to show toast messages (default: true)
  * @returns {Promise<boolean>} True if permission granted
  */
-export async function requestNotificationPermission() {
+export async function requestNotificationPermission(showMessages = true) {
     try {
         if (!('Notification' in window)) {
             console.warn('This browser does not support notifications');
-            showToast('Notifications not supported in this browser', 'warning');
+            if (showMessages) {
+                showToast('Notifications not supported in this browser', 'warning');
+            }
             return false;
         }
 
+        // If already granted, return true silently
         if (Notification.permission === 'granted') {
             return true;
         }
 
+        // If denied, show error message only if explicitly requested
         if (Notification.permission === 'denied') {
-            showToast('Notifications are blocked. Please enable in browser settings.', 'error');
+            if (showMessages) {
+                showToast('Notifications blocked. Please enable in browser settings: click the lock icon in address bar → Site settings → Notifications → Allow', 'error');
+            }
             return false;
         }
 
-        // Request permission
+        // Permission is 'default' - request permission
         const permission = await Notification.requestPermission();
 
         if (permission === 'granted') {
-            // Notification permission granted
-            showToast('Notifications enabled successfully!', 'success');
+            if (showMessages) {
+                showToast('🔔 Notifications enabled! You\'ll receive real-time updates', 'success');
+                // Play a success sound
+                playNotificationSound();
+            }
             return true;
+        } else if (permission === 'denied') {
+            if (showMessages) {
+                showToast('Notification permission denied. You can enable it later in browser settings.', 'warning');
+            }
+            return false;
         } else {
-            // Notification permission denied
-            showToast('Notification permission denied', 'warning');
+            // Permission dismissed without selection
             return false;
         }
     } catch (error) {
         console.error('Error requesting notification permission:', error);
-        showToast('Failed to request notification permission', 'error');
+        if (showMessages) {
+            showToast('Failed to request notification permission', 'error');
+        }
         return false;
     }
 }
 
 /**
  * Subscribe to push notifications and get FCM token
+ * @param {boolean} showMessages - Whether to show toast messages
  * @returns {Promise<string|null>} FCM token or null
  */
-export async function subscribeToPushNotifications() {
+export async function subscribeToPushNotifications(showMessages = true) {
     try {
         if (!messaging) {
             console.error('Firebase Messaging not initialized');
             return null;
         }
 
-        // Request permission first
-        const hasPermission = await requestNotificationPermission();
+        // Request permission first (with messages enabled)
+        const hasPermission = await requestNotificationPermission(showMessages);
         if (!hasPermission) {
             return null;
         }
@@ -94,24 +111,32 @@ export async function subscribeToPushNotifications() {
         });
 
         if (token) {
-            // Save token to Firestore for this admin user
+            // Save token to Firestore for this user
             await saveFCMToken(token);
+
+            if (showMessages) {
+                console.log('✅ Push notifications enabled successfully');
+            }
 
             return token;
         } else {
             // No FCM token available
-            showToast('Failed to get notification token', 'error');
+            if (showMessages) {
+                showToast('Failed to get notification token', 'error');
+            }
             return null;
         }
     } catch (error) {
         console.error('Error subscribing to push notifications:', error);
 
-        if (error.code === 'messaging/permission-blocked') {
-            showToast('Notifications blocked. Enable in browser settings.', 'error');
-        } else if (error.code === 'messaging/unsupported-browser') {
-            showToast('Push notifications not supported in this browser', 'warning');
-        } else {
-            showToast('Failed to enable notifications. Check console for details.', 'error');
+        if (showMessages) {
+            if (error.code === 'messaging/permission-blocked') {
+                showToast('Notifications blocked. Click lock icon in address bar → Notifications → Allow', 'error');
+            } else if (error.code === 'messaging/unsupported-browser') {
+                showToast('Push notifications not supported in this browser', 'warning');
+            } else {
+                showToast('Failed to enable notifications. Try again later.', 'error');
+            }
         }
 
         return null;

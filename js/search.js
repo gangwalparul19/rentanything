@@ -6,6 +6,7 @@ import { initTheme } from './theme.js';
 import { showToast } from './toast-enhanced.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { initFooter } from './footer-manager.js';
 import { debounce } from './utils.js';
 
 let allListings = [];
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initMobileMenu();
     initAuth();
     initTheme();
+    initFooter();
 
     // Init Date Picker
     calendarInstance = flatpickr("#date-filter", {

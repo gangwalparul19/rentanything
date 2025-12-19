@@ -6,6 +6,7 @@ import { db, auth } from './firebase-config.js';
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { initHeader } from './header-manager.js';
+import { initFooter } from './footer-manager.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 
@@ -14,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();  // 2. Make hamburger menu clickable
     initTheme();       // 3. Setup light/dark mode
     initAuth();        // 4. Setup login button listeners
-
+    initFooter();
     onAuthStateChanged(auth, (user) => {
         if (user) {
             loadMyProperties(user.uid);

@@ -6,6 +6,7 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { initFooter } from './footer-manager.js';
 // Duplicate import removed
 import { showToast } from './toast-enhanced.js';
 import { showEmptyState } from './empty-states.js';
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Initialize other systems
     initTheme();
     initAuth();
+    initFooter();
 });
 
 const container = document.getElementById('my-listings-container');

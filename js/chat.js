@@ -5,6 +5,7 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { initFooter } from './footer-manager.js';
 import { showToast } from './toast-enhanced.js';
 import { showEmptyState } from './empty-states.js';
 import { subscribeToPushNotifications } from './notification-manager.js';
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();
     initAuth();
     initTheme();
+    initFooter();
 });
 
 let currentUser = null;
@@ -176,7 +178,7 @@ function loadChat(chatId, chatData) {
     }
 
     // Request notification permission if not already granted
-    subscribeToPushNotifications().catch(console.error);
+    subscribeToPushNotifications(false).catch(console.log);
 
     // Subscribe to Messages
     if (unsubscribeMessages) unsubscribeMessages();

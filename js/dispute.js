@@ -5,6 +5,7 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { initFooter } from './footer-manager.js';
 import { showToast } from './toast-enhanced.js';
 import { compressImage } from './image-compressor.js';
 

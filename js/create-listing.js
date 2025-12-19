@@ -6,6 +6,7 @@ import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
+import { initFooter } from './footer-manager.js';
 import { compressImage } from './image-compressor.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
@@ -17,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();  // 2. Make menu clickable
     initTheme();       // 3. Setup dark/light mode
     initAuth();        // 4. Setup login button events
+    initFooter();
     initTransactionModes();
 
     // Check for Edit Mode

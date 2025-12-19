@@ -10,7 +10,7 @@ import { initHeader } from './header-manager.js';
 import { compressImage } from './image-compressor.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
-import { FormValidator } from './form-validator.js';
+import { initFooter } from './footer-manager.js';
 
 let selectedFiles = [];
 let isEditMode = false;
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();  // 2. Make hamburger menu clickable
     initTheme();       // 3. Setup light/dark mode
     initAuth();        // 4. Setup login button listeners
-
+    initFooter();
     onAuthStateChanged(auth, (user) => {
         if (!user) {
             showToast('Please log in to list a property', 'warning');

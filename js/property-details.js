@@ -4,9 +4,9 @@
 
 import { db, auth } from './firebase-config.js';
 import { doc, getDoc, updateDoc, increment } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
 import { initHeader } from './header-manager.js';
 import { showToast } from './toast-enhanced.js';
+import { initFooter } from './footer-manager.js';
 import { showLoader, hideLoader } from './loader.js';
 import { gallery } from './image-gallery.js';
 
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();  // 2. Make hamburger menu clickable
     initTheme();       // 3. Setup light/dark mode
     initAuth();        // 4. Setup login button listeners
-
+    initFooter();
     if (!propertyId) {
         document.getElementById('property-container').innerHTML = `
             <div style="text-align: center; padding: 4rem;">
