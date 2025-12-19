@@ -243,16 +243,16 @@ match /chats/{chatId} {
     match /stats/platform_stats {
       // Anyone can read stats (for public dashboards)
       allow read: if true;
-      // Only admins or server can write (prevent tampering)
-      allow write: if isAdmin();
+      // Only admins can write (prevent tampering)
+      allow write: if isAuthenticated() && isAdmin();
     }
     
     // User-specific stats
     match /stats/user_stats/{userId} {
       // Users can read their own stats, admins can read all
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-      // Only admins or server can write (prevent score manipulation)
-      allow write: if isAdmin();
+      // Only admins can write (prevent score manipulation)
+      allow write: if isAuthenticated() && isAdmin();
     }
 
     match /platform_stats/{statId} {

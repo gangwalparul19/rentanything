@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin Permissions</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            background: #0f172a;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .success {
+            color: #10b981;
+        }
+
+        .error {
+            color: #ef4444;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Admin Permissions Test</h1>
+    <button onclick="testAuth()">1. Check Auth Status</button>
+    <button onclick="testWrite()">2. Test Write to Stats</button>
+    <button onclick="testRead()">3. Test Read Stats</button>
+    <div id="output"></div>
+
+    <script type="module">
+        import { auth, db } from './js/firebase-config.js';
+        import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+
+        const output = document.getElementById('output');
+
+        window.testAuth = async function () {
+            output.innerHTML = 'Testing authentication...\n';
+
+            if (!auth.currentUser) {
+                output.innerHTML += '<span class="error">❌ Not authenticated!</span>\n';
+                output.innerHTML += 'Please log in to admin.html first.\n';
+                return;
+            }
+
+            output.innerHTML += `<span class="success">✅ Authenticated</span>\n`;
+            output.innerHTML += `Email: ${auth.currentUser.email}\n`;
+            output.innerHTML += `UID: ${auth.currentUser.uid}\n`;
+
+            // Get ID token to check claims
+            try {
+                const token = await auth.currentUser.getIdTokenResult();
+                output.innerHTML += `\nToken claims:\n`;
+                output.innerHTML += JSON.stringify(token.claims, null, 2) + '\n';
+            } catch (error) {
+                output.innerHTML += `<span class="error">Error getting token: ${error.message}</span>\n`;
+            }
+        };
+
+        window.testWrite = async function () {
+            output.innerHTML = 'Testing write to /stats/platform_stats...\n';
+
+            if (!auth.currentUser) {
+                output.innerHTML += '<span class="error">❌ Not authenticated!</span>\n';
+                return;
+            }
+
+            const testData = {
+                test: true,
+                timestamp: serverTimestamp(),
+                user: auth.currentUser.email
+            };
+
+            try {
+                await setDoc(doc(db, 'stats', 'platform_stats'), testData);
+                output.innerHTML += '<span class="success">✅ Write successful!</span>\n';
+                output.innerHTML += 'Check Firestore console to verify.\n';
+            } catch (error) {
+                output.innerHTML += `<span class="error">❌ Write failed!</span>\n`;
+                output.innerHTML += `Error code: ${error.code}\n`;
+                output.innerHTML += `Error message: ${error.message}\n`;
+                output.innerHTML += '\nPossible issues:\n';
+                output.innerHTML += '1. Firestore rules not deployed\n';
+                output.innerHTML += '2. Email not in admin list\n';
+                output.innerHTML += '3. Rules cache (wait 1 minute)\n';
+            }
+        };
+
+        window.testRead = async function () {
+            output.innerHTML = 'Testing read from /stats/platform_stats...\n';
+
+            try {
+                const docSnap = await getDoc(doc(db, 'stats', 'platform_stats'));
+                if (docSnap.exists()) {
+                    output.innerHTML += '<span class="success">✅ Read successful!</span>\n';
+                    output.innerHTML += JSON.stringify(docSnap.data(), null, 2) + '\n';
+                } else {
+                    output.innerHTML += '<span class="error">Document does not exist yet</span>\n';
+                }
+            } catch (error) {
+                output.innerHTML += `<span class="error">❌ Read failed!</span>\n`;
+                output.innerHTML += `Error: ${error.message}\n`;
+            }
+        };
+    </script>
+</body>
+
+</html>

@@ -100,7 +100,19 @@ async function initializeStats() {
         };
 
         // Save to Firestore
-        await setDoc(doc(db, 'stats', 'platform_stats'), statsData);
+        console.log('Writing stats to Firestore...');
+        console.log('Auth user:', auth.currentUser.email);
+        console.log('Auth UID:', auth.currentUser.uid);
+
+        try {
+            await setDoc(doc(db, 'stats', 'platform_stats'), statsData);
+            console.log('✅ Stats document written successfully!');
+        } catch (writeError) {
+            console.error('❌ Failed to write stats document:', writeError);
+            console.error('Error code:', writeError.code);
+            console.error('Error message:', writeError.message);
+            throw new Error(`Write failed: ${writeError.message}. Check Firestore rules for /stats/platform_stats`);
+        }
 
         console.log('✅ Stats initialized successfully!');
         console.log('📊 Summary:');
