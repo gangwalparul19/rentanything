@@ -9,6 +9,40 @@ import { showToast } from './toast-enhanced.js';
 import { showEmptyState } from './empty-states.js';
 import { subscribeToPushNotifications } from './notification-manager.js';
 
+/**
+ * Start a chat with a specific owner (Exported for use in other modules)
+ * @param {string} ownerId - The owner's user ID
+ * @param {string} listingId - Optional listing ID to associate
+ * @param {string} listingTitle - Optional listing title for context
+ * @returns {Promise<void>}
+ */
+export async function startChatWithOwner(ownerId, listingId = null, listingTitle = null) {
+    try {
+        // Ensure user is authenticated
+        if (!auth.currentUser) {
+            throw new Error('You must be logged in to start a chat');
+        }
+
+        // Don't allow chatting with yourself
+        if (auth.currentUser.uid === ownerId) {
+            throw new Error('You cannot chat with yourself');
+        }
+
+        // Redirect to chat page with parameters
+        const params = new URLSearchParams({
+            ownerId: ownerId
+        });
+
+        if (listingId) params.append('listingId', listingId);
+        if (listingTitle) params.append('title', listingTitle);
+
+        window.location.href = `/chat.html?${params.toString()}`;
+    } catch (error) {
+        console.error('Error starting chat:', error);
+        throw error;
+    }
+}
+
 // Init
 document.addEventListener('DOMContentLoaded', () => {
     initHeader();

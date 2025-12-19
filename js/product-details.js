@@ -903,21 +903,36 @@ function setupImageGallery(product) {
     });
 }
 
-// NEW HANDLERS
-window.handleBuy = function () {
-    const productId = getQueryParam('id');
-    // Redirect to chat with pre-filled status
-    // Or just open chat logic
-    if (!auth.currentUser) { showToast("Login to contact seller", "info"); return; }
+// Import chat initialization function
+import { startChatWithOwner } from './chat.js';
 
-    // We can use the existing chat link but maybe with a special flag
-    // For now, just finding the chat button and clicking it or redirecting
-    // We need ownerId. 
-    // Since I don't have product scope here easily without passing it, I'll grab it from URL or just use the generic chat btn logic.
-    // Better: In the customized HTML generation, I can inject the ownerID into the function call `handleBuy('${product.ownerId}')`
-    // Let's rely on the secondary "Chat" button URL for now or fetch doc.
-    const chatBtn = document.querySelector('button[onclick*="chat.html"]');
-    if (chatBtn) chatBtn.click();
+// Handle Buy button click - starts chat with owner
+window.handleBuy = async function () {
+    try {
+        // Check authentication
+        if (!auth.currentUser) {
+            showToast("Login to contact seller", "info");
+            return;
+        }
+
+        // Get product data from global scope (set during renderProduct)
+        if (!window.currentProduct) {
+            showToast("Product information not loaded", "error");
+            return;
+        }
+
+        const product = window.currentProduct;
+
+        // Start chat directly (no DOM manipulation!)
+        await startChatWithOwner(
+            product.ownerId,
+            product.id,
+            product.title
+        );
+    } catch (error) {
+        console.error('Error starting chat:', error);
+        showToast(error.message || "Failed to start chat", "error");
+    }
 }
 
 window.handleClaim = function () {
@@ -927,10 +942,10 @@ window.handleClaim = function () {
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
-    initMobileMenu();
-    initTheme();
-    initAuth();
-    initHeader();
+    initHeader();      // 1. Inject HTML links and setup UI auth
+    initMobileMenu();  // 2. Make menu clickable
+    initTheme();       // 3. Setup dark/light mode
+    initAuth();        // 4. Setup login button events
     initShareMenu();
 
     renderProduct();

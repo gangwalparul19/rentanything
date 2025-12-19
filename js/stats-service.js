@@ -82,6 +82,12 @@ function getDefaultStats() {
             pending: 0,
             lastUpdated: new Date()
         },
+        environmental: {
+            totalCO2Saved: 0,
+            completedBookings: 0,
+            treesEquivalent: 0,
+            lastUpdated: new Date()
+        },
         lastFullUpdate: new Date()
     };
 }
@@ -260,8 +266,27 @@ export async function onBookingCreated(amount) {
 }
 
 // Booking completed
-export async function onBookingCompleted() {
-    await decrementStat('bookings', 'activeNow');
+export async function onBookingCompleted(co2Saved = 0) {
+    try {
+        const statsRef = doc(db, PLATFORM_STATS_PATH);
+
+        const updates = {
+            'bookings.activeNow': increment(-1)
+        };
+
+        // If CO2 data is provided, update environmental stats
+        if (co2Saved && co2Saved > 0) {
+            updates['environmental.totalCO2Saved'] = increment(co2Saved);
+            updates['environmental.completedBookings'] = increment(1);
+            updates['environmental.lastUpdated'] = serverTimestamp();
+
+            console.log(`✅ Environmental stats updated: +${co2Saved}kg CO2 saved`);
+        }
+
+        await updateDoc(statsRef, updates);
+    } catch (error) {
+        console.error('Error updating booking completion stats:', error);
+    }
 }
 
 // Booking cancelled

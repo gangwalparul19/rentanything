@@ -29,10 +29,10 @@ let currentUser = null;
 let bookingId = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    initMobileMenu();
-    initTheme();
-    initAuth();
-    initHeader();
+    initHeader();      // 1. Inject HTML links and setup UI auth
+    initMobileMenu();  // 2. Make menu clickable
+    initTheme();       // 3. Setup dark/light mode
+    initAuth();        // 4. Setup login button events
 
     const urlParams = new URLSearchParams(window.location.search);
     bookingId = urlParams.get('id');

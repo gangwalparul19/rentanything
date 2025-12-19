@@ -13,12 +13,11 @@ import { FormValidator } from './form-validator.js';
 
 // Initialize Global UI Components
 document.addEventListener('DOMContentLoaded', () => {
+    initHeader();      // 1. Inject HTML links and setup UI auth
+    initMobileMenu();  // 2. Make menu clickable
+    initTheme();       // 3. Setup dark/light mode
+    initAuth();        // 4. Setup login button events
     initTransactionModes();
-    initMobileMenu();
-    initTheme();
-    initAuth();
-    initHeader();
-
 
     // Check for Edit Mode
     const urlParams = new URLSearchParams(window.location.search);

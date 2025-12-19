@@ -12,10 +12,10 @@ let wishlistData = [];
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    initMobileMenu();
-    initTheme();
-    initAuth();
-    initHeader();
+    initHeader();      // 1. Inject HTML links and setup UI auth
+    initMobileMenu();  // 2. Make menu clickable
+    initTheme();       // 3. Setup dark/light mode
+    initAuth();        // 4. Setup login button events
 
     // Set up filter tabs
     document.querySelectorAll('.filter-tab').forEach(tab => {

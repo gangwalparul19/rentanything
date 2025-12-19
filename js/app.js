@@ -2,7 +2,7 @@
 
 // Firebase Imports
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, limit } from 'firebase/firestore';
+import { collection, getDocs, query, limit, doc, getDoc } from 'firebase/firestore';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
@@ -226,22 +226,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Calculate Environmental Impact from Bookings
+// Calculate Environmental Impact from Stats Document (Optimized!)
 async function calculateEnvironmentalImpact() {
     try {
-        const bookingsSnapshot = await getDocs(collection(db, "bookings"));
+        // OPTIMIZED: Read from stats document instead of fetching all bookings
+        // Before: N reads (one per booking)
+        // After: 1 read (stats document)
+        const statsRef = doc(db, 'stats', 'platform_stats');
+        const statsSnap = await getDoc(statsRef);
+
         let totalCO2 = 0;
+        let treesEquivalent = 0;
 
-        bookingsSnapshot.forEach((doc) => {
-            const booking = doc.data();
-            // Only count completed bookings
-            if (booking.status === 'completed' && booking.co2Saved) {
-                totalCO2 += parseFloat(booking.co2Saved) || 0;
-            }
-        });
+        if (statsSnap.exists()) {
+            const stats = statsSnap.data();
+            const envStats = stats.environmental || {};
 
-        // Calculate trees equivalent (1 tree absorbs ~21kg CO2 per year)
-        const treesEquivalent = Math.floor(totalCO2 / 21);
+            totalCO2 = envStats.totalCO2Saved || 0;
+            // Calculate trees equivalent (1 tree absorbs ~21kg CO2 per year)
+            treesEquivalent = Math.floor(totalCO2 / 21);
+        }
 
         // Only show section if we have meaningful impact (>=10 trees)
         const impactSection = document.getElementById('environmental-impact-section');
@@ -261,7 +265,10 @@ async function calculateEnvironmentalImpact() {
     } catch (error) {
         console.error("Error calculating environmental impact:", error);
         // Keep section hidden on error
-        document.getElementById('environmental-impact-section').style.display = 'none';
+        const impactSection = document.getElementById('environmental-impact-section');
+        if (impactSection) {
+            impactSection.style.display = 'none';
+        }
     }
 }
 
