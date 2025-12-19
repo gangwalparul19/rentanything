@@ -398,9 +398,9 @@ function updateBellUI(count) {
 
 /**
  * Toggle notification dropdown visibility
- * @param {HTMLElement} triggerBtn - Button that triggered the dropdown
+ * Exposed to window for HTML onclick
  */
-function toggleDropdown(triggerBtn) {
+window.toggleNotifications = function () {
     const dropdown = document.getElementById('notification-dropdown');
     const isVisible = dropdown.style.display === 'block';
 
@@ -430,7 +430,7 @@ function toggleDropdown(triggerBtn) {
         }
         dropdown.style.display = 'block';
     }
-}
+};
 
 /**
  * Render notifications in the dropdown
