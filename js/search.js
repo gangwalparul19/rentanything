@@ -149,58 +149,62 @@ function getFilteredList() {
 
 
 // showLoader(); // Replaced with Skeleton
-showSkeletonLoader('#listings-grid', 8);
 
-try {
-    // Run independent queries in parallel for faster loading
-    const [userSnap, activeListingSnap, approvedListingSnap, bookSnap] = await Promise.all([
-        // 1. Fetch Verified Users
-        getDocs(query(collection(db, "users"), where("isVerified", "==", true))),
+async function loadData() {
+    // showLoader(); // Replaced with Skeleton
+    showSkeletonLoader('#listings-grid', 8);
 
-        // 2a. Fetch Active Listings (server-side filter)
-        getDocs(query(
-            collection(db, "listings"),
-            where("status", "==", "active")
-        )),
+    try {
+        // Run independent queries in parallel for faster loading
+        const [userSnap, activeListingSnap, approvedListingSnap, bookSnap] = await Promise.all([
+            // 1. Fetch Verified Users
+            getDocs(query(collection(db, "users"), where("isVerified", "==", true))),
 
-        // 2b. Fetch Approved Listings (server-side filter)
-        getDocs(query(
-            collection(db, "listings"),
-            where("status", "==", "approved")
-        )),
+            // 2a. Fetch Active Listings (server-side filter)
+            getDocs(query(
+                collection(db, "listings"),
+                where("status", "==", "active")
+            )),
 
-        // 3. Fetch Active Bookings (for availability check)
-        getDocs(query(collection(db, "bookings"), where("status", "in", ["confirmed", "pending"])))
-    ]);
+            // 2b. Fetch Approved Listings (server-side filter)
+            getDocs(query(
+                collection(db, "listings"),
+                where("status", "==", "approved")
+            )),
 
-    // Process verified users
-    userSnap.forEach(doc => verifiedUserIds.add(doc.id));
+            // 3. Fetch Active Bookings (for availability check)
+            getDocs(query(collection(db, "bookings"), where("status", "in", ["confirmed", "pending"])))
+        ]);
 
-    // Process listings (combine both active and approved)
-    const processListing = (doc) => {
-        const data = doc.data();
-        const tower = data.tower || ['A', 'B', 'C'][Math.floor(Math.random() * 3)];
-        allListings.push({ id: doc.id, tower, ...data });
-        if (data.location) allSocieties.add(data.location.trim());
-    };
+        // Process verified users
+        userSnap.forEach(doc => verifiedUserIds.add(doc.id));
 
-    activeListingSnap.forEach(processListing);
-    approvedListingSnap.forEach(processListing);
+        // Process listings (combine both active and approved)
+        const processListing = (doc) => {
+            const data = doc.data();
+            const tower = data.tower || ['A', 'B', 'C'][Math.floor(Math.random() * 3)];
+            allListings.push({ id: doc.id, tower, ...data });
+            if (data.location) allSocieties.add(data.location.trim());
+        };
 
-    // Process bookings
-    bookSnap.forEach(doc => {
-        const data = doc.data();
-        if (data.startDate && data.endDate) {
-            allBookings.push({
-                listingId: data.listingId,
-                start: data.startDate.toDate(),
-                end: data.endDate.toDate()
-            });
-        }
-    });
+        activeListingSnap.forEach(processListing);
+        approvedListingSnap.forEach(processListing);
 
-} catch (e) {
-    console.error("Data Load Error:", e);
+        // Process bookings
+        bookSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.startDate && data.endDate) {
+                allBookings.push({
+                    listingId: data.listingId,
+                    start: data.startDate.toDate(),
+                    end: data.endDate.toDate()
+                });
+            }
+        });
+
+    } catch (e) {
+        console.error("Data Load Error:", e);
+    }
 }
 
 
