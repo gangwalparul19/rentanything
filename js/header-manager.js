@@ -163,6 +163,9 @@ export function initHeader() {
         <a href="/my-bookings.html" class="dropdown-item">
             <i class="fa-solid fa-calendar"></i> My Bookings
         </a>
+        <a href="/wishlist.html" class="dropdown-item">
+            <i class="fa-solid fa-heart"></i> My Wishlist
+        </a>
         <div class="dropdown-divider"></div>
         <button id="logout-btn-dropdown" class="dropdown-item">
             <i class="fa-solid fa-sign-out"></i> Logout

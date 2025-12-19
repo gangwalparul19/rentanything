@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-// Load user's wishlist from Firestore
+// Load user's wishlist from Firestore (combines wishlists AND favorites)
 async function loadWishlist() {
     const user = auth.currentUser;
     if (!user) {
@@ -51,20 +51,69 @@ async function loadWishlist() {
     container.innerHTML = '<div class="card-skeleton"></div><div class="card-skeleton"></div><div class="card-skeleton"></div>';
 
     try {
-        const q = query(
+        wishlistData = [];
+
+        // 1. Fetch from wishlists collection (with notes/priority from product page)
+        const wishlistsQuery = query(
             collection(db, 'wishlists'),
             where('userId', '==', user.uid)
         );
-
-        const snapshot = await getDocs(q);
-        wishlistData = [];
-
-        snapshot.forEach(doc => {
+        const wishlistsSnap = await getDocs(wishlistsQuery);
+        wishlistsSnap.forEach(docSnap => {
             wishlistData.push({
-                id: doc.id,
-                ...doc.data()
+                id: docSnap.id,
+                source: 'wishlist',
+                ...docSnap.data()
             });
         });
+
+        // 2. Fetch from favorites collection (quick saves from search/browse)
+        const favoritesQuery = query(
+            collection(db, 'favorites'),
+            where('userId', '==', user.uid)
+        );
+        const favoritesSnap = await getDocs(favoritesQuery);
+
+        // For favorites, we need to fetch listing details
+        const favoriteListingIds = [];
+        const favoriteDocsMap = new Map();
+
+        favoritesSnap.forEach(docSnap => {
+            const data = docSnap.data();
+            // Avoid duplicates (if same listing is in both collections)
+            const existsInWishlists = wishlistData.some(w => w.listingId === data.listingId);
+            if (!existsInWishlists) {
+                favoriteListingIds.push(data.listingId);
+                favoriteDocsMap.set(data.listingId, {
+                    id: docSnap.id,
+                    source: 'favorite',
+                    ...data
+                });
+            }
+        });
+
+        // Fetch listing details for favorites
+        for (const listingId of favoriteListingIds) {
+            try {
+                const { doc: getDocRef, getDoc: fetchDoc } = await import('firebase/firestore');
+                const listingRef = getDocRef(db, 'listings', listingId);
+                const listingSnap = await fetchDoc(listingRef);
+
+                if (listingSnap.exists()) {
+                    const listingData = listingSnap.data();
+                    const favData = favoriteDocsMap.get(listingId);
+                    wishlistData.push({
+                        ...favData,
+                        listingTitle: listingData.title,
+                        listingImage: listingData.image,
+                        priority: 'quick-save', // Mark as quick save
+                        notes: 'Saved from browse'
+                    });
+                }
+            } catch (e) {
+                console.warn('Could not fetch listing:', listingId, e);
+            }
+        }
 
         // Sort by createdAt (newest first)
         wishlistData.sort((a, b) => {
@@ -105,9 +154,11 @@ function renderWishlist() {
 
 // Create wishlist card HTML
 function createWishlistCard(item) {
-    const priorityClass = `priority-${item.priority || 'low'}`;
-    const priorityText = (item.priority || 'low').toUpperCase();
-    const notes = item.notes || 'No notes added';
+    const isQuickSave = item.priority === 'quick-save' || item.source === 'favorite';
+    const priorityClass = isQuickSave ? 'priority-saved' : `priority-${item.priority || 'low'}`;
+    const priorityText = isQuickSave ? 'SAVED' : (item.priority || 'low').toUpperCase();
+    const notes = isQuickSave ? '' : (item.notes ? `"${item.notes}"` : '');
+    const source = item.source || 'wishlist';
 
     return `
         <div class="wishlist-card">
@@ -116,13 +167,13 @@ function createWishlistCard(item) {
             
             <div class="wishlist-content">
                 <h3 class="wishlist-title">${item.listingTitle}</h3>
-                <p class="wishlist-notes">"${notes}"</p>
+                ${notes ? `<p class="wishlist-notes">${notes}</p>` : ''}
                 
                 <div class="wishlist-actions">
                     <button class="btn-small btn-book" onclick="window.viewItem('${item.listingId}')">
                         <i class="fa-solid fa-eye"></i> View
                     </button>
-                    <button class="btn-small btn-remove" onclick="window.removeFromWishlist('${item.listingId}')">
+                    <button class="btn-small btn-remove" onclick="window.removeFromWishlist('${item.listingId}', '${source}')">
                         <i class="fa-solid fa-trash"></i> Remove
                     </button>
                 </div>
@@ -160,21 +211,22 @@ export async function addToWishlist(listingId, listingTitle, listingImage, notes
     }
 }
 
-// Remove from wishlist
-window.removeFromWishlist = async (listingId) => {
+// Remove from wishlist (handles both collections)
+window.removeFromWishlist = async (listingId, source = 'wishlist') => {
     const user = auth.currentUser;
     if (!user) return;
 
-    if (!confirm('Remove this item from your wishlist?')) return;
+    if (!confirm('Remove this item from your saved items?')) return;
 
     try {
-        const wishlistId = `${user.uid}_${listingId}`;
-        await deleteDoc(doc(db, 'wishlists', wishlistId));
+        const docId = `${user.uid}_${listingId}`;
+        const collectionName = source === 'favorite' ? 'favorites' : 'wishlists';
+        await deleteDoc(doc(db, collectionName, docId));
 
-        showToast('Removed from wishlist', 'info');
+        showToast('Removed from saved items', 'info');
         loadWishlist(); // Reload
     } catch (error) {
-        console.error('Error removing from wishlist:', error);
+        console.error('Error removing item:', error);
         showToast('Failed to remove item', 'error');
     }
 };
