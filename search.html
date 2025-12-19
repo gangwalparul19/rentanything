@@ -174,22 +174,22 @@
                 color: var(--primary);
             }
 
-            /* Mobile Filter Sidebar - Enhanced */
+            /* Mobile Filter Sidebar - Enhanced & Compact */
             .filters-sidebar {
-                width: 85%;
-                max-width: 320px;
+                width: 90%;
+                max-width: 340px;
                 position: fixed;
                 top: 0;
                 left: 0;
                 height: 100%;
                 z-index: 2001;
                 overflow-y: auto;
-                border-radius: 0 1.5rem 1.5rem 0;
+                border-radius: 0 1rem 1rem 0;
                 display: none;
                 animation: slideInLeft 0.3s ease-out;
                 box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
                 border-right: 1px solid #e2e8f0;
-                padding-top: 0;
+                padding: 0 1rem 1rem 1rem;
             }
 
             .filters-sidebar.active {
@@ -200,10 +200,12 @@
             .filters-sidebar::before {
                 content: 'Filters';
                 display: block;
-                font-size: 1.2rem;
+                font-size: 1rem;
                 font-weight: 700;
                 color: var(--dark);
-                padding: 1.25rem 1.5rem;
+                padding: 1rem 0;
+                margin: 0 -1rem 0.75rem -1rem;
+                padding-left: 1rem;
                 border-bottom: 1px solid #e2e8f0;
                 background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
                 position: sticky;
@@ -211,55 +213,99 @@
                 z-index: 10;
             }
 
-            /* Filter groups on mobile */
+            /* Filter groups - compact */
             .filters-sidebar .filter-group {
-                padding: 0 1.5rem;
-                margin-bottom: 1.5rem;
+                padding: 0;
+                margin-bottom: 1rem;
                 border-bottom: 1px solid #f1f5f9;
-                padding-bottom: 1.5rem;
+                padding-bottom: 1rem;
             }
 
             .filters-sidebar .filter-group:first-of-type {
-                margin-top: 1rem;
+                margin-top: 0.5rem;
             }
 
             .filters-sidebar .filter-group:last-of-type {
                 border-bottom: none;
             }
 
-            /* Better input styling on mobile */
+            /* Smaller filter titles */
+            .filters-sidebar .filter-title {
+                font-size: 0.85rem;
+                margin-bottom: 0.5rem;
+            }
+
+            /* Compact inputs */
             .filters-sidebar .form-control,
             .filters-sidebar .price-input {
                 border: 1px solid #d1d5db;
                 background: white;
-                font-size: 16px;
-                /* Prevent iOS zoom */
+                font-size: 14px;
+                padding: 0.6rem 0.75rem;
             }
 
             .filters-sidebar .form-control:focus,
             .filters-sidebar .price-input:focus {
                 border-color: var(--primary);
-                box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+                box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
             }
 
-            /* Checkbox improvements */
+            /* Checkbox 2-column grid */
+            .filters-sidebar .checkbox-group {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.25rem 0.5rem;
+            }
+
             .filters-sidebar .checkbox-item {
-                padding: 0.5rem 0;
-                border-bottom: 1px solid #f8fafc;
-            }
-
-            .filters-sidebar .checkbox-item:last-child {
+                padding: 0.35rem 0;
+                font-size: 0.8rem;
                 border-bottom: none;
+                display: flex;
+                align-items: center;
+                gap: 0.35rem;
             }
 
-            /* Button styling */
+            .filters-sidebar .checkbox-item input[type="checkbox"] {
+                width: 16px;
+                height: 16px;
+                min-width: 16px;
+                min-height: 16px;
+            }
+
+            .filters-sidebar .checkbox-item span,
+            .filters-sidebar .checkbox-item label {
+                font-size: 0.75rem;
+                line-height: 1.2;
+            }
+
+            /* Price inputs side by side */
+            .filters-sidebar .price-inputs {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+            }
+
+            .filters-sidebar .price-input {
+                flex: 1;
+                font-size: 13px;
+                padding: 0.5rem;
+            }
+
+            /* Compact buttons */
             .filters-sidebar .btn {
-                margin: 0 1.5rem;
-                width: calc(100% - 3rem);
+                margin: 0;
+                width: 100%;
+                padding: 0.65rem 1rem;
+                font-size: 0.9rem;
             }
 
             .filters-sidebar .btn-primary {
-                margin-top: 1rem;
+                margin-top: 0.75rem;
+            }
+
+            .filters-sidebar .btn-outline {
+                margin-top: 0.5rem;
             }
 
             /* Filter toggle button */
