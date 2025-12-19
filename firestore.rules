@@ -22,28 +22,85 @@ service cloud.firestore {
       ];
     }
 
-    // ========== USERS COLLECTION ==========
+    // ========== USERS COLLECTION ========== 
+    // TIGHTENED: Protect Personal Identifiable Information (PII)
     match /users/{userId} {
-      allow read: if true; // Public profiles
+      // Read: Users can only read their own full profile OR public fields of others
+      allow get: if isAuthenticated() && (
+        // Own profile: full access
+        isOwner(userId) || 
+        // Admins: full access
+        isAdmin()
+      );
+      
+      // List queries restricted to admins only (prevent enumeration of users)
+      allow list: if isAdmin();
+      
+      // Create: Only the user themselves can create their profile
+      allow create: if isAuthenticated() && 
+        request.auth.uid == userId &&
+        // Ensure they don't set admin flags themselves
+        (!request.resource.data.keys().hasAny(['isAdmin', 'role']) || 
+         request.resource.data.get('isAdmin', false) == false);
+      
+      // Update: Users can only update their own profile
+      allow update: if isAuthenticated() && (
+        isOwner(userId) ||
+        isAdmin()
+      ) &&
+      // Prevent users from elevating their own privileges
+      (!('isAdmin' in request.resource.data) || 
+       request.resource.data.isAdmin == resource.data.get('isAdmin', false) ||
+       isAdmin());
+      
+      // Delete: Only user themselves or admin
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+    
+    // Public user profiles (limited fields only - no PII)
+    match /public_profiles/{userId} {
+      allow read: if true; // Anyone can read public profiles
       allow write: if isOwner(userId) || isAdmin();
     }
     
-    // ========== LISTINGS COLLECTION ==========
-    match /listings/{listingId} {
-      allow read: if true; // Public listings
-      allow create: if isAuthenticated();
-      allow update, delete: if isAdmin() || 
-        (isAuthenticated() && resource.data.ownerId == request.auth.uid);
-    }
-    
     // ========== BOOKINGS COLLECTION ==========
+    // TIGHTENED: Only involved parties can access booking data (contains payment info, addresses, etc.)
     match /bookings/{bookingId} {
-      allow read: if true; // Public for simplicity (could restrict to involved parties)
-      allow create: if isAuthenticated();
-      allow update: if isAuthenticated() && 
-        (resource.data.ownerId == request.auth.uid || 
-         resource.data.renterId == request.auth.uid ||
-         isAdmin());
+      // Read: ONLY the renter, owner, or admin can read a booking
+      allow read: if isAuthenticated() && (
+        resource.data.renterId == request.auth.uid ||
+        resource.data.ownerId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      // Create: Only authenticated users, must be the renter
+      allow create: if isAuthenticated() && 
+        request.resource.data.renterId == request.auth.uid &&
+        // Validate required fields exist to prevent incomplete data
+        request.resource.data.keys().hasAll([
+          'renterId', 'ownerId', 'listingId', 
+          'startDate', 'endDate', 'status'
+        ]);
+      
+      // Update: Only involved parties can update
+      allow update: if isAuthenticated() && (
+        // Renter can update (e.g., cancel)
+        resource.data.renterId == request.auth.uid ||
+        // Owner can update (e.g., approve/reject)
+        resource.data.ownerId == request.auth.uid ||
+        // Admin can moderate
+        isAdmin()
+      ) &&
+      // Prevent tampering with critical fields
+      (
+        // Status changes are allowed
+        request.resource.data.renterId == resource.data.renterId &&
+        request.resource.data.ownerId == resource.data.ownerId &&
+        request.resource.data.listingId == resource.data.listingId
+      );
+      
+      // Delete: Only admin (for audit trail purposes)
+      allow delete: if isAdmin();
     }
 
     // ========== REVIEWS COLLECTION ==========
@@ -172,6 +229,23 @@ match /chats/{chatId} {
     match /user_eco_profile/{userId} {
       allow read: if isAuthenticated();
       allow write: if isAuthenticated() && userId == request.auth.uid;
+    }
+
+    // ========== STATS COLLECTIONS ==========
+    // Platform-wide statistics (aggregated counts)
+    match /stats/platform_stats {
+      // Anyone can read stats (for public dashboards)
+      allow read: if true;
+      // Only admins or server can write (prevent tampering)
+      allow write: if isAdmin();
+    }
+    
+    // User-specific stats
+    match /stats/user_stats/{userId} {
+      // Users can read their own stats, admins can read all
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      // Only admins or server can write (prevent score manipulation)
+      allow write: if isAdmin();
     }
 
     match /platform_stats/{statId} {

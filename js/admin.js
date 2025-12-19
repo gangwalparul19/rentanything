@@ -527,6 +527,9 @@ async function handleNotificationClick(id, type, link) {
 }
 
 
+// ===== IMPORTS =====
+import { getPlatformStats } from './stats-service.js';
+
 // --- REAL-TIME DASHBOARD with onSnapshot ---
 
 // Store unsubscribe functions for cleanup
@@ -534,120 +537,121 @@ let unsubscribeBookings = null;
 let unsubscribePendingProps = null;
 
 async function loadDashboard() {
-    // Loading admin dashboard data
+    // ✅ OPTIMIZED: Load from stats document instead of counting entire collections
+    try {
+        const stats = await getPlatformStats();
 
-    // 1. Static KPIs (load once)
-    const usersSnap = await getCountFromServer(collection(db, "users"));
-    document.getElementById('stat-users').innerText = usersSnap.data().count;
+        // 1. Static KPIs from stats document (1 read instead of 2+ reads)
+        document.getElementById('stat-users').innerText = stats.users?.total || 0;
+        document.getElementById('stat-listings').innerText = stats.listings?.total || 0;
 
-    const listingsSnap = await getCountFromServer(collection(db, "listings"));
-    document.getElementById('stat-listings').innerText = listingsSnap.data().count;
+        // 2. REAL-TIME: Active Bookings with live updates
+        const activeBookingsQ = query(
+            collection(db, "bookings"),
+            where("status", "in", ["confirmed", "pending"])
+        );
 
-    // 2. REAL-TIME: Active Bookings with live updates
-    const activeBookingsQ = query(
-        collection(db, "bookings"),
-        where("status", "in", ["confirmed", "pending"])
-    );
+        // Clean up previous listener if exists
+        if (unsubscribeBookings) unsubscribeBookings();
 
-    // Clean up previous listener if exists
-    if (unsubscribeBookings) unsubscribeBookings();
+        // Set up real-time listener for bookings
+        unsubscribeBookings = onSnapshot(activeBookingsQ, (snapshot) => {
+            let totalRev = 0;
+            let bookingCount = snapshot.size;
 
-    // Set up real-time listener for bookings
-    unsubscribeBookings = onSnapshot(activeBookingsQ, (snapshot) => {
-        let totalRev = 0;
-        let bookingCount = snapshot.size;
+            snapshot.forEach(b => {
+                totalRev += (b.data().totalPrice || 0);
+            });
 
-        snapshot.forEach(b => {
-            totalRev += (b.data().totalPrice || 0);
-        });
+            // Update KPIs
+            const statBookings = document.getElementById('stat-bookings');
+            if (statBookings) {
+                const oldValue = parseInt(statBookings.innerText) || 0;
+                statBookings.innerText = bookingCount;
 
-        // Update KPIs
-        const statBookings = document.getElementById('stat-bookings');
-        if (statBookings) {
-            const oldValue = parseInt(statBookings.innerText) || 0;
-            statBookings.innerText = bookingCount;
-
-            // Visual pulse effect on change
-            if (oldValue !== bookingCount && oldValue !== 0) {
-                statBookings.style.animation = 'pulse 0.5s';
-                setTimeout(() => statBookings.style.animation = '', 500);
-            }
-        }
-
-        const statRevenue = document.getElementById('stat-revenue');
-        if (statRevenue) {
-            statRevenue.innerText = totalRev.toLocaleString();
-        }
-
-        // Average Booking Value
-        const avgBooking = bookingCount > 0 ? Math.round(totalRev / bookingCount) : 0;
-        const statAvgBooking = document.getElementById('stat-avg-booking');
-        if (statAvgBooking) {
-            statAvgBooking.innerText = avgBooking.toLocaleString();
-        }
-    }, (error) => {
-        console.error('Error listening to bookings:', error);
-    });
-
-    // 3. REAL-TIME: Pending Properties with live updates
-    const pendingPropsQ = query(
-        collection(db, "properties"),
-        where("approvalStatus", "==", "pending")
-    );
-
-    // Clean up previous listener if exists
-    if (unsubscribePendingProps) unsubscribePendingProps();
-
-    // Set up real-time listener for pending properties
-    unsubscribePendingProps = onSnapshot(pendingPropsQ, (snapshot) => {
-        const statPendingProps = document.getElementById('stat-pending-properties');
-        if (statPendingProps) {
-            const oldValue = parseInt(statPendingProps.innerText) || 0;
-            statPendingProps.innerText = snapshot.size;
-
-            // Visual pulse effect on change
-            if (oldValue !== snapshot.size && oldValue !== 0) {
-                statPendingProps.style.animation = 'pulse 0.5s';
-                setTimeout(() => statPendingProps.style.animation = '', 500);
-
-                // Show toast notification for new pending property
-                if (snapshot.size > oldValue) {
-                    showToast(`New property pending approval! (+${snapshot.size - oldValue})`, 'info');
+                // Visual pulse effect on change
+                if (oldValue !== bookingCount && oldValue !== 0) {
+                    statBookings.style.animation = 'pulse 0.5s';
+                    setTimeout(() => statBookings.style.animation = '', 500);
                 }
             }
-        }
-    }, (error) => {
-        console.error('Error listening to pending properties:', error);
-    });
 
-    // Active Users (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const allUsersSnap = await getDocs(collection(db, "users"));
-    let activeUsers = 0;
-    allUsersSnap.forEach(doc => {
-        const data = doc.data();
-        if (data.lastActive && data.lastActive.toDate() > sevenDaysAgo) {
-            activeUsers++;
-        }
-    });
-    document.getElementById('stat-active-users').innerText = activeUsers || 'N/A';
+            const statRevenue = document.getElementById('stat-revenue');
+            if (statRevenue) {
+                statRevenue.innerText = totalRev.toLocaleString();
+            }
 
-    // Property Approval Rate
-    const allPropsSnap = await getDocs(collection(db, "properties"));
-    let approvedCount = 0;
-    let totalProps = allPropsSnap.size;
-    allPropsSnap.forEach(doc => {
-        if (doc.data().approvalStatus === 'approved') approvedCount++;
-    });
-    const approvalRate = totalProps > 0 ? Math.round((approvedCount / totalProps) * 100) : 0;
-    document.getElementById('stat-approval-rate').innerText = approvalRate;
+            // Average Booking Value
+            const avgBooking = bookingCount > 0 ? Math.round(totalRev / bookingCount) : 0;
+            const statAvgBooking = document.getElementById('stat-avg-booking');
+            if (statAvgBooking) {
+                statAvgBooking.innerText = avgBooking.toLocaleString();
+            }
+        }, (error) => {
+            console.error('Error listening to bookings:', error);
+        });
 
-    // 2. Load All Data
-    await loadAllData();
+        // 3. REAL-TIME: Pending Properties with live updates
+        const pendingPropsQ = query(
+            collection(db, "properties"),
+            where("approvalStatus", "==", "pending")
+        );
 
-    // 3. Load Pending Approvals
-    await loadPendingListings();
+        // Clean up previous listener if exists
+        if (unsubscribePendingProps) unsubscribePendingProps();
+
+        // Set up real-time listener for pending properties
+        unsubscribePendingProps = onSnapshot(pendingPropsQ, (snapshot) => {
+            const statPendingProps = document.getElementById('stat-pending-properties');
+            if (statPendingProps) {
+                const oldValue = parseInt(statPendingProps.innerText) || 0;
+                statPendingProps.innerText = snapshot.size;
+
+                // Visual pulse effect on change
+                if (oldValue !== snapshot.size && oldValue !== 0) {
+                    statPendingProps.style.animation = 'pulse 0.5s';
+                    setTimeout(() => statPendingProps.style.animation = '', 500);
+
+                    // Show toast notification for new pending property
+                    if (snapshot.size > oldValue) {
+                        showToast(`New property pending approval! (+${snapshot.size - oldValue})`, 'info');
+                    }
+                }
+            }
+        }, (error) => {
+            console.error('Error listening to pending properties:', error);
+        });
+
+        // ✅ OPTIMIZED: Use stats for active users (calculate in background or use cached value)
+        // For now, keeping real-time query but could be moved to stats
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const allUsersSnap = await getDocs(collection(db, "users"));
+        let activeUsers = 0;
+        allUsersSnap.forEach(doc => {
+            const data = doc.data();
+            if (data.lastActive && data.lastActive.toDate() > sevenDaysAgo) {
+                activeUsers++;
+            }
+        });
+        document.getElementById('stat-active-users').innerText = activeUsers || 'N/A';
+
+        // ✅ OPTIMIZED: Use stats for property approval rate
+        const statProps = stats.properties || {};
+        const approved = statProps.available || 0;
+        const totalProps = statProps.total || 0;
+        const approvalRate = totalProps > 0 ? Math.round((approved / totalProps) * 100) : 0;
+        document.getElementById('stat-approval-rate').innerText = approvalRate;
+
+        // 2. Load All Data
+        await loadAllData();
+
+        // 3. Load Pending Approvals
+        await loadPendingListings();
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+        showToast('Failed to load dashboard statistics', 'error');
+    }
     await loadPendingProperties(); // Load pending properties for approval
 
     // ===== DISPUTES MANAGEMENT =====
