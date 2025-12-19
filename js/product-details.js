@@ -74,6 +74,116 @@ function getQueryParam(param) {
     return urlParams.get(param);
 }
 
+// Helper: Update Page Metadata for Social Sharing
+function updatePageMetadata(product, productId) {
+    // 1. Update Page Title
+    const price = product.rates?.daily || product.salePrice || 'Free';
+    const priceText = product.transactionTypes?.includes('donate') ? 'FREE' : `₹${price}`;
+    document.title = `${product.title} - ${priceText} | RentAnything`;
+
+    // 2. Update or Create Meta Description
+    const description = product.description || `${product.title} available for rent`;
+    updateMetaTag('name', 'description', description.substring(0, 160)); // Limit to 160 chars
+
+    // 3. Update Open Graph Tags (Facebook, WhatsApp, LinkedIn)
+    updateMetaTag('property', 'og:title', `${product.title} - ${priceText}`);
+    updateMetaTag('property', 'og:description', description.substring(0, 200));
+    updateMetaTag('property', 'og:image', product.image || 'https://placehold.co/1200x630');
+    updateMetaTag('property', 'og:url', window.location.href);
+    updateMetaTag('property', 'og:type', 'product');
+    updateMetaTag('property', 'og:site_name', 'RentAnything');
+
+    // Add product-specific OG tags
+    if (product.rates?.daily) {
+        updateMetaTag('property', 'product:price:amount', product.rates.daily);
+        updateMetaTag('property', 'product:price:currency', 'INR');
+    }
+
+    // 4. Update Twitter Card Tags
+    updateMetaTag('name', 'twitter:card', 'summary_large_image');
+    updateMetaTag('name', 'twitter:title', `${product.title} - ${priceText}`);
+    updateMetaTag('name', 'twitter:description', description.substring(0, 200));
+    updateMetaTag('name', 'twitter:image', product.image || 'https://placehold.co/1200x630');
+
+    // 5. Update canonical URL
+    updateLinkTag('canonical', window.location.href);
+
+    // 6. Add structured data (JSON-LD) for Google Rich Results
+    addStructuredData(product, productId, priceText);
+}
+
+// Helper: Update or create meta tag
+function updateMetaTag(attribute, attributeValue, content) {
+    let element = document.querySelector(`meta[${attribute}="${attributeValue}"]`);
+
+    if (!element) {
+        element = document.createElement('meta');
+        element.setAttribute(attribute, attributeValue);
+        document.head.appendChild(element);
+    }
+
+    element.setAttribute('content', content);
+}
+
+// Helper: Update or create link tag
+function updateLinkTag(rel, href) {
+    let element = document.querySelector(`link[rel="${rel}"]`);
+
+    if (!element) {
+        element = document.createElement('link');
+        element.setAttribute('rel', rel);
+        document.head.appendChild(element);
+    }
+
+    element.setAttribute('href', href);
+}
+
+// Helper: Add structured data for SEO
+function addStructuredData(product, productId, priceText) {
+    // Remove existing structured data if present
+    const existingScript = document.querySelector('script[type="application/ld+json"]');
+    if (existingScript) {
+        existingScript.remove();
+    }
+
+    const structuredData = {
+        "@context": "https://schema.org/",
+        "@type": "Product",
+        "name": product.title,
+        "description": product.description || product.title,
+        "image": product.image || 'https://placehold.co/600x400',
+        "brand": {
+            "@type": "Brand",
+            "name": "RentAnything"
+        }
+    };
+
+    // Add offers for rental/sale items
+    if (product.rates?.daily || product.salePrice) {
+        structuredData.offers = {
+            "@type": "Offer",
+            "priceCurrency": "INR",
+            "price": product.rates?.daily || product.salePrice,
+            "availability": "https://schema.org/InStock",
+            "url": window.location.href
+        };
+    }
+
+    // Add rating if available
+    if (product.rating) {
+        structuredData.aggregateRating = {
+            "@type": "AggregateRating",
+            "ratingValue": product.rating,
+            "reviewCount": product.reviewCount || 1
+        };
+    }
+
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify(structuredData);
+    document.head.appendChild(script);
+}
+
 // Global variable for Flatpickr instance
 let calendarInstance;
 
@@ -265,8 +375,51 @@ async function setupRealtimeBookingListener(productId) {
 }
 
 function getBlockedDatesForCalendar() {
-    // Block both confirmed and pending bookings
-    return [...bookingData.confirmed, ...bookingData.pending];
+    // Block confirmed and pending bookings
+    const blockedRanges = [...bookingData.confirmed, ...bookingData.pending];
+
+    // ENHANCEMENT: Automatically add buffer days (day after booking ends)
+    // This prevents same-day turnaround and gives owners time for inspection/cleaning
+    const bufferDays = [];
+
+    // Add buffer days for confirmed bookings (highest priority)
+    bookingData.confirmed.forEach(booking => {
+        const bufferDate = new Date(booking.to);
+        bufferDate.setDate(bufferDate.getDate() + 1);
+
+        // Only add if not today or in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        bufferDate.setHours(0, 0, 0, 0);
+
+        if (bufferDate >= today) {
+            bufferDays.push({
+                from: bufferDate,
+                to: bufferDate
+            });
+        }
+    });
+
+    // Also add buffer days for pending bookings
+    // (to avoid double-booking conflicts if pending gets confirmed)
+    bookingData.pending.forEach(booking => {
+        const bufferDate = new Date(booking.to);
+        bufferDate.setDate(bufferDate.getDate() + 1);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        bufferDate.setHours(0, 0, 0, 0);
+
+        if (bufferDate >= today) {
+            bufferDays.push({
+                from: bufferDate,
+                to: bufferDate
+            });
+        }
+    });
+
+    // Combine all blocked dates: bookings + buffer days
+    return [...blockedRanges, ...bufferDays];
 }
 
 function reloadCalendar() {
@@ -300,29 +453,46 @@ function reloadCalendar() {
             );
 
             // Check if date is a buffer day (1 day after booking ends)
-            const isBuffer = bookingData.confirmed.some(b => {
+            // Now checking BOTH confirmed AND pending bookings for buffer days
+            const isConfirmedBuffer = bookingData.confirmed.some(b => {
                 const dayAfter = new Date(b.to);
                 dayAfter.setDate(dayAfter.getDate() + 1);
                 return date.toDateString() === dayAfter.toDateString();
             });
+
+            const isPendingBuffer = bookingData.pending.some(b => {
+                const dayAfter = new Date(b.to);
+                dayAfter.setDate(dayAfter.getDate() + 1);
+                return date.toDateString() === dayAfter.toDateString();
+            });
+
+            const isBuffer = isConfirmedBuffer || isPendingBuffer;
 
             // Apply custom styling
             if (isConfirmed) {
                 dayElem.classList.add('flatpickr-confirmed');
                 dayElem.style.background = '#fee2e2';
                 dayElem.style.color = '#991b1b';
-                dayElem.title = 'Confirmed Booking';
+                dayElem.title = 'Confirmed Booking - Unavailable';
             } else if (isPending) {
                 dayElem.classList.add('flatpickr-pending');
                 dayElem.style.background = '#fef3c7';
                 dayElem.style.color = '#92400e';
-                dayElem.title = 'Pending Confirmation';
+                dayElem.title = 'Pending Confirmation - Unavailable';
             } else if (isBuffer) {
                 dayElem.classList.add('flatpickr-buffer');
-                dayElem.style.background = '#f3f4f6';
-                dayElem.style.color = '#6b7280';
-                dayElem.title = 'Buffer Day (Cleaning)';
-                // Also disable buffer days
+                dayElem.style.background = '#e5e7eb';
+                dayElem.style.color = '#4b5563';
+                dayElem.style.fontWeight = '500';
+
+                // Different tooltip based on buffer type
+                if (isConfirmedBuffer) {
+                    dayElem.title = '🧹 Buffer Day - Reserved for cleaning/inspection';
+                } else {
+                    dayElem.title = '⏳ Buffer Day - May be needed for cleaning';
+                }
+
+                // Also disable buffer days (already handled by disable array, but this ensures it)
                 dayElem.classList.add('flatpickr-disabled');
             } else {
                 // Available - subtle green tint
@@ -376,6 +546,9 @@ async function renderProduct() {
 
         const product = docSnap.data();
         const transactionTypes = product.transactionTypes || ['rent']; // Default to rent
+
+        // ============ UPDATE DYNAMIC METADATA FOR SOCIAL SHARING ============
+        updatePageMetadata(product, productId);
 
         // -- Gallery HTML --
         let galleryHtml = `

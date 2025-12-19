@@ -248,9 +248,12 @@ match /chats/{chatId} {
         get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId == request.auth.uid
       );
       
-      // Only property owner can update inquiry status
-      allow update: if request.auth != null &&
-        get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId == request.auth.uid;
+      // Inquiry creator can update their own inquiry (e.g., cancel/withdraw)
+      // Property owner can also update inquiry status (e.g., approve/reject)
+      allow update: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        get(/databases/$(database)/documents/properties/$(resource.data.propertyId)).data.ownerId == request.auth.uid
+      );
     }
   }
 }

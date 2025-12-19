@@ -247,8 +247,8 @@ window.contactOwner = async (propertyId) => {
 
         if (propertySnap.exists()) {
             const property = propertySnap.data();
-            // Redirect to chat with owner
-            window.location.href = `/chat.html?ownerId=${property.ownerId}&propertyId=${propertyId}`;
+            // Redirect to chat with owner - FIX: Use listingId parameter instead of propertyId
+            window.location.href = `/chat.html?ownerId=${property.ownerId}&listingId=${propertyId}`;
         }
     } catch (error) {
         console.error('Error opening chat:', error);

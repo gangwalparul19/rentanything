@@ -1,0 +1,241 @@
+/* ========================================
+   FORM WIZARD STYLES
+   Multi-step form wizard for mobile UX
+   ======================================== */
+
+.form-wizard {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Progress Indicator */
+.wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+    padding: 0 1rem;
+    position: relative;
+}
+
+.wizard-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Connecting line between steps */
+.wizard-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    width: calc(100% - 1rem);
+    height: 3px;
+    background: linear-gradient(to right, #e2e8f0 0%, #e2e8f0 100%);
+    z-index: 0;
+    transition: all 0.4s ease;
+}
+
+.wizard-step.active:not(:last-child)::after {
+    background: linear-gradient(to right, var(--primary) 0%, #e2e8f0 100%);
+}
+
+.wizard-step.completed:not(:last-child)::after {
+    background: linear-gradient(to right, #22c55e 0%, #22c55e 100%);
+}
+
+/* Step Number Circle */
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 1;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.wizard-step.active .step-number {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.wizard-step.completed .step-number {
+    background: #22c55e;
+    color: white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
+}
+
+.wizard-step.completed .step-number i {
+    font-size: 1.2rem;
+}
+
+/* Step Label */
+.step-label {
+    display: block;
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+    margin-top: 0.5rem;
+    transition: all 0.3s;
+}
+
+.wizard-step.active .step-label {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.wizard-step.completed .step-label {
+    color: #22c55e;
+}
+
+/* Wizard Content Panels */
+.wizard-content {
+    min-height: 450px;
+    position: relative;
+    margin-bottom: 2rem;
+}
+
+.wizard-panel {
+    animation: fadeInSlide 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Wizard Navigation Actions */
+.wizard-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    padding-top: 2rem;
+    border-top: 2px solid #f1f5f9;
+}
+
+.wizard-actions button {
+    flex: 1;
+    max-width: 200px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.wizard-prev {
+    margin-right: auto;
+}
+
+.wizard-next,
+.wizard-submit {
+    margin-left: auto;
+}
+
+.wizard-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Error State for Fields */
+.wizard-panel input.error,
+.wizard-panel select.error,
+.wizard-panel textarea.error {
+    border-color: #ef4444 !important;
+    background-color: #fef2f2;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+    .wizard-progress {
+        padding: 0;
+        margin-bottom: 2rem;
+    }
+
+    .step-label {
+        font-size: 0.75rem;
+    }
+
+    .step-number {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 0.95rem;
+    }
+
+    .wizard-step:not(:last-child)::after {
+        width: calc(100% - 0.5rem);
+        height: 2px;
+    }
+
+    .wizard-actions {
+        padding-top: 1.5rem;
+        gap: 0.75rem;
+    }
+
+    .wizard-actions button {
+        font-size: 0.9rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .wizard-content {
+        min-height: 350px;
+    }
+}
+
+@media (max-width: 480px) {
+    .step-label {
+        display: none;
+    }
+
+    .step-number {
+        width: 2.25rem;
+        height: 2.25rem;
+        font-size: 0.85rem;
+        margin-bottom: 0;
+    }
+
+    .wizard-progress {
+        margin-bottom: 1.5rem;
+    }
+}
+
+/* Smooth transitions for panel switching */
+.wizard-panel {
+    transition: opacity 0.3s ease;
+}
+
+.wizard-panel:not([style*="display: block"]) {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Loading state for wizard */
+.form-wizard.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.form-wizard.loading .wizard-actions button {
+    cursor: not-allowed;
+}

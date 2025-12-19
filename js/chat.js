@@ -172,8 +172,16 @@ function renderMessage(msg) {
     const isOwn = msg.senderId === currentUser.uid;
     div.className = `message ${isOwn ? 'message-own' : 'message-other'}`;
 
+    // Add message ID for tracking (important for optimistic UI)
+    div.dataset.messageId = msg.id || '';
+
+    // Add sending class for optimistic messages
+    if (msg.status === 'sending') {
+        div.classList.add('sending');
+    }
+
     // Time formatting
-    const date = msg.createdAt ? msg.createdAt.toDate() : new Date();
+    const date = msg.createdAt ? (msg.createdAt.toDate ? msg.createdAt.toDate() : msg.createdAt) : new Date();
     const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
     // SECURITY FIX: Use textContent instead of innerHTML to prevent XSS
@@ -184,8 +192,20 @@ function renderMessage(msg) {
     messageTime.className = 'message-time';
     messageTime.textContent = timeStr;
 
-    div.appendChild(messageText);
-    div.appendChild(messageTime);
+    // Add sending indicator for optimistic messages
+    if (msg.status === 'sending') {
+        const sendingIndicator = document.createElement('div');
+        sendingIndicator.className = 'sending-indicator';
+        sendingIndicator.style.cssText = 'font-size: 0.75rem; color: #94a3b8; margin-top: 0.25rem;';
+        sendingIndicator.innerHTML = '<i class="fa-solid fa-clock"></i> Sending...';
+        div.appendChild(messageText);
+        div.appendChild(sendingIndicator);
+        div.appendChild(messageTime);
+    } else {
+        div.appendChild(messageText);
+        div.appendChild(messageTime);
+    }
+
     messagesContainer.appendChild(div);
 }
 
@@ -193,20 +213,47 @@ function scrollToBottom() {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// 3. Send Message
+// 3. Send Message - OPTIMISTIC UI
 messageForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const text = messageInput.value.trim();
     if (!text || !activeChatId) return;
 
+    // Generate temporary ID for optimistic message
+    const tempId = `temp_${Date.now()}`;
+    const optimisticMessage = {
+        id: tempId,
+        text: text,
+        senderId: currentUser.uid,
+        createdAt: new Date(), // Local time for immediate display
+        status: 'sending' // Track sending status
+    };
+
     try {
         messageInput.value = ''; // Clear early for UX
 
-        await addDoc(collection(db, `chats/${activeChatId}/messages`), {
+        // OPTIMISTIC UI: Render message immediately
+        renderMessage(optimisticMessage);
+        scrollToBottom();
+
+        // Send to Firestore in background
+        const docRef = await addDoc(collection(db, `chats/${activeChatId}/messages`), {
             text: text,
             senderId: currentUser.uid,
             createdAt: serverTimestamp()
         });
+
+        // Update optimistic message to confirmed state
+        const optimisticElement = document.querySelector(`[data-message-id="${tempId}"]`);
+        if (optimisticElement) {
+            optimisticElement.dataset.messageId = docRef.id;
+            optimisticElement.classList.remove('sending');
+            optimisticElement.classList.add('sent');
+
+            // Remove sending indicator
+            const sendingIndicator = optimisticElement.querySelector('.sending-indicator');
+            if (sendingIndicator) sendingIndicator.remove();
+        }
 
         // Update Chat Metadata
         const chatRef = doc(db, "chats", activeChatId);
@@ -224,9 +271,25 @@ messageForm.addEventListener('submit', async (e) => {
 
     } catch (error) {
         console.error("Error sending:", error);
-        showToast(`Failed to send: ${error.message} (${error.code})`, "error");
+
+        // Update optimistic message to error state
+        const optimisticElement = document.querySelector(`[data-message-id="${tempId}"]`);
+        if (optimisticElement) {
+            optimisticElement.classList.add('error');
+            optimisticElement.querySelector('.sending-indicator')?.remove();
+
+            // Add retry button
+            const errorIndicator = document.createElement('div');
+            errorIndicator.className = 'error-indicator';
+            errorIndicator.style.cssText = 'color: #ef4444; font-size: 0.75rem; margin-top: 0.25rem;';
+            errorIndicator.innerHTML = '<i class="fa-solid fa-exclamation-circle"></i> Failed to send. <span style="text-decoration:underline; cursor:pointer;" onclick="location.reload()">Retry</span>';
+            optimisticElement.appendChild(errorIndicator);
+        }
+
+        showToast(`Failed to send: ${error.message}`, "error");
     }
 });
+
 
 // 4. Start/Open Chat from Product Page - INSTANT & OPTIMIZED
 async function startOrOpenChat(targetOwnerId, listingId) {

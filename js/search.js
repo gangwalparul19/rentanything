@@ -377,10 +377,12 @@ function renderGrid(items) {
 
         return `
         <a href="/product.html?id=${item.id}" class="listing-card" style="text-decoration:none; color:inherit; display:block;">
-            <div class="card-image" style="height:200px; width:100%; overflow:hidden; position:relative;">
-                <img src="${item.image || 'https://placehold.co/400'}" loading="lazy" style="width:100%; height:100%; object-fit:cover;">
+            <div class="card-image" style="height:200px; width:100%; overflow:hidden; position:relative; background:#f1f5f9;">
+                <!-- Skeleton loader background -->
+                <div class="image-skeleton" style="position:absolute; top:0; left:0; width:100%; height:100%; background:linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size:200% 100%; animation:shimmer 1.5s infinite;"></div>
+                <img src="${item.image || 'https://placehold.co/400'}" loading="lazy" style="width:100%; height:100%; object-fit:cover; position:relative; z-index:1;" onload="this.previousElementSibling.style.display='none';">
                 ${badge}
-                ${item.rating ? `<span class="rating-badge" style="position:absolute; top:10px; right:10px; background:white; padding: 2px 8px; border-radius:10px; font-size:0.8rem; font-weight:600;">⭐ ${item.rating}</span>` : ''}
+                ${item.rating ? `<span class="rating-badge" style="position:absolute; top:10px; right:10px; background:white; padding: 2px 8px; border-radius:10px; font-size:0.8rem; font-weight:600; z-index:2;">⭐ ${item.rating}</span>` : ''}
             </div>
             <div class="card-content" style="padding:1rem;">
                 <h3 style="font-size:1.1rem; margin-bottom:0.5rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.title}</h3>
@@ -398,6 +400,19 @@ function renderGrid(items) {
             </div>
         </a>
     `}).join('');
+
+    // Add shimmer animation to document if not already added
+    if (!document.getElementById('shimmer-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'shimmer-keyframes';
+        style.textContent = `
+            @keyframes shimmer {
+                0% { background-position: -200% 0; }
+                100% { background-position: 200% 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
 }
 
 window.toggleSaved = async (btn) => {
