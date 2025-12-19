@@ -164,3 +164,311 @@ export async function sendPropertyRejectionEmail(property, ownerEmail, ownerName
         return false;
     }
 }
+
+/**
+ * Send listing (item) approval email
+ */
+export async function sendListingApprovalEmail(listing, ownerEmail, ownerName) {
+    try {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const { app } = await import('./firebase-config.js');
+        const functions = getFunctions(app);
+        const sendEmail = httpsCallable(functions, 'sendGenericEmail');
+
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+        .content { padding: 40px 30px; }
+        .content p { color: #374151; line-height: 1.6; margin-bottom: 15px; }
+        .listing-info { background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 25px 0; }
+        .button { display: inline-block; background: #10b981; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .button:hover { background: #059669; }
+        .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Item Listing Approved!</h1>
+        </div>
+        <div class="content">
+            <p>Hi ${ownerName},</p>
+            <p>Great news! Your item listing has been approved by our admin team and is now live on RentAnything.</p>
+            
+            <div class="listing-info">
+                <strong>Item:</strong> ${listing.title}<br>
+                <strong>Category:</strong> ${listing.category || 'General'}<br>
+                <strong>Rate:</strong> ₹${listing.rates?.daily || listing.price || 0}/day
+            </div>
+            
+            <p>Your item is now visible to neighbors in Hinjewadi Phase 3. You'll receive instant WhatsApp or in-app notifications when someone requests to book it.</p>
+            
+            <p style="text-align: center;">
+                <a href="https://rentanything.shop/product-details.html?id=${listing.id}" class="button">View Your Item</a>
+            </p>
+            
+            <p>Best regards,<br><strong>RentAnything Team</strong></p>
+        </div>
+        <div class="footer">
+            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>Hinjewadi Phase 3, Pune</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+
+        await sendEmail({
+            to: ownerEmail,
+            subject: '🎉 Item Listing Approved - RentAnything',
+            html: htmlContent
+        });
+
+        console.log('Item approval email sent successfully');
+        return true;
+    } catch (error) {
+        console.error('Error sending item approval email:', error);
+        return false;
+    }
+}
+
+/**
+ * Send listing (item) rejection email
+ */
+export async function sendListingRejectionEmail(listing, ownerEmail, ownerName, rejectionReason) {
+    try {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const { app } = await import('./firebase-config.js');
+        const functions = getFunctions(app);
+        const sendEmail = httpsCallable(functions, 'sendGenericEmail');
+
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 40px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+        .content { padding: 40px 30px; }
+        .content p { color: #374151; line-height: 1.6; margin-bottom: 15px; }
+        .rejection-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin: 25px 0; }
+        .button { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .button:hover { background: #1d4ed8; }
+        .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Listing Update</h1>
+        </div>
+        <div class="content">
+            <p>Hi ${ownerName},</p>
+            <p>Thank you for submitting your item to RentAnything. After review, we're unable to approve your listing at this time.</p>
+            
+            <div class="rejection-box">
+                <strong>Item:</strong> ${listing.title}<br><br>
+                <strong>Reason for rejection:</strong><br>
+                ${rejectionReason}
+            </div>
+            
+            <p>You are welcome to edit your listing to address these issues and resubmit.</p>
+            
+            <p style="text-align: center;">
+                <a href="https://rentanything.shop/create-listing.html" class="button">Submit New Listing</a>
+            </p>
+            
+            <p>Best regards,<br><strong>RentAnything Team</strong></p>
+        </div>
+        <div class="footer">
+            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>Hinjewadi Phase 3, Pune</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+
+        await sendEmail({
+            to: ownerEmail,
+            subject: 'Listing Update - RentAnything',
+            html: htmlContent
+        });
+
+        console.log('Item rejection email sent successfully');
+        return true;
+    } catch (error) {
+        console.error('Error sending item rejection email:', error);
+        return false;
+    }
+}
+
+/**
+ * Send booking approval email (to Renter)
+ */
+export async function sendBookingApprovalEmail(booking, renterEmail, renterName) {
+    try {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const { app } = await import('./firebase-config.js');
+        const functions = getFunctions(app);
+        const sendEmail = httpsCallable(functions, 'sendGenericEmail');
+
+        // Format dates
+        const start = booking.startDate?.toDate ? booking.startDate.toDate().toLocaleDateString() : new Date(booking.startDate.seconds * 1000).toLocaleDateString();
+        const end = booking.endDate?.toDate ? booking.endDate.toDate().toLocaleDateString() : new Date(booking.endDate.seconds * 1000).toLocaleDateString();
+
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+        .content { padding: 40px 30px; }
+        .content p { color: #374151; line-height: 1.6; margin-bottom: 15px; }
+        .booking-info { background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 20px; margin: 25px 0; }
+        .button { display: inline-block; background: #10b981; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .button:hover { background: #059669; }
+        .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Booking Confirmed! ✅</h1>
+        </div>
+        <div class="content">
+            <p>Hi ${renterName},</p>
+            <p>Great news! Your booking request has been accepted by the owner.</p>
+            
+            <div class="booking-info">
+                <strong>Item:</strong> ${booking.listingTitle}<br>
+                <strong>Dates:</strong> ${start} - ${end}<br>
+                <strong>Total Amount:</strong> ₹${booking.totalPrice}
+            </div>
+            
+            <p>You can now view the booking details and contact the owner to arrange pickup.</p>
+            
+            <p style="text-align: center;">
+                <a href="https://rentanything.shop/my-bookings.html" class="button">View Booking</a>
+            </p>
+            
+            <p>Best regards,<br><strong>RentAnything Team</strong></p>
+        </div>
+        <div class="footer">
+            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>Hinjewadi Phase 3, Pune</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+
+        await sendEmail({
+            to: renterEmail,
+            subject: 'Booking Confirmed! ✅ - RentAnything',
+            html: htmlContent
+        });
+
+        console.log('Booking approval email sent successfully');
+        return true;
+    } catch (error) {
+        console.error('Error sending booking approval email:', error);
+        return false;
+    }
+}
+
+/**
+ * Send booking rejection email (to Renter)
+ */
+export async function sendBookingRejectionEmail(booking, renterEmail, renterName) {
+    try {
+        const { getFunctions, httpsCallable } = await import('firebase/functions');
+        const { app } = await import('./firebase-config.js');
+        const functions = getFunctions(app);
+        const sendEmail = httpsCallable(functions, 'sendGenericEmail');
+
+        // Format dates
+        const start = booking.startDate?.toDate ? booking.startDate.toDate().toLocaleDateString() : new Date(booking.startDate.seconds * 1000).toLocaleDateString();
+        const end = booking.endDate?.toDate ? booking.endDate.toDate().toLocaleDateString() : new Date(booking.endDate.seconds * 1000).toLocaleDateString();
+
+        const htmlContent = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; font-family: 'Arial', sans-serif; background-color: #f3f4f6; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+        .header { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 40px 20px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; }
+        .content { padding: 40px 30px; }
+        .content p { color: #374151; line-height: 1.6; margin-bottom: 15px; }
+        .rejection-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; margin: 25px 0; }
+        .button { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+        .button:hover { background: #1d4ed8; }
+        .footer { background-color: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Booking Update</h1>
+        </div>
+        <div class="content">
+            <p>Hi ${renterName},</p>
+            <p>The owner has declined your booking request for the following item:</p>
+            
+            <div class="rejection-box">
+                <strong>Item:</strong> ${booking.listingTitle}<br>
+                <strong>Dates:</strong> ${start} - ${end}<br>
+                <strong>Amount:</strong> ₹${booking.totalPrice}
+            </div>
+            
+            <p>The amount will not be deducted. You can browse other available items.</p>
+            
+            <p style="text-align: center;">
+                <a href="https://rentanything.shop/search.html" class="button">Find Other Items</a>
+            </p>
+            
+            <p>Best regards,<br><strong>RentAnything Team</strong></p>
+        </div>
+        <div class="footer">
+            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>Hinjewadi Phase 3, Pune</p>
+        </div>
+    </div>
+</body>
+</html>
+        `;
+
+        await sendEmail({
+            to: renterEmail,
+            subject: 'Booking Request Declined - RentAnything',
+            html: htmlContent
+        });
+
+        console.log('Booking rejection email sent successfully');
+        return true;
+    } catch (error) {
+        console.error('Error sending booking rejection email:', error);
+        return false;
+    }
+}

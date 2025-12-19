@@ -35,13 +35,13 @@ export function initHeader() {
     // Standard Links Configuration
     // derived from index.html
     const links = [
-        { text: 'Browse Items', href: '/search.html' },
-        { text: 'Browse Properties', href: '/properties.html' },
-        { text: 'List Item', href: '/create-listing.html' },
-        { text: 'List Property', href: '/list-property.html' },
+        { text: 'Items', href: '/search.html' },
+        { text: 'Properties', href: '/properties.html' },
+        { text: 'List Item', href: '/create-listing.html', class: 'mobile-only' },
+        { text: 'List Property', href: '/list-property.html', class: 'mobile-only' },
         { text: 'Requests', href: '/requests.html' },
         { text: 'How it Works', href: '/index.html#how-it-works' },
-        { text: '📱 Install App', href: '#install-app', id: 'mobile-install-app', class: 'install-app-link' }
+        { text: '📱 Install App', href: '#install-app', id: 'mobile-install-app', class: 'install-app-link mobile-only' }
     ];
 
     // Generate Links

@@ -3,7 +3,7 @@ import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, setPersistence
 import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc, getCountFromServer, orderBy, limit, serverTimestamp, onSnapshot } from 'firebase/firestore';
 import { showToast } from './toast-enhanced.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
-import { sendPropertyApprovalEmail, sendPropertyRejectionEmail } from './email-notifications.js';
+import { sendPropertyApprovalEmail, sendPropertyRejectionEmail, sendListingApprovalEmail, sendListingRejectionEmail } from './email-notifications.js';
 import { VirtualScroller } from './virtual-scroller.js';
 
 // Global data storage for export
@@ -407,18 +407,25 @@ function toggleDropdown(triggerBtn) {
     if (isVisible) {
         dropdown.style.display = 'none';
     } else {
-        // Position it
-        const rect = triggerBtn.getBoundingClientRect();
-        dropdown.style.top = (rect.bottom + 10) + 'px';
-
-        // Prevent overflow right
-        if (window.innerWidth - rect.left < 400) {
+        // Mobile Handling
+        if (window.innerWidth <= 768) {
+            dropdown.style.top = '4.5rem';
+            dropdown.style.left = '1rem';
             dropdown.style.right = '1rem';
-            dropdown.style.left = 'auto';
+            dropdown.style.width = 'auto';
         } else {
-            dropdown.style.left = (rect.left - 150) + 'px'; // Center roughly
-        }
+            // Desktop Positioning
+            const rect = triggerBtn.getBoundingClientRect();
+            dropdown.style.top = (rect.bottom + 10) + 'px';
 
+            // Prevent overflow right
+            if (window.innerWidth - rect.left < 400) {
+                dropdown.style.right = '1rem';
+                dropdown.style.left = 'auto';
+            } else {
+                dropdown.style.left = (rect.left - 150) + 'px'; // Center roughly
+            }
+        }
         dropdown.style.display = 'block';
     }
 }
@@ -1013,11 +1020,12 @@ async function loadPendingListings() {
 }
 
 // --- NOTIFICATION HELPER ---
-async function createNotification(userId, message, type, metadata = {}) {
+async function createNotification(userId, title, body, type, metadata = {}) {
     try {
         await addDoc(collection(db, "notifications"), {
             userId: userId,
-            message: message,
+            title: title,
+            body: body,
             type: type, // 'success', 'info', 'warning'
             read: false,
             createdAt: serverTimestamp(),
@@ -1054,10 +1062,27 @@ window.approveListing = async (id) => {
         if (listingData.ownerId) {
             await createNotification(
                 listingData.ownerId,
-                `Your listing "${listingData.title}" has been approved and is now live! 🎉`,
+                'Listing Approved! 🎉',
+                `Your listing "${listingData.title}" is now live on RentAnything.`,
                 'success',
                 { listingId: id, action: 'listing_approved' }
             );
+        }
+
+        // Send approval email
+        try {
+            const ownerDoc = await getDoc(doc(db, "users", listingData.ownerId));
+            const ownerData = ownerDoc.data();
+
+            if (ownerData?.email) {
+                await sendListingApprovalEmail(
+                    { id, ...listingData },
+                    ownerData.email,
+                    ownerData.displayName || ownerData.name || 'User'
+                );
+            }
+        } catch (emailError) {
+            console.error('Error sending listing approval email:', emailError);
         }
 
         showToast("Listing approved! ✅", "success");
@@ -1107,10 +1132,28 @@ window.rejectListing = async (id) => {
         if (listingData.ownerId) {
             await createNotification(
                 listingData.ownerId,
+                'Listing Rejected ⚠️',
                 `Your listing "${listingData.title}" was not approved. Reason: ${reason}`,
                 'warning',
                 { listingId: id, action: 'listing_rejected', reason: reason }
             );
+        }
+
+        // Send rejection email
+        try {
+            const ownerDoc = await getDoc(doc(db, "users", listingData.ownerId));
+            const ownerData = ownerDoc.data();
+
+            if (ownerData?.email) {
+                await sendListingRejectionEmail(
+                    { id, ...listingData },
+                    ownerData.email,
+                    ownerData.displayName || ownerData.name || 'User',
+                    reason
+                );
+            }
+        } catch (emailError) {
+            console.error('Error sending listing rejection email:', emailError);
         }
 
         showToast("Listing rejected ❌", "info");
@@ -1209,7 +1252,8 @@ window.approveProperty = async (id) => {
         if (propertyData.ownerId) {
             await createNotification(
                 propertyData.ownerId,
-                `Your property "${propertyData.title}" has been approved! 🏠`,
+                'Property Approved! 🏠',
+                `Your property "${propertyData.title}" has been approved and is now visible.`,
                 'success',
                 { listingId: id, action: 'property_approved' }
             );

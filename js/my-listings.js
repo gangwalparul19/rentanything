@@ -1,7 +1,7 @@
 
 import { auth, db, storage } from './firebase-config.js';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore'; // Added updateDoc
+import { collection, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore'; // Added updateDoc, getDoc
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
@@ -9,6 +9,7 @@ import { initHeader } from './header-manager.js';
 import { initFooter } from './footer-manager.js';
 // Duplicate import removed
 import { showToast } from './toast-enhanced.js';
+import { sendBookingApprovalEmail, sendBookingRejectionEmail } from './email-notifications.js';
 import { showEmptyState } from './empty-states.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -240,6 +241,45 @@ window.updateBookingStatus = async (bookingId, status) => {
             status: status
         });
         showToast(`Request ${status === 'confirmed' ? 'Approved' : 'Declined'}`, status === 'confirmed' ? 'success' : 'info');
+
+        // Check if status is confirmed or declined to send email
+        if (status === 'confirmed' || status === 'declined') {
+            try {
+                // Get booking data to fetch renter ID
+                const bookingRef = doc(db, "bookings", bookingId);
+                const bookingSnap = await getDoc(bookingRef);
+
+                if (bookingSnap.exists()) {
+                    const bookingData = bookingSnap.data();
+
+                    // Get Renter Email
+                    if (bookingData.renterId) {
+                        const renterDoc = await getDoc(doc(db, "users", bookingData.renterId));
+                        if (renterDoc.exists()) {
+                            const renterData = renterDoc.data();
+
+                            if (renterData.email) {
+                                if (status === 'confirmed') {
+                                    await sendBookingApprovalEmail(
+                                        { id: bookingId, ...bookingData },
+                                        renterData.email,
+                                        renterData.displayName || renterData.name || 'User'
+                                    );
+                                } else if (status === 'declined') {
+                                    await sendBookingRejectionEmail(
+                                        { id: bookingId, ...bookingData },
+                                        renterData.email,
+                                        renterData.displayName || renterData.name || 'User'
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (emailError) {
+                console.error("Error sending booking email:", emailError);
+            }
+        }
 
         // Refresh
         const user = auth.currentUser;

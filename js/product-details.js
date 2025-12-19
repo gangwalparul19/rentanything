@@ -245,6 +245,27 @@ async function handleBooking() {
             createdAt: serverTimestamp()
         });
 
+        // 3. WhatsApp Integration (Auto-Open)
+        try {
+            const ownerDoc = await getDoc(doc(db, "users", product.ownerId));
+            if (ownerDoc.exists()) {
+                const ownerData = ownerDoc.data();
+                if (ownerData.phoneNumber) {
+                    // Format dates readable
+                    const startStr = startDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                    const endStr = endDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+                    const message = `Hi, I just requested to book "${product.title}" on RentAnything.\n📅 Dates: ${startStr} - ${endStr}\n💰 Total: ₹${totalPrice}\n\nIs it available?`;
+                    const waUrl = `https://wa.me/${ownerData.phoneNumber.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+
+                    // Open in new tab immediately
+                    window.open(waUrl, '_blank');
+                }
+            }
+        } catch (e) {
+            console.error("WhatsApp redirect failed:", e);
+        }
+
         // 3. Send Email via Cloud Function (Custom SMTP)
         try {
             // Fetch owner details from users collection
@@ -672,7 +693,7 @@ async function renderProduct() {
                         <p style="margin-bottom: 1rem;">Interested in owning this item?</p>
                         <div style="font-size: 2rem; font-weight: 700; color: #16a34a; margin-bottom: 1rem;">₹${product.salePrice}</div>
                         <button class="btn btn-primary" onclick="window.handleBuy()" style="width: 100%; padding: 1rem; font-size: 1.1rem; background: #16a34a; border-color: #16a34a;">
-                            RefContact Seller to Buy
+                             Contact Seller
                         </button>
                     </div>
                 </div>
