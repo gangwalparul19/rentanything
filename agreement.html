@@ -262,12 +262,19 @@
     </main>
 
     <footer class="app-footer"></footer>
-
+    <!-- Scripts -->
     <script type="module">
+        import { initMobileMenu } from './js/navigation.js';
+        import { initHeader } from './js/header-manager.js';
         import { initFooter } from './js/footer-manager.js';
-        import './js/agreement.js';
+        import { initAuth } from './js/auth.js';
+        import { initTheme } from './js/theme.js';
 
         document.addEventListener('DOMContentLoaded', () => {
+            initHeader();      // 1. Inject HTML links and setup UI auth
+            initMobileMenu();  // 2. Make menu clickable
+            initTheme();       // 3. Setup dark/light mode
+            initAuth();        // 4. Setup login button events
             initFooter();
         });
     </script>

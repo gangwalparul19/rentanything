@@ -150,19 +150,14 @@
         import { initHeader } from './js/header-manager.js';
         import { initFooter } from './js/footer-manager.js';
         import { initAuth } from './js/auth.js';
+        import { initTheme } from './js/theme.js';
 
         document.addEventListener('DOMContentLoaded', () => {
-
-
-            initMobileMenu();
-
-            document.getElementById('login-btn').addEventListener('click', () => {
-                window.location.href = '/?login=true';
-            });
-
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                auth.signOut().then(() => window.location.reload());
-            });
+            initHeader();      // 1. Inject HTML links and setup UI auth
+            initMobileMenu();  // 2. Make menu clickable
+            initTheme();       // 3. Setup dark/light mode
+            initAuth();        // 4. Setup login button events
+            initFooter();
         });
     </script>
 </body>

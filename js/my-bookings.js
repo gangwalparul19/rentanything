@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initMobileMenu();  // 2. Make menu clickable
     initTheme();       // 3. Setup dark/light mode
     initAuth();        // 4. Setup login button events
+    initFooter();
 });
 
 // Auth

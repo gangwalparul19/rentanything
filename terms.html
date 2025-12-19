@@ -209,25 +209,14 @@
         import { initHeader } from './js/header-manager.js';
         import { initFooter } from './js/footer-manager.js';
         import { initAuth } from './js/auth.js';
+        import { initTheme } from './js/theme.js';
 
         document.addEventListener('DOMContentLoaded', () => {
-
-
-            // Mobile Menu Toggle (Basic)
-            initMobileMenu();
-
-            // Login redirect
-            document.getElementById('login-btn').addEventListener('click', () => {
-                // Simple redirect to auth logic if needed, or trigger auth modal. 
-                // Since this is a static page, we assume standard auth flow availability or just redirect home usually.
-                // Ideally we should import the auth logic or redirect to a page that handles it.
-                // For now, redirect to index with login param or just simple alert if auth.js not fully loaded.
-                window.location.href = '/?login=true';
-            });
-
-            document.getElementById('logout-btn').addEventListener('click', () => {
-                auth.signOut().then(() => window.location.reload());
-            });
+            initHeader();      // 1. Inject HTML links and setup UI auth
+            initMobileMenu();  // 2. Make menu clickable
+            initTheme();       // 3. Setup dark/light mode
+            initAuth();        // 4. Setup login button events
+            initFooter();
         });
     </script>
 </body>

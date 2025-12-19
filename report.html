@@ -157,25 +157,25 @@
 
     <footer class="app-footer"></footer>
 
-    <script type="module">
-        import { initHeader } from './js/header-manager.js';
-        import { initMobileMenu } from './js/navigation.js';
-        import { initFooter } from './js/footer-manager.js';
-
-        document.addEventListener('DOMContentLoaded', () => {
-            initHeader();
-            initMobileMenu();
-            initFooter();
-        });
-    </script>
+    <!-- Scripts -->
     <script type="module">
         import { db, auth } from './js/firebase-config.js';
         import { collection, addDoc, serverTimestamp, query, where, getDocs, or } from 'firebase/firestore';
         import { onAuthStateChanged } from 'firebase/auth';
         import { showToast } from './js/toast.js';
+        import { initMobileMenu } from './js/navigation.js';
         import { initHeader } from './js/header-manager.js';
+        import { initFooter } from './js/footer-manager.js';
+        import { initAuth } from './js/auth.js';
+        import { initTheme } from './js/theme.js';
 
-        initHeader();
+        document.addEventListener('DOMContentLoaded', () => {
+            initHeader();      // 1. Inject HTML links and setup UI auth
+            initMobileMenu();  // 2. Make menu clickable
+            initTheme();       // 3. Setup dark/light mode
+            initAuth();        // 4. Setup login button events
+            initFooter();
+        });
 
         const bookingSelect = document.getElementById('booking-select');
         const urlParams = new URLSearchParams(window.location.search);
