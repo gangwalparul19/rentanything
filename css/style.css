@@ -2881,3 +2881,101 @@ a {
         font-size: 0.75rem !important;
     }
 }
+/* Meet the Founders Section */
+.founders-section {
+    background: linear-gradient(to bottom, var(--white), #f8fafc);
+    position: relative;
+    overflow: hidden;
+}
+
+.founders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 3rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.founder-card {
+    background: var(--white);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-base);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.founder-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-light);
+}
+
+.founder-img-wrapper {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    padding: 5px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.founder-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    object-position: top center;
+    border: 4px solid var(--white);
+    background-color: var(--white);
+}
+
+.founder-info h3 {
+    font-size: 1.5rem;
+    color: var(--dark);
+    margin-bottom: 0.25rem;
+}
+
+.founder-role {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.founder-bio {
+    color: var(--gray);
+    font-size: 1rem;
+    line-height: 1.6;
+    font-style: italic;
+}
+
+/* Responsive adjustments for Founders Section */
+@media (max-width: 768px) {
+    .founders-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .founder-card {
+        padding: 1.5rem;
+    }
+}
+
+.founder-location {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--gray);
+    font-size: 0.9rem;
+    margin-bottom: 0.75rem;
+    font-weight: 500;
+}
