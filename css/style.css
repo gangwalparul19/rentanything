@@ -215,9 +215,11 @@ a {
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid rgba(99, 102, 241, 0.1);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.05);
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 100;
+    left: 0;
+    right: 0;
+    z-index: 1000;
     padding: 0.75rem 0;
     transition: all var(--transition-base);
     animation: fadeInDown 0.5s ease-out;
@@ -2881,6 +2883,7 @@ a {
         font-size: 0.75rem !important;
     }
 }
+
 /* Meet the Founders Section */
 .founders-section {
     background: linear-gradient(to bottom, var(--white), #f8fafc);
@@ -2963,7 +2966,7 @@ a {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
-    
+
     .founder-card {
         padding: 1.5rem;
     }
@@ -3047,19 +3050,19 @@ a {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
         gap: 1rem;
     }
-    
+
     .product-img-wrapper {
         height: 140px;
     }
-    
+
     .product-info {
         padding: 0.75rem;
     }
-    
+
     .product-info h3 {
         font-size: 0.9rem;
     }
-    
+
     .product-price {
         font-size: 1rem;
     }
@@ -3146,13 +3149,17 @@ a {
     .scroll-btn {
         display: none;
     }
-    
+
     .categories-scroll {
         padding: 1rem 0;
         gap: 0.75rem;
     }
-    
+
     .categories-scroll .category-card {
         min-width: 140px;
     }
+}
+/* Body padding for fixed header */
+body {
+    padding-top: 60px;
 }

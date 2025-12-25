@@ -35,6 +35,7 @@ export function initHeader() {
     // Standard Links Configuration
     // derived from index.html
     const links = [
+        { text: 'Home', href: '/', icon: 'fa-home' },
         { text: 'Items', href: '/search.html' },
         { text: 'Properties', href: '/properties.html' },
         { text: 'List Item', href: '/create-listing.html', class: 'mobile-only' },
@@ -48,19 +49,34 @@ export function initHeader() {
     links.forEach(link => {
         const a = document.createElement('a');
         a.href = link.href;
-        a.textContent = link.text;
+
+        // Add icon if specified
+        if (link.icon) {
+            a.innerHTML = `<i class="fa-solid ${link.icon}"></i> ${link.text}`;
+        } else {
+            a.textContent = link.text;
+        }
+
         if (link.id) a.id = link.id;
         if (link.class) a.className = link.class;
 
         // Install App Click Handler - handled by app.js PWA logic
         if (link.id === 'mobile-install-app') {
-            a.style.display = 'none'; // Hidden by default
+            // Check if already installed (standalone mode)
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                a.style.display = 'none'; // Already installed
+            } else {
+                a.style.display = 'none'; // Hidden by default, shown when installable
+            }
             a.setAttribute('role', 'button');
             a.setAttribute('aria-label', 'Install RentAnything as a Progressive Web App');
 
             // Listen for custom event from app.js when PWA is available
             window.addEventListener('pwa-available', () => {
-                a.style.display = 'flex';
+                // Only show if not already installed
+                if (!window.matchMedia('(display-mode: standalone)').matches) {
+                    a.style.display = 'flex';
+                }
             });
 
             // When clicked, trigger the install via app.js
@@ -123,6 +139,35 @@ export function initHeader() {
             listPropertyBtn.innerHTML = '<i class="fa-solid fa-building"></i> List Property';
             listPropertyBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-right: 0.5rem;';
             userActions.insertBefore(listPropertyBtn, userActions.firstChild);
+        }
+
+        // Install App Button (Desktop) - Hidden by default, shown when installable
+        if (!document.getElementById('desktop-install-btn')) {
+            const installBtn = document.createElement('button');
+            installBtn.id = 'desktop-install-btn';
+            installBtn.className = 'btn btn-outline desktop-only';
+            installBtn.innerHTML = '<i class="fa-solid fa-download"></i> Install';
+            installBtn.style.cssText = 'padding: 0.5rem 1rem; font-size: 0.9rem; white-space: nowrap; margin-right: 0.5rem; display: none;';
+            installBtn.setAttribute('aria-label', 'Install App');
+
+            // Show when PWA is available
+            window.addEventListener('pwa-available', () => {
+                if (!window.matchMedia('(display-mode: standalone)').matches) {
+                    installBtn.style.display = 'inline-flex';
+                }
+            });
+
+            // Click handler
+            installBtn.addEventListener('click', () => {
+                window.dispatchEvent(new CustomEvent('pwa-install-requested'));
+            });
+
+            // Hide if already installed
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                installBtn.style.display = 'none';
+            }
+
+            userActions.insertBefore(installBtn, userActions.firstChild);
         }
     }
 
