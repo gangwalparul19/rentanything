@@ -30,6 +30,35 @@ export function initHeader() {
         document.body.appendChild(dropdown);
     }
 
+    // --- Floating Install Button for Mobile ---
+    if (!document.getElementById('floating-install-btn')) {
+        const floatingBtn = document.createElement('button');
+        floatingBtn.id = 'floating-install-btn';
+        floatingBtn.className = 'floating-install-btn';
+        floatingBtn.innerHTML = '<i class="fa-solid fa-download"></i> Install App';
+        floatingBtn.setAttribute('aria-label', 'Install RentAnything App');
+
+        // Check if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            floatingBtn.style.display = 'none';
+        }
+
+        // Show when PWA is available
+        window.addEventListener('pwa-available', () => {
+            if (!window.matchMedia('(display-mode: standalone)').matches) {
+                floatingBtn.classList.add('show');
+            }
+        });
+
+        // Click handler
+        floatingBtn.addEventListener('click', () => {
+            window.dispatchEvent(new CustomEvent('pwa-install-requested'));
+            floatingBtn.classList.remove('show');
+        });
+
+        document.body.appendChild(floatingBtn);
+    }
+
     // --- 1. Nav Links ---
 
     // Standard Links Configuration

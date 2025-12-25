@@ -2639,6 +2639,21 @@ window.enableNotifications = async function () {
         const permission = await Notification.requestPermission();
 
         if (permission === 'granted') {
+            showToast('Notifications enabled! Saving your token...', 'info');
+
+            // Save FCM token for push notifications
+            try {
+                const currentUser = auth.currentUser;
+                if (currentUser) {
+                    // Import FCM manager dynamically
+                    const { requestAndSaveFCMToken } = await import('./fcm-manager.js');
+                    await requestAndSaveFCMToken(currentUser.uid, true); // true = isAdmin
+                }
+            } catch (fcmError) {
+                console.error('FCM token save error:', fcmError);
+                // Still show success for browser notifications
+            }
+
             showToast('Notifications enabled! You will receive alerts for new listings, properties, and disputes. 🔔', 'success');
 
             // Update button UI

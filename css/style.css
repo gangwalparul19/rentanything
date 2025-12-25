@@ -3163,3 +3163,120 @@ a {
 body {
     padding-top: 60px;
 }
+
+/* Founders Section Mobile Side-by-Side */
+.founders-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.founder-card {
+    text-align: center;
+}
+
+.founder-img-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 0.75rem;
+}
+
+.founder-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.founder-info h3 {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.founder-location {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-bottom: 0.25rem;
+}
+
+.founder-role {
+    font-size: 0.8rem;
+    color: var(--primary);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.founder-bio {
+    font-size: 0.75rem;
+    color: var(--gray);
+    line-height: 1.4;
+}
+
+/* Mobile-specific adjustments for founders */
+@media (max-width: 480px) {
+    .founders-grid {
+        gap: 1rem;
+    }
+    
+    .founder-img-wrapper {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .founder-info h3 {
+        font-size: 0.9rem;
+    }
+    
+    .founder-bio {
+        font-size: 0.7rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+}
+
+/* Floating Install App Button for Mobile */
+.floating-install-btn {
+    display: none;
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    z-index: 999;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    cursor: pointer;
+    align-items: center;
+    gap: 8px;
+    animation: pulse-glow 2s infinite;
+}
+
+.floating-install-btn i {
+    font-size: 1.1rem;
+}
+
+.floating-install-btn.show {
+    display: flex;
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+    }
+    50% {
+        box-shadow: 0 4px 25px rgba(99, 102, 241, 0.6);
+    }
+}
+
+/* Hide on desktop, show on mobile */
+@media (min-width: 769px) {
+    .floating-install-btn {
+        display: none !important;
+    }
+}

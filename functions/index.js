@@ -233,3 +233,225 @@ exports.sendChatNotification = functions.firestore
             }
         }
     });
+
+/**
+ * Notify Admins when a new listing is submitted for approval
+ */
+exports.notifyAdminsNewListing = functions.firestore
+    .document('listings/{listingId}')
+    .onCreate(async (snap, context) => {
+        const listing = snap.data();
+        const listingId = context.params.listingId;
+
+        // Only notify for pending listings
+        if (listing.status !== 'pending') return null;
+
+        // Get all admin FCM tokens
+        const adminTokens = await admin.firestore()
+            .collection('fcm_tokens')
+            .where('isAdmin', '==', true)
+            .get();
+
+        if (adminTokens.empty) {
+            console.log('No admin FCM tokens found');
+            return null;
+        }
+
+        const tokens = adminTokens.docs.map(doc => doc.data().token).filter(t => t);
+
+        const payload = {
+            notification: {
+                title: '📦 New Listing Submitted',
+                body: `${listing.title || 'New item'} needs approval`,
+                icon: '/logo.png'
+            },
+            data: {
+                type: 'new_listing',
+                listingId: listingId,
+                url: '/admin.html#listings'
+            }
+        };
+
+        try {
+            const response = await admin.messaging().sendMulticast({
+                tokens: tokens,
+                ...payload
+            });
+            console.log(`Sent notification to ${response.successCount} admins`);
+        } catch (error) {
+            console.error('Error sending admin notification:', error);
+        }
+    });
+
+/**
+ * Notify Admins when a new property is submitted for approval
+ */
+exports.notifyAdminsNewProperty = functions.firestore
+    .document('properties/{propertyId}')
+    .onCreate(async (snap, context) => {
+        const property = snap.data();
+        const propertyId = context.params.propertyId;
+
+        // Get all admin FCM tokens
+        const adminTokens = await admin.firestore()
+            .collection('fcm_tokens')
+            .where('isAdmin', '==', true)
+            .get();
+
+        if (adminTokens.empty) return null;
+
+        const tokens = adminTokens.docs.map(doc => doc.data().token).filter(t => t);
+
+        const payload = {
+            notification: {
+                title: '🏠 New Property Submitted',
+                body: `${property.title || 'New property'} needs approval`,
+                icon: '/logo.png'
+            },
+            data: {
+                type: 'new_property',
+                propertyId: propertyId,
+                url: '/admin.html#property-approvals'
+            }
+        };
+
+        try {
+            await admin.messaging().sendMulticast({ tokens, ...payload });
+        } catch (error) {
+            console.error('Error sending property notification:', error);
+        }
+    });
+
+/**
+ * Notify User when their listing is approved or rejected
+ */
+exports.notifyUserListingStatus = functions.firestore
+    .document('listings/{listingId}')
+    .onUpdate(async (change, context) => {
+        const before = change.before.data();
+        const after = change.after.data();
+        const listingId = context.params.listingId;
+
+        // Only notify if status changed
+        if (before.status === after.status) return null;
+
+        const ownerId = after.ownerId;
+        if (!ownerId) return null;
+
+        // Get owner's FCM token
+        const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(ownerId).get();
+        if (!tokenSnap.exists) return null;
+
+        const { token } = tokenSnap.data();
+        if (!token) return null;
+
+        let title, body;
+        if (after.status === 'active' || after.status === 'approved') {
+            title = '✅ Listing Approved!';
+            body = `Your item "${after.title}" is now live and visible to renters.`;
+        } else if (after.status === 'rejected') {
+            title = '❌ Listing Not Approved';
+            body = `Your item "${after.title}" was not approved. Check your email for details.`;
+        } else {
+            return null;
+        }
+
+        const payload = {
+            notification: { title, body, icon: '/logo.png' },
+            data: { type: 'listing_status', listingId, url: '/my-listings.html' }
+        };
+
+        try {
+            await admin.messaging().send({ token, ...payload });
+        } catch (error) {
+            console.error('Error sending listing status notification:', error);
+        }
+    });
+
+/**
+ * Notify Owner when they receive a new booking request
+ */
+exports.notifyOwnerNewBooking = functions.firestore
+    .document('bookings/{bookingId}')
+    .onCreate(async (snap, context) => {
+        const booking = snap.data();
+        const bookingId = context.params.bookingId;
+
+        const ownerId = booking.ownerId;
+        if (!ownerId) return null;
+
+        // Get owner's FCM token
+        const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(ownerId).get();
+        if (!tokenSnap.exists) return null;
+
+        const { token } = tokenSnap.data();
+        if (!token) return null;
+
+        const payload = {
+            notification: {
+                title: '🎉 New Booking Request!',
+                body: `${booking.renterName || 'Someone'} wants to rent "${booking.listingTitle || 'your item'}"`,
+                icon: '/logo.png'
+            },
+            data: {
+                type: 'new_booking',
+                bookingId: bookingId,
+                url: '/my-listings.html'
+            }
+        };
+
+        try {
+            await admin.messaging().send({ token, ...payload });
+        } catch (error) {
+            console.error('Error sending booking notification:', error);
+        }
+    });
+
+/**
+ * Notify Renter when their booking status changes
+ */
+exports.notifyRenterBookingStatus = functions.firestore
+    .document('bookings/{bookingId}')
+    .onUpdate(async (change, context) => {
+        const before = change.before.data();
+        const after = change.after.data();
+        const bookingId = context.params.bookingId;
+
+        // Only notify if status changed
+        if (before.status === after.status) return null;
+
+        const renterId = after.renterId;
+        if (!renterId) return null;
+
+        // Get renter's FCM token
+        const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(renterId).get();
+        if (!tokenSnap.exists) return null;
+
+        const { token } = tokenSnap.data();
+        if (!token) return null;
+
+        let title, body;
+        if (after.status === 'confirmed' || after.status === 'approved') {
+            title = '🎊 Booking Confirmed!';
+            body = `Your booking for "${after.listingTitle}" has been approved!`;
+        } else if (after.status === 'rejected' || after.status === 'declined') {
+            title = '😔 Booking Declined';
+            body = `Your booking for "${after.listingTitle}" was not approved.`;
+        } else if (after.status === 'completed') {
+            title = '⭐ Booking Complete';
+            body = `How was your experience with "${after.listingTitle}"? Leave a review!`;
+        } else {
+            return null;
+        }
+
+        const payload = {
+            notification: { title, body, icon: '/logo.png' },
+            data: { type: 'booking_status', bookingId, url: '/my-bookings.html' }
+        };
+
+        try {
+            await admin.messaging().send({ token, ...payload });
+        } catch (error) {
+            console.error('Error sending booking status notification:', error);
+        }
+    });
