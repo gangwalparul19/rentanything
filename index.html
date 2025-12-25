@@ -158,23 +158,20 @@
         <section id="categories" class="section">
             <div class="container">
                 <h2 class="section-title">Browse Categories</h2>
-                <div class="categories-grid">
-                    <div class="category-card" onclick="window.location.href='search.html?cat=party'">
-                        <div class="cat-icon"><i class="fa-solid fa-champagne-glasses"></i></div>
-                        <h3>Party Essentials</h3>
+                <div class="categories-scroll-wrapper">
+                    <button class="scroll-btn scroll-left" onclick="scrollCategories(-1)" aria-label="Scroll left">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div class="categories-scroll" id="dynamic-categories">
+                        <!-- Categories loaded dynamically by JS -->
+                        <div class="category-card skeleton" style="min-width: 160px; height: 120px;"></div>
+                        <div class="category-card skeleton" style="min-width: 160px; height: 120px;"></div>
+                        <div class="category-card skeleton" style="min-width: 160px; height: 120px;"></div>
+                        <div class="category-card skeleton" style="min-width: 160px; height: 120px;"></div>
                     </div>
-                    <div class="category-card" onclick="window.location.href='search.html?cat=kids'">
-                        <div class="cat-icon"><i class="fa-solid fa-baby-carriage"></i></div>
-                        <h3>Kids Gear</h3>
-                    </div>
-                    <div class="category-card" onclick="window.location.href='search.html?cat=tools'">
-                        <div class="cat-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
-                        <h3>Tools & DIY</h3>
-                    </div>
-                    <div class="category-card" onclick="window.location.href='search.html?cat=camping'">
-                        <div class="cat-icon"><i class="fa-solid fa-campground"></i></div>
-                        <h3>Camping</h3>
-                    </div>
+                    <button class="scroll-btn scroll-right" onclick="scrollCategories(1)" aria-label="Scroll right">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
                 </div>
             </div>
         </section>

@@ -2563,3 +2563,129 @@ window.closeModal = function (modalId) {
         });
     }
 };
+
+// ============ ADMIN PWA INSTALL & NOTIFICATIONS ============
+
+// Store the install prompt
+let adminDeferredPrompt = null;
+
+// Listen for beforeinstallprompt event
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    adminDeferredPrompt = e;
+    // Show the install button
+    const installBtn = document.getElementById('admin-install-btn');
+    if (installBtn) {
+        installBtn.style.display = 'flex';
+    }
+});
+
+// Install admin app as PWA
+window.installAdminApp = async function () {
+    if (!adminDeferredPrompt) {
+        // Check if already installed
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            showToast('App is already installed!', 'info');
+        } else {
+            showToast('Install not available. Try using Chrome or Edge.', 'warning');
+        }
+        return;
+    }
+
+    try {
+        adminDeferredPrompt.prompt();
+        const { outcome } = await adminDeferredPrompt.userChoice;
+
+        if (outcome === 'accepted') {
+            showToast('Admin App installed successfully! 🎉', 'success');
+            // Hide install button
+            const installBtn = document.getElementById('admin-install-btn');
+            if (installBtn) installBtn.style.display = 'none';
+        }
+
+        adminDeferredPrompt = null;
+    } catch (error) {
+        console.error('Install error:', error);
+        showToast('Install failed. Please try again.', 'error');
+    }
+};
+
+// Enable push notifications
+window.enableNotifications = async function () {
+    const notifBtn = document.getElementById('admin-notif-btn');
+
+    // Check if notifications are supported
+    if (!('Notification' in window)) {
+        showToast('Notifications are not supported in this browser', 'warning');
+        return;
+    }
+
+    // Check current permission state
+    if (Notification.permission === 'granted') {
+        showToast('Notifications are already enabled! ✅', 'info');
+        if (notifBtn) {
+            notifBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Notifications Enabled';
+        }
+        return;
+    }
+
+    if (Notification.permission === 'denied') {
+        showToast('Notifications were blocked. Please enable them in browser settings.', 'warning');
+        return;
+    }
+
+    // Request permission
+    try {
+        const permission = await Notification.requestPermission();
+
+        if (permission === 'granted') {
+            showToast('Notifications enabled! You will receive alerts for new listings, properties, and disputes. 🔔', 'success');
+
+            // Update button UI
+            if (notifBtn) {
+                notifBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Notifications Enabled';
+                notifBtn.style.color = '#22c55e';
+            }
+
+            // Send a test notification
+            new Notification('RentAnything Admin', {
+                body: 'You will now receive admin notifications!',
+                icon: '/logo.png',
+                badge: '/logo.png'
+            });
+        } else {
+            showToast('Notification permission denied', 'warning');
+        }
+    } catch (error) {
+        console.error('Notification permission error:', error);
+        showToast('Failed to enable notifications', 'error');
+    }
+};
+
+// Register admin service worker on page load
+document.addEventListener('DOMContentLoaded', async () => {
+    // Register service worker for PWA and push notifications
+    if ('serviceWorker' in navigator) {
+        try {
+            const registration = await navigator.serviceWorker.register('/admin-sw.js');
+            console.log('Admin Service Worker registered:', registration);
+
+            // Update install button visibility based on standalone mode
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                const installBtn = document.getElementById('admin-install-btn');
+                if (installBtn) installBtn.style.display = 'none';
+            }
+
+            // Check notification permission and update UI
+            if (Notification.permission === 'granted') {
+                const notifBtn = document.getElementById('admin-notif-btn');
+                if (notifBtn) {
+                    notifBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Notifications Enabled';
+                    notifBtn.style.color = '#22c55e';
+                }
+            }
+        } catch (error) {
+            console.error('Admin SW registration failed:', error);
+        }
+    }
+});

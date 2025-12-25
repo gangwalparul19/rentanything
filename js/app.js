@@ -2,7 +2,7 @@
 
 // Firebase Imports
 import { db } from './firebase-config.js';
-import { collection, getDocs, query, limit, doc, getDoc } from 'firebase/firestore';
+import { collection, getDocs, query, limit, doc, getDoc, where } from 'firebase/firestore';
 import { initMobileMenu } from './navigation.js';
 import { initTheme } from './theme.js';
 import { initAuth } from './auth.js';
@@ -189,6 +189,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initFooter();
     // Load real data
     fetchListings();
+    // Load dynamic categories
+    loadDynamicCategories();
 
     // Calculate and display environmental impact
     calculateEnvironmentalImpact();
@@ -302,3 +304,81 @@ function animateCounter(elementId, targetValue) {
 
     requestAnimationFrame(updateCounter);
 }
+
+// ============ DYNAMIC CATEGORIES ============
+
+// Category definitions with icons and slugs
+const CATEGORIES = [
+    { name: 'Party Essentials', icon: 'fa-champagne-glasses', slug: 'party' },
+    { name: 'Kids Gear', icon: 'fa-baby-carriage', slug: 'kids' },
+    { name: 'Tools & DIY', icon: 'fa-screwdriver-wrench', slug: 'tools' },
+    { name: 'Camping', icon: 'fa-campground', slug: 'camping' },
+    { name: 'Electronics', icon: 'fa-laptop', slug: 'electronics' },
+    { name: 'Mobility', icon: 'fa-wheelchair-move', slug: 'mobility' },
+    { name: 'Home Appliances', icon: 'fa-blender', slug: 'appliances' },
+    { name: 'Fitness', icon: 'fa-dumbbell', slug: 'fitness' },
+    { name: 'Photography', icon: 'fa-camera', slug: 'photography' },
+    { name: 'Musical Instruments', icon: 'fa-guitar', slug: 'music' },
+    { name: 'Books', icon: 'fa-book', slug: 'books' },
+    { name: 'Other', icon: 'fa-box', slug: 'other' }
+];
+
+// Load dynamic categories with item counts
+async function loadDynamicCategories() {
+    const container = document.getElementById('dynamic-categories');
+    if (!container) return;
+
+    try {
+        // Fetch all active/approved listings and count by category
+        const q = query(
+            collection(db, 'listings'),
+            where('status', 'in', ['active', 'approved'])
+        );
+        const snapshot = await getDocs(q);
+
+        // Count items per category
+        const categoryCounts = {};
+        snapshot.forEach(doc => {
+            const cat = doc.data().category;
+            if (cat) {
+                categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+            }
+        });
+
+        // Add counts to categories and sort by count (descending)
+        const sortedCategories = CATEGORIES.map(cat => ({
+            ...cat,
+            count: categoryCounts[cat.slug] || 0
+        })).sort((a, b) => b.count - a.count);
+
+        // Render categories
+        container.innerHTML = sortedCategories.map(cat => `
+            <div class="category-card" onclick="window.location.href='search.html?cat=${cat.slug}'">
+                <div class="cat-icon"><i class="fa-solid ${cat.icon}"></i></div>
+                <h3>${cat.name}</h3>
+                <span class="item-count">${cat.count} items</span>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading categories:', error);
+        // Fallback to static categories without counts
+        container.innerHTML = CATEGORIES.map(cat => `
+            <div class="category-card" onclick="window.location.href='search.html?cat=${cat.slug}'">
+                <div class="cat-icon"><i class="fa-solid ${cat.icon}"></i></div>
+                <h3>${cat.name}</h3>
+            </div>
+        `).join('');
+    }
+}
+
+// Scroll categories left/right
+function scrollCategories(direction) {
+    const container = document.getElementById('dynamic-categories');
+    if (!container) return;
+    const scrollAmount = 200;
+    container.scrollBy({ left: direction * scrollAmount, behavior: 'smooth' });
+}
+
+// Make scroll function globally accessible
+window.scrollCategories = scrollCategories;

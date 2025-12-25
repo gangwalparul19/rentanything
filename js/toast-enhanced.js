@@ -13,6 +13,8 @@ class ToastManager {
     createContainer() {
         const container = document.createElement('div');
         container.className = 'toast-container';
+        // Explicit inline styles to ensure proper positioning
+        container.style.cssText = 'position: fixed; top: 1rem; right: 1rem; z-index: 999999; display: flex; flex-direction: column; gap: 0.5rem; max-width: 400px;';
         container.setAttribute('aria-live', 'polite');
         container.setAttribute('aria-atomic', 'true');
         document.body.appendChild(container);

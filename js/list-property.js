@@ -7,10 +7,12 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, query, where, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { initHeader } from './header-manager.js';
+import { initMobileMenu } from './navigation.js';
 import { compressImage } from './image-compressor.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 import { initFooter } from './footer-manager.js';
+
 
 let selectedFiles = [];
 let isEditMode = false;

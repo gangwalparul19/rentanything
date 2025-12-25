@@ -12,6 +12,8 @@ export function showToast(message, type = 'info', duration = 3000) {
     if (!container) {
         container = document.createElement('div');
         container.id = 'toast-container';
+        // Explicit inline styles to ensure proper positioning
+        container.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 999999; display: flex; flex-direction: column; gap: 10px;';
         document.body.appendChild(container);
     }
 

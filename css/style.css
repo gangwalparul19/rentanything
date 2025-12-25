@@ -3064,3 +3064,95 @@ a {
         font-size: 1rem;
     }
 }
+
+/* Empty State in Grid - Full Width */
+.results-grid .empty-state {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Categories Horizontal Scroll */
+.categories-scroll-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.categories-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    padding: 1rem 0.5rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.categories-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.categories-scroll .category-card {
+    min-width: 160px;
+    flex-shrink: 0;
+}
+
+.scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.scroll-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.scroll-left {
+    left: -15px;
+}
+
+.scroll-right {
+    right: -15px;
+}
+
+/* Category card with item count badge */
+.category-card .item-count {
+    font-size: 0.75rem;
+    color: var(--gray);
+    margin-top: 0.25rem;
+}
+
+/* Hide scroll buttons on mobile (touch scroll instead) */
+@media (max-width: 768px) {
+    .scroll-btn {
+        display: none;
+    }
+    
+    .categories-scroll {
+        padding: 1rem 0;
+        gap: 0.75rem;
+    }
+    
+    .categories-scroll .category-card {
+        min-width: 140px;
+    }
+}
