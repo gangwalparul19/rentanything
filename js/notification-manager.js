@@ -1,5 +1,5 @@
 // Push Notification Manager for Admin Panel
-import { getMessaging, getToken, onMessage } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 import { app } from './firebase-config.js';
 import { showToast } from './toast-enhanced.js';
 import { FCM_CONFIG, NOTIFICATION_SETTINGS } from './fcm-config.js';
@@ -150,7 +150,7 @@ export async function subscribeToPushNotifications(showMessages = true) {
 async function saveFCMToken(token) {
     try {
         const { auth, db } = await import('./firebase-config.js');
-        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+        const { doc, setDoc } = await import('firebase/firestore');
 
         const user = auth.currentUser;
         if (!user) {
@@ -231,7 +231,7 @@ export async function unsubscribeFromPushNotifications() {
         }
 
         const { auth, db } = await import('./firebase-config.js');
-        const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js');
+        const { doc, deleteDoc } = await import('firebase/firestore');
 
         const user = auth.currentUser;
         if (user) {

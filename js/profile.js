@@ -151,6 +151,9 @@ async function loadProfile(uid) {
             } else if (currentUser.photoURL) {
                 profilePreview.src = currentUser.photoURL;
             }
+
+            // Check ID Status
+            checkIdStatus(uid, data);
         } else {
             // First time, pre-fill from Auth
             displayNameInput.value = currentUser.displayName || '';

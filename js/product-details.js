@@ -641,7 +641,8 @@ async function renderProduct() {
                 );
 
                 if (ownerSnap.exists()) {
-                    isOwnerVerified = ownerSnap.data().isVerified || false;
+                    const ownerData = ownerSnap.data();
+                    isOwnerVerified = ownerData.idVerificationStatus === 'verified';
                 }
             }
         } catch (e) { console.error("Owner Fetch Error", e); }
@@ -797,7 +798,13 @@ async function renderProduct() {
                              ${product.ownerPhoto ? `<img src="${product.ownerPhoto}" referrerpolicy="no-referrer" style="width:100%; height:100%; object-fit: cover;">` : '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"><i class="fa-regular fa-user"></i></div>'}
                         </div>
                         <div>
-                            <div style="font-weight: 600;">Listed by ${product.ownerName || 'Neighbor'} <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; color: var(--gray); margin-left: 0.3rem;"></i></div>
+                            <div style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                                Listed by ${product.ownerName || 'Neighbor'}
+                                ${isOwnerVerified ?
+                `<span title="Govt ID Verified" style="color: #16a34a; font-size: 0.9rem;"><i class="fa-solid fa-circle-check"></i></span>`
+                : ''}
+                                <i class="fa-solid fa-chevron-right" style="font-size: 0.7rem; color: var(--gray); margin-left: auto;"></i>
+                            </div>
                             ${isOwnerVerified
                 ? `<div style="font-size: 0.85rem; color: var(--secondary); font-weight:500;"><i class="fa-solid fa-circle-check"></i> Verified Neighbor</div>`
                 : `<div style="font-size: 0.85rem; color: var(--gray);">View Profile</div>`
