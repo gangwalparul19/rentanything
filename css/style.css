@@ -3472,3 +3472,32 @@ body {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
+
+/* Mobile Footer Fix - Force 3 Columns */
+@media (max-width: 768px) {
+    .footer-grid {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.5rem !important;
+        text-align: left !important;
+        justify-items: center;
+    }
+    .footer-brand {
+        grid-column: 1 / -1 !important;
+        margin-bottom: 2rem !important;
+    }
+    .footer-links {
+        width: auto !important;
+        text-align: left !important;
+    }
+    .footer-links h4 {
+        font-size: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    .footer-links ul li {
+        margin-bottom: 0.5rem !important;
+    }
+    .footer-links a {
+        font-size: 0.85rem !important;
+    }
+}

@@ -32,7 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
 // Helper: Toggle Favorite (Moved to bottom)
 
 // Expose toast to window
+// Expose toast and share functions to window
 window.showToast = showToast;
+window.shareToWhatsApp = shareToWhatsApp;
 
 // Helper: Get URL Parameter
 function getQueryParam(param) {
