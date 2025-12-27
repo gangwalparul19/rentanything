@@ -1,3 +1,6 @@
+import { db, auth } from './firebase-config.js';
+import { collection, query, where, getDocs, updateDoc, doc, serverTimestamp, limit, orderBy } from 'firebase/firestore';
+import { showToast } from './toast-enhanced.js';
 
 // ==========================================
 // DISPUTE MANAGEMENT

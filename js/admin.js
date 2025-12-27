@@ -2878,6 +2878,7 @@ window.loadSocieties = async function () {
                 </tr>
             `;
         });
+        console.log("Generated Societies HTML:", html); // Debugging line
         tableBody.innerHTML = html;
 
     } catch (error) {
@@ -3199,5 +3200,6 @@ window.viewEvidence = function (id) {
 
 // End of Admin Logic
 // End of Admin Logic
+import './admin-disputes.js';
 // Listeners are initialized in showSection or locally
 
