@@ -757,7 +757,13 @@ async function renderProduct() {
                                 <i class="fa-solid fa-share-nodes"></i>
                             </button>
                             <div class="share-dropdown">
-                                <button onclick="shareToWhatsApp('${product.title.replace(/'/g, "\\'")}', '${product.rates?.daily || product.price}', window.location.href)">
+                                <button onclick="(() => {
+                                    let price = '${product.rates?.daily || product.price || 0}';
+                                    const types = ${JSON.stringify(transactionTypes)};
+                                    if (types.includes('sell')) price = '${product.salePrice || 0}';
+                                    if (types.includes('donate')) price = 'Free';
+                                    shareToWhatsApp('${product.title.replace(/'/g, "\\'")}', price, window.location.href);
+                                })()">
                                     <i class="fa-brands fa-whatsapp"></i> 
                                 </button>
                                 <button onclick="shareToInstagram(window.location.href)">

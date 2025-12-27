@@ -206,7 +206,7 @@ export async function sendListingApprovalEmail(listing, ownerEmail, ownerName) {
             <div class="listing-info">
                 <strong>Item:</strong> ${listing.title}<br>
                 <strong>Category:</strong> ${listing.category || 'General'}<br>
-                <strong>Rate:</strong> ₹${listing.rates?.daily || listing.price || 0}/day
+                <strong>Rate:</strong> ${listing.transactionTypes?.includes('sell') ? '₹' + (listing.salePrice || 0) : (listing.transactionTypes?.includes('donate') ? 'Free' : '₹' + (listing.rates?.daily || listing.price || 0) + '/day')}
             </div>
             
             <p>Your item is now visible to neighbors in Hinjewadi Phase 3. You'll receive instant WhatsApp or in-app notifications when someone requests to book it.</p>

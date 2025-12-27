@@ -138,23 +138,23 @@ match /chats/{chatId} {
 
     // ========== FAVORITES COLLECTION ==========
     match /favorites/{favoriteId} {
-      // Allow create if authenticated and userId matches
+      // Allow create if authenticated and ID starts with userId
       allow create: if isAuthenticated() && 
-        (request.resource.data.userId == request.auth.uid);
+        favoriteId.split('_')[0] == request.auth.uid;
       
-      // Allow read/delete/update if owner or admin
+      // Allow read/delete/update if ID starts with userId or admin
       allow read, update, delete: if isAuthenticated() && 
-        ((resource.data.userId == request.auth.uid) || isAdmin());
+        (favoriteId.split('_')[0] == request.auth.uid || isAdmin());
     }
 
     // ========== WISHLISTS COLLECTION ==========
     match /wishlists/{wishlistId} {
-      // Relaxed: Allow create if owner matches, ID pattern not strictly enforced
+      // Allow create if authenticated and ID starts with userId
       allow create: if isAuthenticated() && 
-        (request.resource.data.userId == request.auth.uid);
+        wishlistId.split('_')[0] == request.auth.uid;
       
       allow read, update, delete: if isAuthenticated() && 
-        ((resource.data.userId == request.auth.uid) || isAdmin());
+        (wishlistId.split('_')[0] == request.auth.uid || isAdmin());
     }
 
     // ========== WAITLISTS COLLECTION ==========
