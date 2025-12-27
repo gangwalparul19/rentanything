@@ -752,31 +752,16 @@ async function renderProduct() {
                         <h1 style="margin-bottom: 0.5rem; line-height: 1.2;">${product.title}</h1>
                         
                         <!-- Share Menu -->
-                        <div class="share-menu">
-                            <button class="share-trigger">
-                                <i class="fa-solid fa-share-nodes"></i>
-                            </button>
-                            <div class="share-dropdown">
-                                <button onclick="(() => {
-                                    let price = '${product.rates?.daily || product.price || 0}';
-                                    const types = ${JSON.stringify(transactionTypes)};
-                                    if (types.includes('sell')) price = '${product.salePrice || 0}';
-                                    if (types.includes('donate')) price = 'Free';
-                                    shareToWhatsApp('${product.title.replace(/'/g, "\\'")}', price, window.location.href);
-                                })()">
-                                    <i class="fa-brands fa-whatsapp"></i> 
-                                </button>
-                                <button onclick="shareToInstagram(window.location.href)">
-                                    <i class="fa-brands fa-instagram"></i> 
-                                </button>
-                                <button onclick="shareToFacebook(window.location.href)">
-                                    <i class="fa-brands fa-facebook"></i> 
-                                </button>
-                                <button onclick="copyShareLink(window.location.href)">
-                                    <i class="fa-solid fa-link"></i> 
-                                </button>
-                            </div>
-                        </div>
+                        <!-- WhatsApp Share Only (Requested) -->
+                        <button onclick="(() => {
+                            let price = '${product.rates?.daily || product.price || 0}';
+                            const types = ${JSON.stringify(transactionTypes)};
+                            if (types.includes('sell')) price = '${product.salePrice || 0}';
+                            if (types.includes('donate')) price = 'Free';
+                            shareToWhatsApp('${product.title.replace(/'/g, "\\'")}', price, window.location.href);
+                        })()" style="background: none; border: none; cursor: pointer; color: #25D366; transition: transform 0.2s;" title="Share on WhatsApp">
+                            <i class="fa-brands fa-whatsapp fa-2x"></i>
+                        </button>
                     </div>
                     <div class="product-meta">
                         <span class="location"><i class="fa-solid fa-location-dot"></i> ${product.location}</span>
