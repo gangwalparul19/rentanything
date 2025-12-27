@@ -1,4 +1,3 @@
-
 // Firebase Imports
 import { db, auth } from './firebase-config.js';
 import { showLoader, hideLoader } from './loader.js';
@@ -12,10 +11,10 @@ import { showToast } from './toast-enhanced.js';
 import { initShareMenu, shareToWhatsApp, shareToFacebook, shareToTwitter, shareToLinkedIn, shareViaEmail, copyShareLink, shareNative } from './social-share.js';
 import { calculateCO2Savings } from './carbon-calculator.js';
 import { gallery } from './image-gallery.js';
-import { dedupedFetch } from './utils';
+import { dedupedFetch } from './utils.js';
 import { startChatWithOwner } from './chat.js';
 import { FocusTrap } from './accessibility.js';
-import { generateSkeletonDetails } from './skeleton-loader';
+import { generateSkeletonDetails } from './skeleton-loader.js';
 import { checkUserPhone, showPhoneVerificationModal } from './phone-otp.js';
 
 // Init
