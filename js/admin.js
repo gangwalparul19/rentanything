@@ -1942,7 +1942,7 @@ async function loadUsers(page = 1) {
         if (page === 1) {
             q = query(
                 collection(db, "users"),
-                orderBy("createdAt", "desc"),
+                // orderBy("createdAt", "desc"), // Temporarily removed to debug empty list
                 limit(usersPageState.pageSize)
             );
         } else {
@@ -1950,7 +1950,7 @@ async function loadUsers(page = 1) {
             if (startDoc) {
                 q = query(
                     collection(db, "users"),
-                    orderBy("createdAt", "desc"),
+                    // orderBy("createdAt", "desc"), 
                     startAfter(startDoc),
                     limit(usersPageState.pageSize)
                 );

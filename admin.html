@@ -1378,31 +1378,32 @@
         </section>
 
         <!-- REPORTS SECTION -->
-        <section id="dashboard" class="section active">
-            <div class="header">
-                <div style="display: flex; align-items: center; gap: 1rem;">
-                    <button id="mobile-toggle" class="btn btn-primary"
-                        style="display: none; padding: 0.5rem 0.75rem; font-size: 1.2rem;">
-                        <i class="fa-solid fa-bars"></i>
-                    </button>
-                    <h1 class="page-title">Admin Dashboard</h1>
-                </div>
-                <div style="display: flex; align-items: center; gap: 1.5rem;">
-                    <!-- Notification Bell -->
-                    <div style="position: relative; cursor: pointer;" id="notification-bell"
-                        onclick="toggleNotifications()">
-                        <i class="fa-solid fa-bell"
-                            style="font-size: 1.5rem; color: var(--secondary); transition: color 0.2s;"
-                            onmouseover="this.style.color='var(--primary)'"
-                            onmouseout="this.style.color='var(--secondary)'"></i>
-                        <span id="notification-badge"
-                            style="display: none; position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 0.7rem; font-weight: 700; min-width: 20px; height: 20px; border-radius: 50%; align-items: center; justify-content: center; padding: 0 5px; animation: pulse 2s infinite;">0</span>
-                    </div>
-                    <!-- Date Filter -->
+        <!-- GLOBAL HEADER -->
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button id="mobile-toggle" class="btn btn-primary"
+                    style="display: none; padding: 0.5rem 0.75rem; font-size: 1.2rem;">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+                <h1 class="page-title" id="page-title">Admin Dashboard</h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <!-- Notification Bell -->
+                <div style="position: relative; cursor: pointer;" id="notification-bell"
+                    onclick="toggleNotifications()">
+                    <i class="fa-solid fa-bell"
+                        style="font-size: 1.5rem; color: var(--secondary); transition: color 0.2s;"
+                        onmouseover="this.style.color='var(--primary)'"
+                        onmouseout="this.style.color='var(--secondary)'"></i>
+                    <span id="notification-badge"
+                        style="display: none; position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; font-size: 0.7rem; font-weight: 700; min-width: 20px; height: 20px; border-radius: 50%; align-items: center; justify-content: center; padding: 0 5px; animation: pulse 2s infinite;">0</span>
                 </div>
             </div>
-        </section>
-        <section id="reports" class="section">
+        </div>
+
+        <section id="dashboard" class="section active">
+            <!-- CONTENT MOVED UP (KPIs, Charts etc) -->
+
             <div class="card">
                 <h3>Dispute Center</h3>
                 <table id="table-reports">
