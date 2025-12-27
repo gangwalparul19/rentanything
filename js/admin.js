@@ -2830,3 +2830,257 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 });
+// ===== SOCIETY MANAGEMENT =====
+// Load all approved societies
+window.refreshSocieties = function () {
+    loadSocieties();
+    loadSocietyRequests();
+};
+
+async function loadSocieties() {
+    const tableBody = document.getElementById('societies-table');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    try {
+        const q = query(collection(db, 'societies'), orderBy('name'));
+        const querySnapshot = await getDocs(q);
+
+        document.getElementById('total-societies-count').textContent = querySnapshot.size;
+
+        if (querySnapshot.empty) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No societies found.</td></tr>';
+            return;
+        }
+
+        let html = '';
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            html += `
+                <tr>
+                    <td style="font-weight: 500;">${data.name}</td>
+                    <td>${data.area || 'Hinjewadi'}</td>
+                    <td>${data.pincode || '-'}</td>
+                    <td><span class="badge verified">Approved</span></td>
+                    <td>
+                        <button class="btn-sm btn-view" onclick="editSociety('${doc.id}')" style="opacity: 0.5; cursor: not-allowed;" title="Edit coming soon"><i class="fa-solid fa-pen"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+        tableBody.innerHTML = html;
+
+    } catch (error) {
+        console.error("Error loading societies:", error);
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error loading societies</td></tr>';
+    }
+}
+
+// Load pending society requests
+async function loadSocietyRequests() {
+    const tableBody = document.getElementById('society-requests-table');
+    const badge = document.getElementById('society-request-count');
+    const badgeSidebar = document.getElementById('badge-society-count'); // Sidebar badge
+    const pendingStat = document.getElementById('pending-societies-stat'); // Overview stat
+
+    if (!tableBody) return;
+
+    try {
+        const q = query(collection(db, 'society_requests'), where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+
+        // Real-time listener
+        onSnapshot(q, (snapshot) => {
+            const count = snapshot.size;
+
+            // Update badges
+            if (badge) {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+            if (badgeSidebar) {
+                badgeSidebar.textContent = count;
+                badgeSidebar.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+            if (pendingStat) {
+                pendingStat.textContent = count;
+            }
+
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #94a3b8; padding: 2rem;">No pending requests</td></tr>';
+                return;
+            }
+
+            let html = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const date = data.createdAt ? data.createdAt.toDate().toLocaleDateString() : 'Just now';
+
+                html += `
+                    <tr>
+                        <td style="font-weight: 600;">${data.name}</td>
+                        <td>${data.area}</td>
+                        <td>
+                            <div style="font-size: 0.9rem;">${data.requestedByName}</div>
+                            <div style="font-size: 0.75rem; color: #64748b;">${data.requestedByEmail}</div>
+                        </td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="btn-sm btn-approve" onclick="approveSocietyRequest('${doc.id}', '${data.name.replace(/'/g, "\\'")}', '${data.area}', '${data.pincode}')">
+                                <i class="fa-solid fa-check"></i> Approve
+                            </button>
+                            <button class="btn-sm" style="background: #fee2e2; color: #991b1b;" onclick="rejectSocietyRequest('${doc.id}')">
+                                <i class="fa-solid fa-xmark"></i> Reject
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tableBody.innerHTML = html;
+        });
+
+    } catch (error) {
+        console.error("Error loading society requests:", error);
+    }
+}
+
+// Approve Society Request
+window.approveSocietyRequest = async function (requestId, name, area, pincode) {
+    if (!confirm(`Are you sure you want to approve "${name}"?`)) return;
+
+    try {
+        // 1. Add to societies collection
+        await addDoc(collection(db, 'societies'), {
+            name: name,
+            area: area,
+            pincode: pincode,
+            status: 'approved',
+            createdAt: serverTimestamp()
+        });
+
+        // 2. Update request status
+        await updateDoc(doc(db, 'society_requests', requestId), {
+            status: 'approved',
+            approvedAt: serverTimestamp(),
+            approvedBy: auth.currentUser.email
+        });
+
+        showToast(`Approved society: ${name}`, 'success');
+        refreshSocieties(); // Refresh list
+
+    } catch (error) {
+        console.error("Error approving society:", error);
+        showToast("Failed to approve society", 'error');
+    }
+};
+
+// Reject Society Request
+window.rejectSocietyRequest = async function (requestId) {
+    if (!confirm("Reject this society request?")) return;
+
+    try {
+        await updateDoc(doc(db, 'society_requests', requestId), {
+            status: 'rejected',
+            rejectedAt: serverTimestamp(),
+            rejectedBy: auth.currentUser.email
+        });
+        showToast("Request rejected", 'info');
+    } catch (error) {
+        console.error("Error rejecting request:", error);
+        showToast("Failed to reject request", 'error');
+    }
+};
+
+// Modal Functions
+window.showAddSocietyModal = function () {
+    document.getElementById('add-society-modal').classList.add('active');
+};
+
+window.closeAddSocietyModal = function () {
+    document.getElementById('add-society-modal').classList.remove('active');
+    document.getElementById('add-society-form').reset();
+};
+
+window.submitNewSociety = async function () {
+    const name = document.getElementById('add-society-name').value;
+    const area = document.getElementById('add-society-area').value;
+    const pincode = document.getElementById('add-society-pincode').value;
+
+    if (!name || !area) {
+        showToast("Please fill in Society Name and Area", 'warning');
+        return;
+    }
+
+    try {
+        await addDoc(collection(db, 'societies'), {
+            name: name,
+            area: area,
+            pincode: pincode,
+            status: 'approved',
+            createdAt: serverTimestamp(),
+            addedBy: auth.currentUser.email
+        });
+
+        showToast("New society added successfully!", 'success');
+        closeAddSocietyModal();
+        refreshSocieties();
+
+    } catch (error) {
+        console.error("Error adding society:", error);
+        showToast("Failed to add society", 'error');
+    }
+};
+
+// EXPORT TO WINDOW (for HTML onclicks)
+window.refreshSocieties = refreshSocieties;
+
+// Initialize on load if section active (or just load listeners)
+// We'll call loadSocietyRequests() globally to keep badges updated
+document.addEventListener('DOMContentLoaded', () => {
+    loadSocietyRequests();
+});
+
+// Enhance showSection to handle societies refresh
+const originalShowSection = window.showSection;
+window.showSection = function (sectionId, element) {
+    // If original function exists, call it first
+    if (typeof originalShowSection === 'function') {
+        originalShowSection(sectionId, element);
+    } else {
+        // Fallback implementation if original not found
+        document.querySelectorAll('.section').forEach(s => {
+            s.style.display = 'none';
+            s.classList.remove('active');
+        });
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.style.display = 'block';
+            section.classList.add('active');
+        }
+
+        if (element) {
+            element.classList.add('active');
+        }
+
+        // Update page title
+        const titleSpan = document.getElementById('page-title');
+        if (titleSpan) {
+            titleSpan.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1).replace('-', ' ');
+        }
+
+        // Mobile handling
+        if (window.innerWidth <= 768) {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.remove('active');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (overlay) overlay.classList.remove('active');
+        }
+    }
+
+    // Specific logic for societies
+    if (sectionId === 'societies') {
+        if (window.refreshSocieties) window.refreshSocieties();
+    }
+};

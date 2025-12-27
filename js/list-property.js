@@ -12,6 +12,7 @@ import { compressImage } from './image-compressor.js';
 import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 import { initFooter } from './footer-manager.js';
+import { initSocietyTypeahead, getSelectedSociety } from './society-typeahead.js';
 
 
 let selectedFiles = [];
@@ -32,10 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    loadSocieties(); // Load societies from Firestore
+    // Initialize society typeahead
+    initSocietyTypeahead('building', 'building-id');
+
     setupImageUpload();
     setupFormSubmission();
-    setupSocietyToggle(); // Setup Other society toggle
 });
 
 
@@ -258,15 +260,10 @@ function getFormData(imageUrls) {
     const amenities = Array.from(document.querySelectorAll('input[name="amenity"]:checked'))
         .map(cb => cb.value);
 
-    // Handle society selection
-    const buildingValue = document.getElementById('building').value;
-    const otherSocietyName = document.getElementById('other-society-name').value;
-
-    // Handle "Other" society selection
-    let actualBuilding = buildingValue;
-    if (buildingValue === "Other Hinjewadi Phase 3" && otherSocietyName) {
-        actualBuilding = `Pending: ${otherSocietyName}`;
-    }
+    // Get society from typeahead
+    const society = getSelectedSociety('building');
+    const societyName = society?.name || document.getElementById('building').value;
+    const isPendingSociety = society?.isPending || false;
 
     return {
         // Property Details

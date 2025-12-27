@@ -2,7 +2,7 @@ RentAnything.shop 🛒
 Hyper-Local Rental Marketplace for Hinjewadi Phase 3 > Don't Buy. Just Rent.
 
 📖 Overview
-RentAnything.shop is a Progressive Web App (PWA) designed to facilitate peer-to-peer rentals within trusted communities. The pilot launch targets Megapolis, Hinjewadi Phase 3, connecting IT professionals and families to rent items like kids' gear, party essentials, home decoration items, etc.
+RentAnything.shop is a Progressive Web App (PWA) designed to facilitate peer-to-peer rentals within trusted communities. The pilot launch targets Hinjewadi, connecting IT professionals and families to rent items like kids' gear, party essentials, home decoration items, etc.
 
 The platform focuses on trust, using a "Verified Seller" model (Aadhaar/Identity check) and a hyper-local approach to minimize logistics.
 
@@ -32,7 +32,7 @@ We will use a modular structure. While Tailwind handles responsiveness via class
 
 Hyper-Local Filters:
 
-Default view: "Megapolis (Splendour)"
+Default view: "Hinjewadi"
 
 Distance calculation using simple geolocation.
 

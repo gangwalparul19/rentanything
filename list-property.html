@@ -75,8 +75,8 @@
                     <div>
                         <strong style="color: #1e3a8a;">Pilot Phase</strong>
                         <p style="margin: 0.25rem 0 0 0; color: #1e40af; font-size: 0.9rem;">Currently accepting
-                            properties from selected societies in <strong>Hinjewadi Phase 3, Pune (Megapolis
-                                area)</strong>. Additional areas coming soon!</p>
+                            properties from selected societies in <strong>Hinjewadi</strong>. Additional areas coming
+                            soon!</p>
                     </div>
                 </div>
             </div>
@@ -141,21 +141,10 @@
 
                 <div class="form-group">
                     <label class="form-label">Society/Township *</label>
-                    <select class="form-control" id="building" required>
-                        <option value="">Select your Society</option>
-                        <!-- Options loaded dynamically from Firestore -->
-                        <option value="Other Hinjewadi Phase 3">Other (Hinjewadi Phase 3)</option>
-                    </select>
-                    <small class="form-hint">Only selected societies in Hinjewadi Phase 3, Pune are available in pilot
-                        phase</small>
-                </div>
-
-                <!-- Other Society Input (Hidden by default) -->
-                <div class="form-group" id="other-society-wrapper" style="display: none;">
-                    <label class="form-label">Society Name *</label>
-                    <input type="text" class="form-control" id="other-society-name"
-                        placeholder="Enter Society/Township Name">
-                    <small class="form-hint">This will be sent for admin approval</small>
+                    <input type="text" class="form-control" id="building" name="building"
+                        placeholder="Start typing your society name..." required autocomplete="off">
+                    <input type="hidden" id="building-id" name="building-id">
+                    <small class="form-hint">Can't find your society? Type the name and select "Add new society"</small>
                 </div>
 
                 <div class="form-group">
@@ -318,7 +307,7 @@
                         <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
                         RentAnything
                     </a>
-                    <p>Hyper-local rentals for the Megapolis community. Save money, save space, and build trust with
+                    <p>Hyper-local rentals for the Hinjewadi community. Save money, save space, and build trust with
                         your neighbors.</p>
                 </div>
                 <div class="footer-links">

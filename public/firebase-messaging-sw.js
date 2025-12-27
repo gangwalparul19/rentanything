@@ -7,13 +7,13 @@ importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-comp
 
 // Firebase configuration (injected during build)
 firebase.initializeApp({
-    apiKey: "",
-    authDomain: "",
-    projectId: "",
-    storageBucket: "",
-    messagingSenderId: "",
-    appId: "",
-    measurementId: ""
+    apiKey: process.env.VITE_FIREBASE_API_KEY || '',
+    authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN || '',
+    projectId: process.env.VITE_FIREBASE_PROJECT_ID || '',
+    storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET || '',
+    messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+    appId: process.env.VITE_FIREBASE_APP_ID || '',
+    measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID || ''
 });
 
 const messaging = firebase.messaging();
@@ -42,18 +42,37 @@ self.addEventListener('notificationclick', (event) => {
 
     event.notification.close();
 
+    const data = event.notification.data || {};
+    let targetUrl = '/';
+
+    // Route based on notification type
+    if (data.type === 'community_request') {
+        targetUrl = '/requests.html';
+    } else if (data.type === 'chat_message' && data.chatId) {
+        targetUrl = `/chat.html?id=${data.chatId}`;
+    } else if (data.type === 'new_booking' || data.type === 'booking_request') {
+        targetUrl = '/my-listings.html';
+    } else if (data.type === 'booking_status') {
+        targetUrl = '/my-bookings.html';
+    } else if (data.type === 'listing_status') {
+        targetUrl = '/my-listings.html';
+    } else if (data.url) {
+        targetUrl = data.url;
+    }
+
     // Open or focus the app
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-            // If app is already open, focus it
+            // If app is already open, navigate and focus
             for (const client of clientList) {
                 if (client.url.includes(self.location.origin) && 'focus' in client) {
+                    client.navigate(targetUrl);
                     return client.focus();
                 }
             }
             // Otherwise open a new window
             if (clients.openWindow) {
-                return clients.openWindow('/');
+                return clients.openWindow(targetUrl);
             }
         })
     );

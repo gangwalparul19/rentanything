@@ -66,7 +66,7 @@ export async function sendPropertyApprovalEmail(property, ownerEmail, ownerName)
             <p>Best regards,<br><strong>RentAnything Team</strong></p>
         </div>
         <div class="footer">
-            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>RentAnything - Hyper-local Rentals for Hinjewadi Community</p>
             <p>Hinjewadi Phase 3, Pune</p>
         </div>
     </div>
@@ -143,7 +143,7 @@ export async function sendPropertyRejectionEmail(property, ownerEmail, ownerName
             <p>Best regards,<br><strong>RentAnything Team</strong></p>
         </div>
         <div class="footer">
-            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>RentAnything - Hyper-local Rentals for Hinjewadi Community</p>
             <p>Hinjewadi Phase 3, Pune</p>
         </div>
     </div>
@@ -218,7 +218,7 @@ export async function sendListingApprovalEmail(listing, ownerEmail, ownerName) {
             <p>Best regards,<br><strong>RentAnything Team</strong></p>
         </div>
         <div class="footer">
-            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>RentAnything - Hyper-local Rentals for Hinjewadi Community</p>
             <p>Hinjewadi Phase 3, Pune</p>
         </div>
     </div>
@@ -293,7 +293,7 @@ export async function sendListingRejectionEmail(listing, ownerEmail, ownerName, 
             <p>Best regards,<br><strong>RentAnything Team</strong></p>
         </div>
         <div class="footer">
-            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>RentAnything - Hyper-local Rentals for Hinjewadi Community</p>
             <p>Hinjewadi Phase 3, Pune</p>
         </div>
     </div>
@@ -372,7 +372,7 @@ export async function sendBookingApprovalEmail(booking, renterEmail, renterName)
             <p>Best regards,<br><strong>RentAnything Team</strong></p>
         </div>
         <div class="footer">
-            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>RentAnything - Hyper-local Rentals for Hinjewadi Community</p>
             <p>Hinjewadi Phase 3, Pune</p>
         </div>
     </div>
@@ -451,7 +451,7 @@ export async function sendBookingRejectionEmail(booking, renterEmail, renterName
             <p>Best regards,<br><strong>RentAnything Team</strong></p>
         </div>
         <div class="footer">
-            <p>RentAnything - Hyper-local Rentals for Megapolis Community</p>
+            <p>RentAnything - Hyper-local Rentals for Hinjewadi Community</p>
             <p>Hinjewadi Phase 3, Pune</p>
         </div>
     </div>

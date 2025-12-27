@@ -199,9 +199,12 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Location (Megapolis)</label>
+                        <label class="form-label">Society/Location (Hinjewadi) *</label>
                         <input type="text" class="form-control" id="location" name="location"
-                            placeholder="e.g. Splendour, Mystic" required>
+                            placeholder="Start typing your society name..." required autocomplete="off">
+                        <input type="hidden" id="location-id" name="location-id">
+                        <small class="form-hint">Can't find your society? Type the name and select "Add new
+                            society"</small>
                     </div>
                 </div>
 

@@ -2892,10 +2892,10 @@ a {
 }
 
 .founders-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    display: flex;
+    justify-content: center;
     gap: 3rem;
-    max-width: 900px;
+    max-width: 500px;
     margin: 0 auto;
 }
 
@@ -2910,6 +2910,8 @@ a {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    max-width: 400px;
 }
 
 .founder-card:hover {
@@ -2922,26 +2924,22 @@ a {
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    padding: 5px;
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    overflow: hidden;
     margin-bottom: 1.5rem;
-    position: relative;
+    border: 4px solid var(--primary-light);
+    box-shadow: var(--shadow-md);
 }
 
 .founder-img {
     width: 100%;
     height: 100%;
-    border-radius: 50%;
     object-fit: cover;
-    object-position: top center;
-    border: 4px solid var(--white);
-    background-color: var(--white);
 }
 
 .founder-info h3 {
     font-size: 1.5rem;
+    margin-bottom: 0.5rem;
     color: var(--dark);
-    margin-bottom: 0.25rem;
 }
 
 .founder-role {
@@ -2949,13 +2947,10 @@ a {
     font-weight: 600;
     font-size: 0.95rem;
     margin-bottom: 1rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .founder-bio {
     color: var(--gray);
-    font-size: 1rem;
     line-height: 1.6;
     font-style: italic;
 }
@@ -2963,12 +2958,26 @@ a {
 /* Responsive adjustments for Founders Section */
 @media (max-width: 768px) {
     .founders-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
+        max-width: 100%;
+        padding: 0 1rem;
     }
 
     .founder-card {
-        padding: 1.5rem;
+        max-width: 100%;
+        padding: 2rem 1.5rem;
+    }
+
+    .founder-img-wrapper {
+        width: 180px;
+        height: 180px;
+    }
+
+    .founder-info h3 {
+        font-size: 1.75rem;
+    }
+
+    .founder-bio {
+        font-size: 1rem;
     }
 }
 
@@ -3159,6 +3168,7 @@ a {
         min-width: 140px;
     }
 }
+
 /* Body padding for fixed header */
 body {
     padding-top: 60px;
@@ -3217,16 +3227,16 @@ body {
     .founders-grid {
         gap: 1rem;
     }
-    
+
     .founder-img-wrapper {
         width: 60px;
         height: 60px;
     }
-    
+
     .founder-info h3 {
         font-size: 0.9rem;
     }
-    
+
     .founder-bio {
         font-size: 0.7rem;
         display: -webkit-box;
@@ -3266,9 +3276,12 @@ body {
 }
 
 @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
     }
+
     50% {
         box-shadow: 0 4px 25px rgba(99, 102, 241, 0.6);
     }
@@ -3315,16 +3328,16 @@ body {
         gap: 0.5rem;
         padding: 0 0.5rem;
     }
-    
+
     .browse-btn {
         padding: 0.7rem 0.75rem;
         font-size: 0.85rem;
     }
-    
+
     .browse-btn i {
         font-size: 0.9rem;
     }
-    
+
     .browse-btn span {
         font-size: 0.85rem;
     }
@@ -3337,9 +3350,8 @@ body {
         font-size: 0.78rem;
         gap: 0.3rem;
     }
-    
+
     .browse-btn i {
         font-size: 0.85rem;
     }
 }
-

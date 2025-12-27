@@ -12,6 +12,7 @@ import { showToast } from './toast-enhanced.js';
 import { showLoader, hideLoader } from './loader.js';
 import { FormValidator } from './form-validator.js';
 import { escapeHtml } from './utils';
+import { initSocietyTypeahead, getSelectedSociety } from './society-typeahead.js';
 
 // Initialize Global UI Components
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,6 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuth();        // 4. Setup login button events
     initFooter();
     initTransactionModes();
+
+    // Initialize society typeahead for location field
+    initSocietyTypeahead('location', 'location-id');
 
     // Check for Edit Mode
     const urlParams = new URLSearchParams(window.location.search);
