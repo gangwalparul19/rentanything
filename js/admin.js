@@ -3098,10 +3098,146 @@ window.showSection = function (sectionId, element) {
             if (window.loadVerifications) window.loadVerifications();
             break;
         case 'disputes':
-            if (window.loadDisputes) window.loadDisputes(); // Check if exists?
+            if (window.loadDisputes) window.loadDisputes();
             break;
         case 'reports':
             if (window.loadReports) window.loadReports();
             break;
     }
+};
+
+// ==========================================
+// MISSING LOAD DISPUTES FUNCTION
+// ==========================================
+window.loadDisputes = async function () {
+    const list = document.getElementById('disputes-table');
+    if (!list) return;
+
+    list.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    try {
+        const q = query(collection(db, "disputes")); // Relaxed query
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            list.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">No disputes found</td></tr>';
+            return;
+        }
+
+        let html = '';
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
+            const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString() : '-';
+
+            html += `
+                <tr>
+                    <td>${docSnap.id.substring(0, 8)}...</td>
+                    <td>${d.bookingId || '-'}</td>
+                    <td>${d.reporterName || 'Unknown'}</td>
+                    <td>${d.issueType || 'General'}</td>
+                    <td><span class="badge ${d.status === 'resolved' ? 'verified' : 'pending'}">${d.status || 'Open'}</span></td>
+                    <td>${d.priority || 'Medium'}</td>
+                    <td>${date}</td>
+                    <td>
+                        <button class="btn-sm btn-view" onclick="viewEvidence('${docSnap.id}')">
+                            <i class="fa-solid fa-image"></i> View
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn-sm btn-approve" onclick="resolveDispute('${docSnap.id}')">Resolve</button>
+                    </td>
+                </tr>
+            `;
+        });
+        list.innerHTML = html;
+
+    } catch (error) {
+        console.error("Error loading disputes:", error);
+        list.innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Error loading disputes</td></tr>';
+    }
+};
+
+// Helper for resolving disputes
+window.resolveDispute = async function (id) {
+    if (!confirm("Mark this dispute as resolved?")) return;
+    try {
+        await updateDoc(doc(db, "disputes", id), { status: 'resolved', resolvedAt: serverTimestamp() });
+        showToast("Dispute resolved", "success");
+        loadDisputes(); // Refresh
+    } catch (e) {
+        console.error(e);
+        showToast("Error updating dispute", "error");
+    }
+};
+
+window.viewEvidence = function (id) {
+    alert("View evidence logic for " + id); // Placeholder
+};
+
+// ==========================================
+// MISSING LOAD DISPUTES FUNCTION
+// ==========================================
+window.loadDisputes = async function () {
+    const list = document.getElementById('disputes-table');
+    if (!list) return;
+
+    list.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
+
+    try {
+        const q = query(collection(db, "disputes")); // Relaxed query
+        const snap = await getDocs(q);
+
+        if (snap.empty) {
+            list.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">No disputes found</td></tr>';
+            return;
+        }
+
+        let html = '';
+        snap.forEach(docSnap => {
+            const d = docSnap.data();
+            const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString() : '-';
+
+            html += `
+                <tr>
+                    <td>${docSnap.id.substring(0, 8)}...</td>
+                    <td>${d.bookingId || '-'}</td>
+                    <td>${d.reporterName || 'Unknown'}</td>
+                    <td>${d.issueType || 'General'}</td>
+                    <td><span class="badge ${d.status === 'resolved' ? 'verified' : 'pending'}">${d.status || 'Open'}</span></td>
+                    <td>${d.priority || 'Medium'}</td>
+                    <td>${date}</td>
+                    <td>
+                        <button class="btn-sm btn-view" onclick="viewEvidence('${docSnap.id}')">
+                            <i class="fa-solid fa-image"></i> View
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn-sm btn-approve" onclick="resolveDispute('${docSnap.id}')">Resolve</button>
+                    </td>
+                </tr>
+            `;
+        });
+        list.innerHTML = html;
+
+    } catch (error) {
+        console.error("Error loading disputes:", error);
+        list.innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Error loading disputes</td></tr>';
+    }
+};
+
+// Helper for resolving disputes
+window.resolveDispute = async function (id) {
+    if (!confirm("Mark this dispute as resolved?")) return;
+    try {
+        await updateDoc(doc(db, "disputes", id), { status: 'resolved', resolvedAt: serverTimestamp() });
+        showToast("Dispute resolved", "success");
+        loadDisputes(); // Refresh
+    } catch (e) {
+        console.error(e);
+        showToast("Error updating dispute", "error");
+    }
+};
+
+window.viewEvidence = function (id) {
+    alert("View evidence logic for " + id); // Placeholder
 };
