@@ -138,17 +138,14 @@
         <!-- Browse Options Section -->
         <div class="search-section">
             <div class="container">
-                <div
-                    style="display: flex; gap: 1rem; justify-content: center; align-items: center; flex-wrap: nowrap; max-width: 600px; margin: 0 auto;">
-                    <button class="btn btn-primary btn-large" onclick="window.location.href='search.html'"
-                        style="flex: 1; min-width: 140px; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem;">
+                <div class="browse-buttons-row">
+                    <button class="btn btn-primary browse-btn" onclick="window.location.href='search.html'">
                         <i class="fa-solid fa-box"></i>
-                        Browse Items
+                        <span>Browse Items</span>
                     </button>
-                    <button class="btn btn-primary btn-large" onclick="window.location.href='properties.html'"
-                        style="flex: 1; min-width: 140px; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1rem;">
+                    <button class="btn btn-primary browse-btn" onclick="window.location.href='properties.html'">
                         <i class="fa-solid fa-building"></i>
-                        Browse Properties
+                        <span>Browse Properties</span>
                     </button>
                 </div>
             </div>
@@ -254,24 +251,6 @@
                 </div>
 
                 <div class="founders-grid">
-                    <!-- Parul -->
-                    <div class="founder-card">
-                        <div class="founder-img-wrapper">
-                            <img src="Parul.jpeg" alt="Parul Gangwal" class="founder-img">
-                        </div>
-                        <div class="founder-info">
-                            <h3>Parul Gangwal</h3>
-                            <div class="founder-location">
-                                <i class="fa-solid fa-location-dot"></i> Megapolis Splendour
-                            </div>
-                            <p class="founder-role">Co-Founder & Tech Lead</p>
-                            <p class="founder-bio">
-                                "I believe in the power of technology to bring communities together. My goal is to make
-                                renting items as easy and safe as borrowing from a friend."
-                            </p>
-                        </div>
-                    </div>
-
                     <!-- Mahak -->
                     <div class="founder-card">
                         <div class="founder-img-wrapper">
@@ -282,7 +261,7 @@
                             <div class="founder-location">
                                 <i class="fa-solid fa-location-dot"></i> Megapolis Splendour
                             </div>
-                            <p class="founder-role">Co-Founder & Operations</p>
+                            <p class="founder-role">Founder</p>
                             <p class="founder-bio">
                                 "Building trust is everything. We want to ensure every interaction on our platform is
                                 positive, secure, and helpful for our neighbors."
@@ -329,11 +308,12 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>Designed by Parul Gangwal</p>
+                <p>&copy; <span id="copyright-year"></span> RentAnything. All rights reserved.</p>
                 <div class="social-links">
-                    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram fa-lg"></i></a>
-                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter fa-lg"></i></a>
-                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                    <a href="https://wa.me/919372776019?text=Hello%20RentAnything!" aria-label="WhatsApp"
+                        target="_blank"><i class="fa-brands fa-whatsapp fa-lg"></i></a>
+                    <a href="https://www.facebook.com/profile.php?id=61585500416022" aria-label="Facebook"
+                        target="_blank"><i class="fa-brands fa-facebook fa-lg"></i></a>
                 </div>
             </div>
         </div>

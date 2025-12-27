@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share to RentAnything</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+
+    <style>
+        .share-container {
+            max-width: 500px;
+            margin: 4rem auto;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .share-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 2rem;
+        }
+
+        .share-preview {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            text-align: left;
+        }
+
+        .share-preview-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+        }
+
+        .share-preview-text {
+            font-size: 0.9rem;
+            color: var(--gray);
+            line-height: 1.5;
+        }
+
+        .share-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .share-actions .btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+        }
+
+        .loading-spinner {
+            display: none;
+            margin: 2rem auto;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="container">
+            <a href="/" class="logo">
+                <img src="/logo.png" alt="RentAnything" style="height: 32px; width: auto; margin-right: 8px;">
+                RentAnything
+            </a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="share-container animate-in">
+            <div class="share-icon">
+                <i class="fa-solid fa-share-from-square"></i>
+            </div>
+
+            <h1 style="margin-bottom: 0.5rem;">Share to RentAnything</h1>
+            <p style="color: var(--gray);">Create a listing from shared content</p>
+
+            <div id="loading-spinner" class="loading-spinner">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                <p style="margin-top: 1rem; color: var(--gray);">Processing shared content...</p>
+            </div>
+
+            <div id="share-content">
+                <div class="share-preview" id="preview-box" style="display: none;">
+                    <div class="share-preview-title" id="preview-title"></div>
+                    <div class="share-preview-text" id="preview-text"></div>
+                </div>
+
+                <div class="share-actions">
+                    <button class="btn btn-primary" id="create-listing-btn">
+                        <i class="fa-solid fa-plus"></i> Create Listing
+                    </button>
+                    <button class="btn btn-outline" id="post-request-btn">
+                        <i class="fa-solid fa-bullhorn"></i> Post to Community Board
+                    </button>
+                    <a href="/" class="btn btn-text" style="color: var(--gray);">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+
+            <div id="no-content" style="display: none;">
+                <p style="color: var(--gray); margin: 2rem 0;">No content was shared. Would you like to:</p>
+                <div class="share-actions">
+                    <a href="/create-listing.html" class="btn btn-primary">
+                        <i class="fa-solid fa-plus"></i> Create New Listing
+                    </a>
+                    <a href="/requests.html" class="btn btn-outline">
+                        <i class="fa-solid fa-bullhorn"></i> View Community Board
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { showToast } from './js/toast-enhanced.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get shared content from URL params
+            const params = new URLSearchParams(window.location.search);
+            const title = params.get('title') || '';
+            const text = params.get('text') || '';
+            const url = params.get('url') || '';
+
+            const hasContent = title || text || url;
+
+            const shareContent = document.getElementById('share-content');
+            const noContent = document.getElementById('no-content');
+            const previewBox = document.getElementById('preview-box');
+            const previewTitle = document.getElementById('preview-title');
+            const previewText = document.getElementById('preview-text');
+
+            if (hasContent) {
+                shareContent.style.display = 'block';
+                noContent.style.display = 'none';
+                previewBox.style.display = 'block';
+
+                // Display shared content
+                previewTitle.textContent = title || 'Shared Content';
+                previewText.textContent = text || url || 'No description';
+
+                // Store in sessionStorage for use in create-listing
+                sessionStorage.setItem('sharedContent', JSON.stringify({
+                    title: title,
+                    description: text,
+                    url: url
+                }));
+            } else {
+                shareContent.style.display = 'none';
+                noContent.style.display = 'block';
+            }
+
+            // Create Listing button
+            document.getElementById('create-listing-btn')?.addEventListener('click', () => {
+                window.location.href = `/create-listing.html?shared=true&title=${encodeURIComponent(title)}&desc=${encodeURIComponent(text)}`;
+            });
+
+            // Post to Community Board button
+            document.getElementById('post-request-btn')?.addEventListener('click', () => {
+                window.location.href = `/requests.html?shared=true&title=${encodeURIComponent(title || text)}`;
+            });
+        });
+    </script>
+</body>
+
+</html>

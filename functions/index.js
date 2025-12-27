@@ -167,6 +167,7 @@ exports.sendGenericEmail = functions.https.onCall(async (data, context) => {
 /**
  * Send Chat Push Notification
  * Triggers when a new message is created in a chat
+ * Also creates in-app notification in Firestore
  */
 exports.sendChatNotification = functions.firestore
     .document('chats/{chatId}/messages/{messageId}')
@@ -190,7 +191,28 @@ exports.sendChatNotification = functions.firestore
         const recipientId = chatData.participants.find(uid => uid !== senderId);
         if (!recipientId) return null;
 
-        // 2. Get Recipient's FCM Token
+        // Get sender name
+        let senderName = "Someone";
+        if (chatData.participantData && chatData.participantData[senderId]) {
+            senderName = chatData.participantData[senderId].name || "Someone";
+        }
+
+        // 2. Create in-app notification in Firestore (for notification bell)
+        try {
+            await admin.firestore().collection('notifications').add({
+                userId: recipientId,
+                title: `💬 ${senderName}`,
+                body: message.text || 'Sent a photo',
+                type: 'message',
+                link: `/chat.html?id=${chatId}`,
+                read: false,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (e) {
+            console.error('Error creating in-app notification:', e);
+        }
+
+        // 3. Get Recipient's FCM Token for push notification
         const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(recipientId).get();
         if (!tokenSnap.exists) {
             console.log('No FCM token for user:', recipientId);
@@ -200,36 +222,38 @@ exports.sendChatNotification = functions.firestore
         const { token } = tokenSnap.data();
         if (!token) return null;
 
-        // 3. Construct Notification
-        // Get sender name
-        let senderName = "New Message";
-        if (chatData.participantData && chatData.participantData[senderId]) {
-            senderName = chatData.participantData[senderId].name;
-        }
-
-        const payload = {
+        // 4. Send Push Notification using FCM v1 API
+        const fcmMessage = {
+            token: token,
             notification: {
                 title: senderName,
-                body: message.text || 'Sent a photo',
-                icon: '/images/icon-192.png',
-                click_action: `https://rentanything.shop/chat.html?id=${chatId}` // Adjust domain as needed
+                body: message.text || 'Sent a photo'
             },
             data: {
                 url: `/chat.html?id=${chatId}`,
                 chatId: chatId,
                 type: 'chat_message'
+            },
+            webpush: {
+                fcmOptions: {
+                    link: `/chat.html?id=${chatId}`
+                },
+                notification: {
+                    icon: '/icon-192.png',
+                    badge: '/icon-192.png'
+                }
             }
         };
 
-        // 4. Send Message
         try {
-            await admin.messaging().sendToDevice(token, payload);
-            console.log('Notification sent to:', recipientId);
+            await admin.messaging().send(fcmMessage);
+            console.log('Push notification sent to:', recipientId);
         } catch (error) {
-            console.error('Error sending notification:', error);
+            console.error('Error sending push notification:', error);
             // Cleanup invalid tokens
             if (error.code === 'messaging/registration-token-not-registered') {
                 await admin.firestore().collection('fcm_tokens').doc(recipientId).delete();
+                console.log('Cleaned up invalid token for:', recipientId);
             }
         }
     });
@@ -370,6 +394,7 @@ exports.notifyUserListingStatus = functions.firestore
 
 /**
  * Notify Owner when they receive a new booking request
+ * Creates both push notification and in-app notification
  */
 exports.notifyOwnerNewBooking = functions.firestore
     .document('bookings/{bookingId}')
@@ -380,35 +405,61 @@ exports.notifyOwnerNewBooking = functions.firestore
         const ownerId = booking.ownerId;
         if (!ownerId) return null;
 
-        // Get owner's FCM token
+        const title = '🎉 New Booking Request!';
+        const body = `${booking.renterName || 'Someone'} wants to rent "${booking.listingTitle || 'your item'}"`;
+
+        // 1. Create in-app notification (for notification bell)
+        try {
+            await admin.firestore().collection('notifications').add({
+                userId: ownerId,
+                title: title,
+                body: body,
+                type: 'booking_request',
+                link: '/my-listings.html',
+                read: false,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (e) {
+            console.error('Error creating in-app notification:', e);
+        }
+
+        // 2. Send push notification
         const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(ownerId).get();
         if (!tokenSnap.exists) return null;
 
         const { token } = tokenSnap.data();
         if (!token) return null;
 
-        const payload = {
-            notification: {
-                title: '🎉 New Booking Request!',
-                body: `${booking.renterName || 'Someone'} wants to rent "${booking.listingTitle || 'your item'}"`,
-                icon: '/logo.png'
-            },
+        const fcmMessage = {
+            token: token,
+            notification: { title, body },
             data: {
                 type: 'new_booking',
                 bookingId: bookingId,
                 url: '/my-listings.html'
+            },
+            webpush: {
+                notification: {
+                    icon: '/icon-192.png',
+                    badge: '/icon-192.png'
+                }
             }
         };
 
         try {
-            await admin.messaging().send({ token, ...payload });
+            await admin.messaging().send(fcmMessage);
+            console.log('Booking notification sent to owner:', ownerId);
         } catch (error) {
             console.error('Error sending booking notification:', error);
+            if (error.code === 'messaging/registration-token-not-registered') {
+                await admin.firestore().collection('fcm_tokens').doc(ownerId).delete();
+            }
         }
     });
 
 /**
  * Notify Renter when their booking status changes
+ * Creates both push notification and in-app notification
  */
 exports.notifyRenterBookingStatus = functions.firestore
     .document('bookings/{bookingId}')
@@ -422,13 +473,6 @@ exports.notifyRenterBookingStatus = functions.firestore
 
         const renterId = after.renterId;
         if (!renterId) return null;
-
-        // Get renter's FCM token
-        const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(renterId).get();
-        if (!tokenSnap.exists) return null;
-
-        const { token } = tokenSnap.data();
-        if (!token) return null;
 
         let title, body;
         if (after.status === 'confirmed' || after.status === 'approved') {
@@ -444,14 +488,285 @@ exports.notifyRenterBookingStatus = functions.firestore
             return null;
         }
 
-        const payload = {
-            notification: { title, body, icon: '/logo.png' },
-            data: { type: 'booking_status', bookingId, url: '/my-bookings.html' }
+        // 1. Create in-app notification (for notification bell)
+        try {
+            await admin.firestore().collection('notifications').add({
+                userId: renterId,
+                title: title,
+                body: body,
+                type: 'booking_update',
+                link: '/my-bookings.html',
+                read: false,
+                createdAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (e) {
+            console.error('Error creating in-app notification:', e);
+        }
+
+        // 2. Send push notification
+        const tokenSnap = await admin.firestore().collection('fcm_tokens').doc(renterId).get();
+        if (!tokenSnap.exists) return null;
+
+        const { token } = tokenSnap.data();
+        if (!token) return null;
+
+        const fcmMessage = {
+            token: token,
+            notification: { title, body },
+            data: { type: 'booking_status', bookingId, url: '/my-bookings.html' },
+            webpush: {
+                notification: {
+                    icon: '/icon-192.png',
+                    badge: '/icon-192.png'
+                }
+            }
         };
 
         try {
-            await admin.messaging().send({ token, ...payload });
+            await admin.messaging().send(fcmMessage);
+            console.log('Booking status notification sent to:', renterId);
         } catch (error) {
             console.error('Error sending booking status notification:', error);
+            if (error.code === 'messaging/registration-token-not-registered') {
+                await admin.firestore().collection('fcm_tokens').doc(renterId).delete();
+            }
+        }
+    });
+
+/**
+ * Notify ALL users when a new Community Board request is posted
+ * Sends push notification to all registered FCM tokens (except poster)
+ * Works even when the PWA is closed - leverages Service Worker
+ */
+exports.notifyCommunityBoardPost = functions.firestore
+    .document('requests/{requestId}')
+    .onCreate(async (snap, context) => {
+        const request = snap.data();
+        const requestId = context.params.requestId;
+        const posterId = request.userId;
+
+        console.log(`New community request: ${requestId} by ${posterId}`);
+
+        // Get ALL FCM tokens except the poster's
+        const tokensSnap = await admin.firestore()
+            .collection('fcm_tokens')
+            .get();
+
+        if (tokensSnap.empty) {
+            console.log('No FCM tokens found');
+            return null;
+        }
+
+        // Filter out poster's token and collect valid tokens
+        const tokens = tokensSnap.docs
+            .filter(doc => doc.id !== posterId)
+            .map(doc => doc.data().token)
+            .filter(t => t);
+
+        if (tokens.length === 0) {
+            console.log('No eligible recipients after filtering');
+            return null;
+        }
+
+        console.log(`Sending notification to ${tokens.length} users`);
+
+        const payload = {
+            notification: {
+                title: `📢 ${request.userName || 'A neighbor'} needs something!`,
+                body: request.title || 'New community request posted',
+                icon: '/icon-192.png'
+            },
+            data: {
+                type: 'community_request',
+                requestId: requestId,
+                url: '/requests.html'
+            }
+        };
+
+        // Send in batches (FCM limit is 500 per multicast call)
+        const batchSize = 500;
+        let successCount = 0;
+        let failureCount = 0;
+
+        for (let i = 0; i < tokens.length; i += batchSize) {
+            const batch = tokens.slice(i, i + batchSize);
+            try {
+                const response = await admin.messaging().sendEachForMulticast({
+                    tokens: batch,
+                    notification: payload.notification,
+                    data: payload.data
+                });
+                successCount += response.successCount;
+                failureCount += response.failureCount;
+
+                // Clean up invalid tokens
+                response.responses.forEach((resp, idx) => {
+                    if (!resp.success && resp.error?.code === 'messaging/registration-token-not-registered') {
+                        // Find the user with this token and delete
+                        const invalidToken = batch[idx];
+                        tokensSnap.docs.forEach(doc => {
+                            if (doc.data().token === invalidToken) {
+                                admin.firestore().collection('fcm_tokens').doc(doc.id).delete();
+                                console.log(`Cleaned up invalid token for user: ${doc.id}`);
+                            }
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Batch send error:', error);
+                failureCount += batch.length;
+            }
+        }
+
+        console.log(`Community notification sent: ${successCount} success, ${failureCount} failures`);
+        return { success: successCount, failed: failureCount };
+    });
+
+/**
+ * Weekly Email Digest
+ * Sends personalized email to users every Monday at 9 AM IST
+ * Contains new listings in their area and community highlights
+ */
+exports.sendWeeklyEmailDigest = functions.pubsub
+    .schedule('0 9 * * 1') // Every Monday at 9 AM
+    .timeZone('Asia/Kolkata')
+    .onRun(async (context) => {
+        console.log('Starting weekly email digest...');
+
+        try {
+            // Get all users who have email digest enabled
+            const usersSnap = await admin.firestore()
+                .collection('users')
+                .where('emailPreferences.digest', '==', true)
+                .get();
+
+            if (usersSnap.empty) {
+                console.log('No users subscribed to digest');
+                return null;
+            }
+
+            // Get listings from the past week
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+            const newListingsSnap = await admin.firestore()
+                .collection('listings')
+                .where('status', 'in', ['active', 'approved'])
+                .where('createdAt', '>=', oneWeekAgo)
+                .orderBy('createdAt', 'desc')
+                .limit(10)
+                .get();
+
+            const newListings = newListingsSnap.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Get community requests from past week
+            const requestsSnap = await admin.firestore()
+                .collection('requests')
+                .where('createdAt', '>=', oneWeekAgo)
+                .orderBy('createdAt', 'desc')
+                .limit(5)
+                .get();
+
+            const communityRequests = requestsSnap.docs.map(doc => doc.data());
+
+            let successCount = 0;
+            let failureCount = 0;
+
+            // Send personalized email to each user
+            for (const userDoc of usersSnap.docs) {
+                const user = userDoc.data();
+
+                if (!user.email) continue;
+
+                // Filter listings by user's location/society if available
+                let relevantListings = newListings;
+                if (user.society) {
+                    relevantListings = newListings.filter(l =>
+                        l.location?.toLowerCase().includes(user.society.toLowerCase())
+                    );
+                    // If no local matches, show all new listings
+                    if (relevantListings.length === 0) relevantListings = newListings.slice(0, 5);
+                }
+
+                // Build email HTML
+                const listingsHtml = relevantListings.slice(0, 5).map(listing => `
+                    <div style="display: flex; gap: 1rem; padding: 1rem; border-bottom: 1px solid #e5e7eb;">
+                        <img src="${listing.image || 'https://placehold.co/100'}" 
+                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 600; color: #1f2937;">${listing.title}</div>
+                            <div style="color: #6b7280; font-size: 0.9rem;">₹${listing.rates?.daily || listing.price || 0}/day</div>
+                            <div style="color: #9ca3af; font-size: 0.8rem;">${listing.location || ''}</div>
+                        </div>
+                    </div>
+                `).join('');
+
+                const requestsHtml = communityRequests.slice(0, 3).map(req => `
+                    <div style="padding: 0.75rem; background: #f9fafb; border-radius: 8px; margin-bottom: 0.5rem;">
+                        <div style="font-weight: 600; color: #1f2937;">${req.title}</div>
+                        <div style="color: #6b7280; font-size: 0.85rem;">by ${req.userName || 'Neighbor'}</div>
+                    </div>
+                `).join('');
+
+                const emailHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="utf-8"></head>
+                <body style="font-family: 'Helvetica Neue', Arial, sans-serif; background: #f3f4f6; padding: 40px 20px;">
+                    <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); padding: 30px; text-align: center;">
+                            <h1 style="color: white; margin: 0; font-size: 24px;">Your Weekly Digest 📬</h1>
+                            <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0;">What's new in your neighborhood</p>
+                        </div>
+                        
+                        <div style="padding: 30px;">
+                            <h2 style="color: #1f2937; font-size: 18px; margin-bottom: 1rem;">🆕 New Listings This Week</h2>
+                            ${listingsHtml || '<p style="color: #6b7280;">No new listings this week</p>'}
+                            
+                            <div style="margin-top: 2rem;">
+                                <h2 style="color: #1f2937; font-size: 18px; margin-bottom: 1rem;">📢 Community Needs Help With</h2>
+                                ${requestsHtml || '<p style="color: #6b7280;">No new requests</p>'}
+                            </div>
+                            
+                            <div style="text-align: center; margin-top: 2rem;">
+                                <a href="https://rentanything.shop" 
+                                   style="display: inline-block; background: #4F46E5; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600;">
+                                    Browse All Listings
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #f9fafb; padding: 20px; text-align: center; color: #6b7280; font-size: 12px;">
+                            <p>You're receiving this because you subscribed to weekly digests.</p>
+                            <a href="https://rentanything.shop/profile.html?unsubscribe=digest" style="color: #4F46E5;">Unsubscribe</a>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                `;
+
+                try {
+                    await transporter.sendMail({
+                        from: `RentAnything <${functions.config().smtp.email}>`,
+                        to: user.email,
+                        subject: `📬 Your Weekly Digest - ${newListings.length} new items near you!`,
+                        html: emailHtml
+                    });
+                    successCount++;
+                } catch (e) {
+                    console.error(`Failed to send digest to ${user.email}:`, e);
+                    failureCount++;
+                }
+            }
+
+            console.log(`Weekly digest sent: ${successCount} success, ${failureCount} failures`);
+            return { success: successCount, failed: failureCount };
+
+        } catch (error) {
+            console.error('Weekly digest error:', error);
+            return null;
         }
     });

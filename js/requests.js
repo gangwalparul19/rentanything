@@ -7,6 +7,7 @@ import { initAuth } from './auth.js';
 import { initHeader } from './header-manager.js';
 import { initFooter } from './footer-manager.js';
 import { showToast } from './toast-enhanced.js';
+import { subscribeToPushNotifications, getNotificationPermissionStatus } from './notification-manager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     initHeader();      // 1. Inject HTML links and setup UI auth
@@ -15,6 +16,13 @@ document.addEventListener('DOMContentLoaded', () => {
     initAuth();        // 4. Setup login button events
     initFooter();
     loadRequests();
+
+    // Prompt for notifications if not already enabled (after a short delay)
+    setTimeout(() => {
+        if (getNotificationPermissionStatus() === 'default') {
+            showNotificationPrompt();
+        }
+    }, 2000);
 });
 
 const requestsContainer = document.getElementById('requests-container');
@@ -185,3 +193,102 @@ window.addEventListener('beforeunload', () => {
         unsubscribeRequests = null;
     }
 });
+
+// ==================== NOTIFICATION PROMPT ====================
+
+/**
+ * Show a non-intrusive banner prompting users to enable push notifications
+ */
+function showNotificationPrompt() {
+    // Don't show if user is not logged in
+    if (!currentUser) return;
+
+    // Check if user already dismissed the prompt
+    if (localStorage.getItem('community-notif-dismissed')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'notif-prompt-banner';
+    banner.innerHTML = `
+        <div style="
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 9999;
+            max-width: 90vw;
+            animation: slideUp 0.3s ease-out;
+        ">
+            <span style="font-size: 1.5rem;">🔔</span>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; font-size: 0.95rem;">Get notified when neighbors post!</div>
+                <div style="font-size: 0.8rem; opacity: 0.9;">Even when app is closed</div>
+            </div>
+            <button onclick="window.enableCommunityNotifications()" style="
+                background: white;
+                color: #6366f1;
+                border: none;
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 0.85rem;
+            ">Enable</button>
+            <button onclick="window.dismissNotificationPrompt()" style="
+                background: transparent;
+                border: none;
+                color: white;
+                opacity: 0.7;
+                cursor: pointer;
+                font-size: 1.2rem;
+                padding: 0 0.25rem;
+            ">✕</button>
+        </div>
+    `;
+
+    // Add animation styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideUp {
+            from { transform: translateX(-50%) translateY(100px); opacity: 0; }
+            to { transform: translateX(-50%) translateY(0); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.body.appendChild(banner);
+}
+
+/**
+ * Enable push notifications when user clicks the button
+ */
+window.enableCommunityNotifications = async () => {
+    const banner = document.getElementById('notif-prompt-banner');
+
+    try {
+        const token = await subscribeToPushNotifications(true);
+        if (token) {
+            showToast('🎉 Notifications enabled! You\'ll know when neighbors post.', 'success');
+        }
+    } catch (e) {
+        console.error('Enable notifications error:', e);
+    }
+
+    banner?.remove();
+};
+
+/**
+ * Dismiss the notification prompt and remember the choice
+ */
+window.dismissNotificationPrompt = () => {
+    const banner = document.getElementById('notif-prompt-banner');
+    banner?.remove();
+    localStorage.setItem('community-notif-dismissed', 'true');
+};

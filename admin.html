@@ -1215,19 +1215,27 @@
         <!-- USERS SECTION -->
         <section id="users" class="section">
             <div class="card">
-                <h3>All Registered Users</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="margin: 0;">All Registered Users</h3>
+                    <button class="btn btn-primary" onclick="exportUsers()"
+                        style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                        <i class="fa-solid fa-download"></i> Export CSV
+                    </button>
+                </div>
                 <table id="table-users">
                     <thead>
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Phone</th>
+                            <th>Status</th>
                             <th>Joined</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                 </table>
+                <!-- Pagination Container -->
+                <div id="users-pagination"></div>
             </div>
         </section>
         </div>

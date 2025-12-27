@@ -17,13 +17,44 @@ export function initHeader() {
         const dropdown = document.createElement('div');
         dropdown.id = 'notification-dropdown';
         dropdown.className = 'notification-dropdown';
-        dropdown.style.display = 'none';
+        // Fixed positioning at top with proper z-index
+        dropdown.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 80px;
+            right: 1rem;
+            width: 340px;
+            max-width: calc(100vw - 2rem);
+            max-height: 450px;
+            background: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 10001;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        `;
         dropdown.innerHTML = `
-            <div class="dropdown-header">
-                <h3>Notifications</h3>
-                <button id="mark-all-read" class="btn-text">Mark all read</button>
+            <div style="
+                padding: 1rem;
+                border-bottom: 1px solid #e2e8f0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                color: white;
+            ">
+                <h3 style="margin: 0; font-size: 1rem; font-weight: 600;">Notifications</h3>
+                <button id="mark-all-read" style="
+                    background: rgba(255,255,255,0.2);
+                    border: none;
+                    color: white;
+                    padding: 0.35rem 0.75rem;
+                    border-radius: 0.5rem;
+                    font-size: 0.8rem;
+                    cursor: pointer;
+                ">Mark all read</button>
             </div>
-            <div id="notification-list" class="notification-list">
+            <div id="notification-list" style="max-height: 380px; overflow-y: auto;">
                 <!-- Notifications will be injected here -->
             </div>
         `;
@@ -64,13 +95,12 @@ export function initHeader() {
     // Standard Links Configuration
     // derived from index.html
     const links = [
-        { text: 'Home', href: '/', icon: 'fa-home' },
+        { text: 'Home', href: '/' },
         { text: 'Items', href: '/search.html' },
         { text: 'Properties', href: '/properties.html' },
         { text: 'List Item', href: '/create-listing.html', class: 'mobile-only' },
         { text: 'List Property', href: '/list-property.html', class: 'mobile-only' },
-        { text: 'Requests', href: '/requests.html' },
-        { text: 'How it Works', href: '/index.html#how-it-works' },
+        { text: 'Community Forums', href: '/requests.html' },
         { text: '📱 Install App', href: '#install-app', id: 'mobile-install-app', class: 'install-app-link mobile-only' }
     ];
 
@@ -381,21 +411,37 @@ function updateBellUI(count) {
 
 function toggleDropdown(triggerBtn) {
     const dropdown = document.getElementById('notification-dropdown');
+    if (!dropdown) return;
+
     const isVisible = dropdown.style.display === 'block';
 
     if (isVisible) {
         dropdown.style.display = 'none';
     } else {
-        // Position it
+        // Ensure fixed positioning is set
+        dropdown.style.position = 'fixed';
+        dropdown.style.zIndex = '10001';
+
+        // Position relative to button
         const rect = triggerBtn.getBoundingClientRect();
         dropdown.style.top = (rect.bottom + 10) + 'px';
 
-        // Prevent overflow right
-        if (window.innerWidth - rect.left < 320) {
+        // Prevent overflow right - position from right edge on mobile
+        if (window.innerWidth <= 768) {
             dropdown.style.right = '1rem';
             dropdown.style.left = 'auto';
+            dropdown.style.width = 'calc(100vw - 2rem)';
+            dropdown.style.maxWidth = '340px';
         } else {
-            dropdown.style.left = (rect.left - 150) + 'px'; // Center roughly
+            // Desktop: position near the button
+            if (window.innerWidth - rect.right < 340) {
+                dropdown.style.right = '1rem';
+                dropdown.style.left = 'auto';
+            } else {
+                dropdown.style.left = (rect.left - 150) + 'px';
+                dropdown.style.right = 'auto';
+            }
+            dropdown.style.width = '340px';
         }
 
         dropdown.style.display = 'block';

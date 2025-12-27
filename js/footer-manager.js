@@ -1,6 +1,7 @@
 /**
  * Footer Manager
  * Injects a simple footer (Copyright + Social) on pages where the full footer is not needed.
+ * Also sets the dynamic copyright year.
  * Usage: Import initFooter and call it.
  */
 
@@ -15,14 +16,26 @@ export function initFooter() {
         footer.innerHTML = `
             <div class="container" style="text-align: center;">
                  <div class="footer-bottom" style="border-top: none; padding-top: 0; margin-top: 0;">
-                    <p>Designed by Parul Gangwal</p>
+                    <p>&copy; <span id="copyright-year"></span> RentAnything. All rights reserved.</p>
                     <div class="social-links" style="justify-content: center; margin-top: 1rem;">
-                        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram fa-lg"></i></a>
-                        <a href="#" aria-label="Twitter"><i class="fa-brands fa-twitter fa-lg"></i></a>
-                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook fa-lg"></i></a>
+                        <a href="https://wa.me/919372776019?text=Hello%20RentAnything!" aria-label="WhatsApp" target="_blank"><i class="fa-brands fa-whatsapp fa-lg"></i></a>
+                        <a href="https://www.facebook.com/profile.php?id=61585500416022" aria-label="Facebook" target="_blank"><i class="fa-brands fa-facebook fa-lg"></i></a>
                     </div>
                 </div>
             </div>
         `;
+    }
+
+    // Set the current year for copyright
+    setCopyrightYear();
+}
+
+/**
+ * Sets the current year in the copyright span
+ */
+function setCopyrightYear() {
+    const yearSpan = document.getElementById('copyright-year');
+    if (yearSpan) {
+        yearSpan.textContent = new Date().getFullYear();
     }
 }

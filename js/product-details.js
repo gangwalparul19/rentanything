@@ -16,6 +16,7 @@ import { dedupedFetch } from './utils';
 import { startChatWithOwner } from './chat.js';
 import { FocusTrap } from './accessibility.js';
 import { generateSkeletonDetails } from './skeleton-loader';
+import { checkUserPhone, showPhoneVerificationModal } from './phone-otp.js';
 
 // Init
 document.addEventListener('DOMContentLoaded', () => {
@@ -171,12 +172,10 @@ async function handleBooking() {
         return;
     }
 
-    showLoader("Processing booking request...");
-
     const productId = getQueryParam('id');
     if (!productId) return;
 
-    // Validate Date & Time
+    // Validate Date & Time first (before OTP check)
     const dateRange = calendarInstance ? calendarInstance.selectedDates : [];
     const timeSlot = document.getElementById('time-slot').value;
 
@@ -189,6 +188,29 @@ async function handleBooking() {
         showToast("Please select a time slot.", "error");
         return;
     }
+
+    // ✅ Phone OTP Verification Check
+    const phoneStatus = await checkUserPhone();
+
+    if (!phoneStatus.hasPhone || !phoneStatus.isVerified) {
+        // Show phone verification modal
+        showPhoneVerificationModal(() => {
+            // After successful verification, proceed with booking
+            processBooking(productId, dateRange, timeSlot);
+        });
+        return;
+    }
+
+    // Phone is already verified, proceed with booking
+    await processBooking(productId, dateRange, timeSlot);
+}
+
+// Separated booking processing logic
+async function processBooking(productId, dateRange, timeSlot) {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    showLoader("Processing booking request...");
 
     const startDate = dateRange[0];
     const endDate = dateRange[dateRange.length - 1]; // Handles single date or range

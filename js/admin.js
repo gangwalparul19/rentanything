@@ -1,6 +1,6 @@
 import { auth, db } from './firebase-config.js';
 import { onAuthStateChanged, GoogleAuthProvider, signInWithPopup, setPersistence, browserLocalPersistence, signOut } from 'firebase/auth';
-import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc, getCountFromServer, orderBy, limit, serverTimestamp, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, getDoc, addDoc, getCountFromServer, orderBy, limit, serverTimestamp, onSnapshot, startAfter } from 'firebase/firestore';
 import { showToast } from './toast-enhanced.js';
 import { ADMIN_CONFIG, isAdminEmail } from './admin-config.js';
 import { sendPropertyApprovalEmail, sendPropertyRejectionEmail, sendListingApprovalEmail, sendListingRejectionEmail } from './email-notifications.js';
@@ -561,13 +561,16 @@ let unsubscribeBookings = null;
 let unsubscribePendingProps = null;
 
 async function loadDashboard() {
-    // ✅ OPTIMIZED: Load from stats document instead of counting entire collections
+    // ✅ FIXED: Use accurate counts from getCountFromServer
     try {
-        const stats = await getPlatformStats();
+        // 1. Get accurate counts directly from Firestore (not cached stats)
+        const usersCount = await getCountFromServer(collection(db, "users"));
+        const listingsCount = await getCountFromServer(collection(db, "listings"));
+        const propertiesCount = await getCountFromServer(collection(db, "properties"));
 
-        // 1. Static KPIs from stats document (1 read instead of 2+ reads)
-        document.getElementById('stat-users').innerText = stats.users?.total || 0;
-        document.getElementById('stat-listings').innerText = stats.listings?.total || 0;
+        // Update KPIs with accurate counts
+        document.getElementById('stat-users').innerText = usersCount.data().count || 0;
+        document.getElementById('stat-listings').innerText = listingsCount.data().count || 0;
 
         // 2. REAL-TIME: Active Bookings with live updates
         const activeBookingsQ = query(
@@ -660,11 +663,12 @@ async function loadDashboard() {
         });
         document.getElementById('stat-active-users').innerText = activeUsers || 'N/A';
 
-        // ✅ OPTIMIZED: Use stats for property approval rate
-        const statProps = stats.properties || {};
-        const approved = statProps.available || 0;
-        const totalProps = statProps.total || 0;
-        const approvalRate = totalProps > 0 ? Math.round((approved / totalProps) * 100) : 0;
+        // ✅ FIXED: Calculate property approval rate from server count
+        const approvedPropsQuery = query(collection(db, "properties"), where("approvalStatus", "==", "approved"));
+        const approvedPropsCount = await getCountFromServer(approvedPropsQuery);
+        const totalPropsCount = propertiesCount.data().count || 0;
+        const approvedCount = approvedPropsCount.data().count || 0;
+        const approvalRate = totalPropsCount > 0 ? Math.round((approvedCount / totalPropsCount) * 100) : 0;
         document.getElementById('stat-approval-rate').innerText = approvalRate;
 
         // 2. Load All Data
@@ -1910,33 +1914,155 @@ async function exportDisputes() {
 }
 
 // --- DATA LOADERS ---
-async function loadUsers() {
+// Users pagination state
+let usersPageState = {
+    currentPage: 1,
+    pageSize: 10,
+    lastDoc: null,
+    firstDocs: [null], // Store first doc of each page for backward navigation
+    totalUsers: 0
+};
+
+async function loadUsers(page = 1) {
     const list = document.querySelector('#table-users tbody');
+    const paginationContainer = document.getElementById('users-pagination');
+
     if (!list) return;
-    const snap = await getDocs(query(collection(db, "users"), limit(50)));
-    list.innerHTML = '';
-    snap.forEach(docSnap => {
-        const d = docSnap.data();
-        const isVerified = d.idVerificationStatus === 'verified';
-        list.innerHTML += `
-            <tr>
-                <td><div style="font-weight:600">${d.displayName || 'User'}</div></td>
-                <td>${d.email || '-'}</td>
-                <td><span class="badge ${isVerified ? 'verified' : 'pending'}">${d.idVerificationStatus || 'Unverified'}</span></td>
-                <td>${d.createdAt?.toDate().toLocaleDateString() || '-'}</td>
-                <td>
-                    <button class="btn-sm ${isVerified ? 'btn-view' : 'btn-approve'}" 
-                        onclick="toggleUserVerification('${docSnap.id}', ${isVerified})">
-                        ${isVerified ? 'Unverify' : 'Verify'}
-                    </button>
-                    <button class="btn-sm btn-view" onclick="window.open('profile.html?uid=${docSnap.id}', '_blank')">
-                        <i class="fa-solid fa-eye"></i> View
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
+
+    // Show loading state
+    list.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading users...</td></tr>';
+
+    try {
+        // Get total count
+        const totalCount = await getCountFromServer(collection(db, "users"));
+        usersPageState.totalUsers = totalCount.data().count || 0;
+
+        // Build query based on page
+        let q;
+        if (page === 1) {
+            q = query(
+                collection(db, "users"),
+                orderBy("createdAt", "desc"),
+                limit(usersPageState.pageSize)
+            );
+        } else {
+            const startDoc = usersPageState.firstDocs[page - 1];
+            if (startDoc) {
+                q = query(
+                    collection(db, "users"),
+                    orderBy("createdAt", "desc"),
+                    startAfter(startDoc),
+                    limit(usersPageState.pageSize)
+                );
+            } else {
+                // Fallback to first page
+                return loadUsers(1);
+            }
+        }
+
+        const snap = await getDocs(q);
+
+        // Store last doc for next page navigation
+        if (snap.docs.length > 0) {
+            usersPageState.lastDoc = snap.docs[snap.docs.length - 1];
+            // Store first doc of next page
+            if (!usersPageState.firstDocs[page]) {
+                usersPageState.firstDocs[page] = usersPageState.lastDoc;
+            }
+        }
+
+        usersPageState.currentPage = page;
+
+        // Render users
+        if (snap.empty) {
+            list.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--gray);">No users found</td></tr>';
+        } else {
+            list.innerHTML = '';
+            snap.forEach(docSnap => {
+                const d = docSnap.data();
+                const isVerified = d.idVerificationStatus === 'verified';
+                list.innerHTML += `
+                    <tr>
+                        <td><div style="font-weight:600">${d.displayName || d.name || 'User'}</div></td>
+                        <td>${d.email || '-'}</td>
+                        <td><span class="badge ${isVerified ? 'verified' : 'pending'}">${d.idVerificationStatus || 'Unverified'}</span></td>
+                        <td>${d.createdAt?.toDate ? d.createdAt.toDate().toLocaleDateString() : '-'}</td>
+                        <td>
+                            <button class="btn-sm ${isVerified ? 'btn-view' : 'btn-approve'}" 
+                                onclick="toggleUserVerification('${docSnap.id}', ${isVerified})">
+                                ${isVerified ? 'Unverify' : 'Verify'}
+                            </button>
+                            <button class="btn-sm btn-view" onclick="window.open('profile.html?uid=${docSnap.id}', '_blank')">
+                                <i class="fa-solid fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Render pagination
+        renderUsersPagination();
+
+    } catch (error) {
+        console.error('Error loading users:', error);
+        list.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: #ef4444;">Error loading users. Please try again.</td></tr>';
+    }
 }
+
+function renderUsersPagination() {
+    const container = document.getElementById('users-pagination');
+    if (!container) return;
+
+    const totalPages = Math.ceil(usersPageState.totalUsers / usersPageState.pageSize);
+    const currentPage = usersPageState.currentPage;
+    const startItem = (currentPage - 1) * usersPageState.pageSize + 1;
+    const endItem = Math.min(currentPage * usersPageState.pageSize, usersPageState.totalUsers);
+
+    container.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 8px; flex-wrap: wrap; gap: 1rem;">
+            <div style="color: var(--gray); font-size: 0.9rem;">
+                Showing ${startItem}-${endItem} of ${usersPageState.totalUsers} users
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button class="btn-sm" onclick="loadUsers(1)" ${currentPage === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+                    <i class="fa-solid fa-angles-left"></i>
+                </button>
+                <button class="btn-sm" onclick="loadUsers(${currentPage - 1})" ${currentPage === 1 ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+                    <i class="fa-solid fa-chevron-left"></i> Prev
+                </button>
+                <span style="padding: 0.5rem 1rem; background: var(--primary); color: white; border-radius: 6px; font-weight: 600;">
+                    ${currentPage} / ${totalPages}
+                </span>
+                <button class="btn-sm" onclick="loadUsers(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+                    Next <i class="fa-solid fa-chevron-right"></i>
+                </button>
+                <button class="btn-sm" onclick="loadUsers(${totalPages})" ${currentPage >= totalPages ? 'disabled style="opacity:0.5;cursor:not-allowed;"' : ''}>
+                    <i class="fa-solid fa-angles-right"></i>
+                </button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-size: 0.9rem; color: var(--gray);">Per page:</label>
+                <select onchange="changeUsersPageSize(this.value)" style="padding: 0.4rem 0.8rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem;">
+                    <option value="10" ${usersPageState.pageSize === 10 ? 'selected' : ''}>10</option>
+                    <option value="20" ${usersPageState.pageSize === 20 ? 'selected' : ''}>20</option>
+                    <option value="50" ${usersPageState.pageSize === 50 ? 'selected' : ''}>50</option>
+                    <option value="100" ${usersPageState.pageSize === 100 ? 'selected' : ''}>100</option>
+                </select>
+            </div>
+        </div>
+    `;
+}
+
+window.changeUsersPageSize = function (size) {
+    usersPageState.pageSize = parseInt(size);
+    usersPageState.currentPage = 1;
+    usersPageState.firstDocs = [null]; // Reset pagination
+    loadUsers(1);
+};
+
+// Expose loadUsers globally for pagination buttons
+window.loadUsers = loadUsers;
 
 async function loadListings() {
     const list = document.querySelector('#table-listings tbody');

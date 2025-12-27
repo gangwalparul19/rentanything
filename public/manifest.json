@@ -10,12 +10,84 @@
         {
             "src": "logo.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         },
         {
             "src": "logo.png",
             "sizes": "512x512",
             "type": "image/png"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "List an Item",
+            "short_name": "List Item",
+            "description": "Quickly list an item for rent",
+            "url": "/create-listing.html?source=shortcut",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-list.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Browse Items",
+            "short_name": "Browse",
+            "description": "Search available rentals",
+            "url": "/search.html?source=shortcut",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-browse.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "My Bookings",
+            "short_name": "Bookings",
+            "description": "View your rental bookings",
+            "url": "/my-bookings.html?source=shortcut",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-bookings.png",
+                    "sizes": "96x96"
+                }
+            ]
+        },
+        {
+            "name": "Community Board",
+            "short_name": "Requests",
+            "description": "See what neighbors need",
+            "url": "/requests.html?source=shortcut",
+            "icons": [
+                {
+                    "src": "/icons/shortcut-community.png",
+                    "sizes": "96x96"
+                }
+            ]
+        }
+    ],
+    "share_target": {
+        "action": "/share.html",
+        "method": "GET",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    },
+    "categories": [
+        "shopping",
+        "lifestyle"
+    ],
+    "screenshots": [
+        {
+            "src": "/screenshots/home.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "label": "Home Screen"
         }
     ]
 }

@@ -42,18 +42,37 @@ self.addEventListener('notificationclick', (event) => {
 
     event.notification.close();
 
+    const data = event.notification.data || {};
+    let targetUrl = '/';
+
+    // Route based on notification type
+    if (data.type === 'community_request') {
+        targetUrl = '/requests.html';
+    } else if (data.type === 'chat_message' && data.chatId) {
+        targetUrl = `/chat.html?id=${data.chatId}`;
+    } else if (data.type === 'new_booking' || data.type === 'booking_request') {
+        targetUrl = '/my-listings.html';
+    } else if (data.type === 'booking_status') {
+        targetUrl = '/my-bookings.html';
+    } else if (data.type === 'listing_status') {
+        targetUrl = '/my-listings.html';
+    } else if (data.url) {
+        targetUrl = data.url;
+    }
+
     // Open or focus the app
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-            // If app is already open, focus it
+            // If app is already open, navigate and focus
             for (const client of clientList) {
                 if (client.url.includes(self.location.origin) && 'focus' in client) {
+                    client.navigate(targetUrl);
                     return client.focus();
                 }
             }
             // Otherwise open a new window
             if (clients.openWindow) {
-                return clients.openWindow('/');
+                return clients.openWindow(targetUrl);
             }
         })
     );
