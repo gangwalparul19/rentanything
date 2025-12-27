@@ -1,8 +1,8 @@
 // Push Notification Manager for Admin Panel
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { app } from './firebase-config.js';
-import { showToast } from './toast-enhanced.js';
-import { FCM_CONFIG, NOTIFICATION_SETTINGS } from './fcm-config.js';
+import { app } from '/js/firebase-config.js';
+import { showToast } from '/js/toast-enhanced.js';
+import { FCM_CONFIG, NOTIFICATION_SETTINGS } from '/js/fcm-config.js';
 
 // Initialize Firebase Cloud Messaging
 let messaging = null;

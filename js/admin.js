@@ -3123,15 +3123,32 @@ switch (sectionId) {
         if (window.loadOrders) window.loadOrders();
         break;
     case 'verifications':
-        if (window.loadVerifications) window.loadVerifications();
-        break;
-    case 'disputes':
-        if (window.loadDisputes) window.loadDisputes();
-        break;
-    case 'reports':
-        if (window.loadReports) window.loadReports();
-        break;
-}
+
+        // Trigger data loading based on section
+        console.log("Showing section:", sectionId);
+        switch (sectionId) {
+            case 'societies':
+                if (window.refreshSocieties) window.refreshSocieties();
+                break;
+            case 'users':
+                if (window.loadUsers) window.loadUsers(1);
+                break;
+            case 'listings':
+                if (window.loadListings) window.loadListings();
+                break;
+            case 'bookings':
+                if (window.loadOrders) window.loadOrders();
+                break;
+            case 'verifications':
+                if (window.loadVerifications) window.loadVerifications();
+                break;
+            case 'disputes':
+                if (window.loadDisputes) window.loadDisputes();
+                break;
+            case 'reports':
+                if (window.loadReports) window.loadReports();
+                break;
+        }
 };
 
 // ==========================================
