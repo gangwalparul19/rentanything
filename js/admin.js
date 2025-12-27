@@ -2958,15 +2958,17 @@ window.loadSocietyRequests = async function () {
 }
 
 // Approve Society Request
+// Approve Society Request
 window.approveSocietyRequest = async function (requestId, name, area, pincode) {
+    console.log("Approving society:", { requestId, name, area, pincode });
     if (!confirm(`Are you sure you want to approve "${name}"?`)) return;
 
     try {
         // 1. Add to societies collection
         await addDoc(collection(db, 'societies'), {
-            name: name,
-            area: area,
-            pincode: pincode,
+            name: name || 'Unknown Society',
+            area: area || 'Unknown Area',
+            pincode: pincode || '',
             status: 'approved',
             createdAt: serverTimestamp()
         });
@@ -2979,11 +2981,19 @@ window.approveSocietyRequest = async function (requestId, name, area, pincode) {
         });
 
         showToast(`Approved society: ${name}`, 'success');
-        refreshSocieties(); // Refresh list
+
+        // Refresh both lists
+        if (window.refreshSocieties) {
+            window.refreshSocieties();
+        } else {
+            // Fallback if refresh not found
+            if (window.loadSocieties) window.loadSocieties();
+            if (window.loadSocietyRequests) window.loadSocietyRequests();
+        }
 
     } catch (error) {
         console.error("Error approving society:", error);
-        showToast("Failed to approve society", 'error');
+        showToast("Failed to approve society: " + error.message, 'error');
     }
 };
 
@@ -3187,70 +3197,7 @@ window.viewEvidence = function (id) {
     alert("View evidence logic for " + id); // Placeholder
 };
 
-// ==========================================
-// MISSING LOAD DISPUTES FUNCTION
-// ==========================================
-window.loadDisputes = async function () {
-    const list = document.getElementById('disputes-table');
-    if (!list) return;
+// End of Admin Logic
+// End of Admin Logic
+// Listeners are initialized in showSection or locally
 
-    list.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
-
-    try {
-        const q = query(collection(db, "disputes")); // Relaxed query
-        const snap = await getDocs(q);
-
-        if (snap.empty) {
-            list.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">No disputes found</td></tr>';
-            return;
-        }
-
-        let html = '';
-        snap.forEach(docSnap => {
-            const d = docSnap.data();
-            const date = d.createdAt ? new Date(d.createdAt.seconds * 1000).toLocaleDateString() : '-';
-
-            html += `
-                <tr>
-                    <td>${docSnap.id.substring(0, 8)}...</td>
-                    <td>${d.bookingId || '-'}</td>
-                    <td>${d.reporterName || 'Unknown'}</td>
-                    <td>${d.issueType || 'General'}</td>
-                    <td><span class="badge ${d.status === 'resolved' ? 'verified' : 'pending'}">${d.status || 'Open'}</span></td>
-                    <td>${d.priority || 'Medium'}</td>
-                    <td>${date}</td>
-                    <td>
-                        <button class="btn-sm btn-view" onclick="viewEvidence('${docSnap.id}')">
-                            <i class="fa-solid fa-image"></i> View
-                        </button>
-                    </td>
-                    <td>
-                        <button class="btn-sm btn-approve" onclick="resolveDispute('${docSnap.id}')">Resolve</button>
-                    </td>
-                </tr>
-            `;
-        });
-        list.innerHTML = html;
-
-    } catch (error) {
-        console.error("Error loading disputes:", error);
-        list.innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Error loading disputes</td></tr>';
-    }
-};
-
-// Helper for resolving disputes
-window.resolveDispute = async function (id) {
-    if (!confirm("Mark this dispute as resolved?")) return;
-    try {
-        await updateDoc(doc(db, "disputes", id), { status: 'resolved', resolvedAt: serverTimestamp() });
-        showToast("Dispute resolved", "success");
-        loadDisputes(); // Refresh
-    } catch (e) {
-        console.error(e);
-        showToast("Error updating dispute", "error");
-    }
-};
-
-window.viewEvidence = function (id) {
-    alert("View evidence logic for " + id); // Placeholder
-};

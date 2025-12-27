@@ -1669,228 +1669,230 @@
 
     <!-- Logic -->
     <script type="module" src="js/admin.js"></script>
-    <script>
-        // ===== MODAL FUNCTIONS =====
-        function openModal(title, content, customFooter = null) {
-            const modal = document.getElementById('details-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalContent = document.getElementById('modal-content');
-            const modalFooter = document.querySelector('.modal-footer');
+    <script type="module" src="js/admin-disputes.js"></script> <!-- Load Disputes Logic -->
+</body>
+<script>
+    // ===== MODAL FUNCTIONS =====
+    function openModal(title, content, customFooter = null) {
+        const modal = document.getElementById('details-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalContent = document.getElementById('modal-content');
+        const modalFooter = document.querySelector('.modal-footer');
 
-            modalTitle.textContent = title;
-            modalContent.innerHTML = content;
+        modalTitle.textContent = title;
+        modalContent.innerHTML = content;
 
-            // If custom footer provided, replace default footer
-            if (customFooter) {
-                modalFooter.innerHTML = customFooter;
-            } else {
-                // Reset to default footer
-                modalFooter.innerHTML = '<button class="btn btn-secondary" onclick="closeModal()">Close</button>';
-            }
-
-            modal.classList.add('active');
+        // If custom footer provided, replace default footer
+        if (customFooter) {
+            modalFooter.innerHTML = customFooter;
+        } else {
+            // Reset to default footer
+            modalFooter.innerHTML = '<button class="btn btn-secondary" onclick="closeModal()">Close</button>';
         }
 
-        function closeModal() {
-            const modal = document.getElementById('details-modal');
-            modal.classList.remove('active');
+        modal.classList.add('active');
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('details-modal');
+        modal.classList.remove('active');
+    }
+
+    // Close modal when clicking outside
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'details-modal') {
+            closeModal();
         }
+    });
 
-        // Close modal when clicking outside
-        document.addEventListener('click', (e) => {
-            if (e.target.id === 'details-modal') {
-                closeModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeModal();
-            }
-        });
-
-        // Logout function - calls the exported function from admin.js
-        function logout() {
-            if (window.logoutAdmin) {
-                window.logoutAdmin(); // Calls the exported function
-            } else {
-                console.error('Logout function not available');
-            }
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal();
         }
+    });
 
-        // Mobile menu toggle
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileToggle = document.getElementById('mobile-toggle');
-            const sidebarClose = document.getElementById('sidebar-close');
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('sidebar-overlay');
+    // Logout function - calls the exported function from admin.js
+    function logout() {
+        if (window.logoutAdmin) {
+            window.logoutAdmin(); // Calls the exported function
+        } else {
+            console.error('Logout function not available');
+        }
+    }
 
-            // Open sidebar
-            if (mobileToggle) {
-                mobileToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('active');
-                    overlay.classList.toggle('active');
-                });
-            }
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', () => {
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebar-overlay');
 
-            // Close button click
-            if (sidebarClose) {
-                sidebarClose.addEventListener('click', () => {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                });
-            }
-
-            // Close sidebar when overlay clicked
-            if (overlay) {
-                overlay.addEventListener('click', () => {
-                    sidebar.classList.remove('active');
-                    overlay.classList.remove('active');
-                });
-            }
-
-            // Close sidebar when clicking a nav item on mobile
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                item.addEventListener('click', () => {
-                    if (window.innerWidth <= 768) {
-                        sidebar.classList.remove('active');
-                        overlay.classList.remove('active');
-                    }
-                });
+        // Open sidebar
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
             });
+        }
 
-            // Show close button on mobile
-            if (window.innerWidth <= 768 && sidebarClose) {
-                sidebarClose.style.display = 'flex';
-            }
-        });
+        // Close button click
+        if (sidebarClose) {
+            sidebarClose.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
 
-        // ===== PWA INSTALL FUNCTIONALITY =====
-        let deferredPrompt;
-        const installBtn = document.getElementById('pwa-install-btn');
+        // Close sidebar when overlay clicked
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later
-            deferredPrompt = e;
-            // Show install button
-            if (installBtn) {
-                installBtn.style.display = 'inline-flex';
-            }
-        });
-
-        if (installBtn) {
-            installBtn.addEventListener('click', async () => {
-                if (!deferredPrompt) {
-                    return;
+        // Close sidebar when clicking a nav item on mobile
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
+                    overlay.classList.remove('active');
                 }
-                // Show the install prompt
-                deferredPrompt.prompt();
-                // Wait for the user to respond to the prompt
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                // Clear the deferredPrompt
-                deferredPrompt = null;
-                // Hide the install button
-                installBtn.style.display = 'none';
             });
-        }
+        });
 
-        window.addEventListener('appinstalled', () => {
-            console.log('PWA was installed');
+        // Show close button on mobile
+        if (window.innerWidth <= 768 && sidebarClose) {
+            sidebarClose.style.display = 'flex';
+        }
+    });
+
+    // ===== PWA INSTALL FUNCTIONALITY =====
+    let deferredPrompt;
+    const installBtn = document.getElementById('pwa-install-btn');
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        // Prevent the mini-infobar from appearing on mobile
+        e.preventDefault();
+        // Stash the event so it can be triggered later
+        deferredPrompt = e;
+        // Show install button
+        if (installBtn) {
+            installBtn.style.display = 'inline-flex';
+        }
+    });
+
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                return;
+            }
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            // Clear the deferredPrompt
             deferredPrompt = null;
-            if (installBtn) {
-                installBtn.style.display = 'none';
+            // Hide the install button
+            installBtn.style.display = 'none';
+        });
+    }
+
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA was installed');
+        deferredPrompt = null;
+        if (installBtn) {
+            installBtn.style.display = 'none';
+        }
+    });
+
+    // ===== NOTIFICATION BELL HANDLER =====
+    const notificationBell = document.getElementById('notification-bell');
+
+    if (notificationBell) {
+        // Check initial permission status
+        import('./js/notification-manager.js').then(module => {
+            const status = module.getNotificationPermissionStatus();
+
+            if (status === 'granted') {
+                notificationBell.querySelector('i').classList.remove('fa-regular');
+                notificationBell.querySelector('i').classList.add('fa-solid');
+                notificationBell.title = 'Notifications enabled';
+
+                // Setup foreground message handler
+                module.setupForegroundMessageHandler();
             }
         });
 
-        // ===== NOTIFICATION BELL HANDLER =====
-        const notificationBell = document.getElementById('notification-bell');
+        notificationBell.addEventListener('click', async () => {
+            try {
+                const { subscribeToPushNotifications, getNotificationPermissionStatus, setupForegroundMessageHandler } = await import('./js/notification-manager.js');
 
-        if (notificationBell) {
-            // Check initial permission status
-            import('./js/notification-manager.js').then(module => {
-                const status = module.getNotificationPermissionStatus();
+                const status = getNotificationPermissionStatus();
 
                 if (status === 'granted') {
+                    showToast('Notifications are already enabled', 'info');
+                    return;
+                }
+
+                if (status === 'unsupported') {
+                    showToast('Push notifications not supported in this browser', 'warning');
+                    return;
+                }
+
+                if (status === 'denied') {
+                    showToast('Notifications blocked. Please enable in browser settings.', 'error');
+                    return;
+                }
+
+                // Request permission and subscribe
+                const token = await subscribeToPushNotifications();
+
+                if (token) {
+                    // Update bell icon to solid
                     notificationBell.querySelector('i').classList.remove('fa-regular');
                     notificationBell.querySelector('i').classList.add('fa-solid');
                     notificationBell.title = 'Notifications enabled';
 
                     // Setup foreground message handler
-                    module.setupForegroundMessageHandler();
+                    setupForegroundMessageHandler();
+
+                    console.log('FCM Token:', token);
                 }
-            });
+            } catch (error) {
+                console.error('Error enabling notifications:', error);
+                showToast('Failed to enable notifications', 'error');
+            }
+        });
+    }
 
-            notificationBell.addEventListener('click', async () => {
-                try {
-                    const { subscribeToPushNotifications, getNotificationPermissionStatus, setupForegroundMessageHandler } = await import('./js/notification-manager.js');
+    // ===== SERVICE WORKER REGISTRATION =====
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/admin-sw.js')
+                .then((registration) => {
+                    console.log('Service Worker registered successfully:', registration.scope);
 
-                    const status = getNotificationPermissionStatus();
-
-                    if (status === 'granted') {
-                        showToast('Notifications are already enabled', 'info');
-                        return;
-                    }
-
-                    if (status === 'unsupported') {
-                        showToast('Push notifications not supported in this browser', 'warning');
-                        return;
-                    }
-
-                    if (status === 'denied') {
-                        showToast('Notifications blocked. Please enable in browser settings.', 'error');
-                        return;
-                    }
-
-                    // Request permission and subscribe
-                    const token = await subscribeToPushNotifications();
-
-                    if (token) {
-                        // Update bell icon to solid
-                        notificationBell.querySelector('i').classList.remove('fa-regular');
-                        notificationBell.querySelector('i').classList.add('fa-solid');
-                        notificationBell.title = 'Notifications enabled';
-
-                        // Setup foreground message handler
-                        setupForegroundMessageHandler();
-
-                        console.log('FCM Token:', token);
-                    }
-                } catch (error) {
-                    console.error('Error enabling notifications:', error);
-                    showToast('Failed to enable notifications', 'error');
-                }
-            });
-        }
-
-        // ===== SERVICE WORKER REGISTRATION =====
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/admin-sw.js')
-                    .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration.scope);
-
-                        // Check for updates
-                        registration.addEventListener('updatefound', () => {
-                            const newWorker = registration.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    // New version available
-                                    showToast('New version available! Refresh to update.', 'info');
-                                }
-                            });
+                    // Check for updates
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // New version available
+                                showToast('New version available! Refresh to update.', 'info');
+                            }
                         });
-                    })
-                    .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
                     });
-            });
-        }
-    </script>
+                })
+                .catch((error) => {
+                    console.log('Service Worker registration failed:', error);
+                });
+        });
+    }
+</script>
 </body>
 
 </html>
