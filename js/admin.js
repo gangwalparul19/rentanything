@@ -3040,7 +3040,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSocietyRequests();
 });
 
-// Enhance showSection to handle societies refresh
+// Enhance showSection to handle societies refresh and other sections
 const originalShowSection = window.showSection;
 window.showSection = function (sectionId, element) {
     // If original function exists, call it first
@@ -3079,8 +3079,29 @@ window.showSection = function (sectionId, element) {
         }
     }
 
-    // Specific logic for societies
-    if (sectionId === 'societies') {
-        if (window.refreshSocieties) window.refreshSocieties();
+    // Trigger data loading based on section
+    console.log("Showing section:", sectionId);
+    switch (sectionId) {
+        case 'societies':
+            if (window.refreshSocieties) window.refreshSocieties();
+            break;
+        case 'users':
+            if (window.loadUsers) window.loadUsers(1);
+            break;
+        case 'listings':
+            if (window.loadListings) window.loadListings();
+            break;
+        case 'bookings':
+            if (window.loadOrders) window.loadOrders();
+            break;
+        case 'verifications':
+            if (window.loadVerifications) window.loadVerifications();
+            break;
+        case 'disputes':
+            if (window.loadDisputes) window.loadDisputes(); // Check if exists?
+            break;
+        case 'reports':
+            if (window.loadReports) window.loadReports();
+            break;
     }
 };
