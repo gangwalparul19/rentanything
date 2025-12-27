@@ -3070,64 +3070,68 @@ window.showSection = function (sectionId, element) {
     // If original function exists, call it first
     if (typeof originalShowSection === 'function') {
         originalShowSection(sectionId, element);
-    } else {
-        // Fallback implementation if original not found
-        document.querySelectorAll('.section').forEach(s => {
+    }
+
+    // FORCE Update Display (Override inline styles)
+    // This is critical because some sections have inline style="display:none"
+    document.querySelectorAll('.section').forEach(s => {
+        if (s.id === sectionId) {
+            s.style.display = 'block';
+            s.classList.add('active');
+        } else {
             s.style.display = 'none';
             s.classList.remove('active');
-        });
+        }
+    });
+
+    if (element) {
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
-        const section = document.getElementById(sectionId);
-        if (section) {
-            section.style.display = 'block';
-            section.classList.add('active');
-        }
-
-        if (element) {
-            element.classList.add('active');
-        }
-
-        // Update page title
-        const titleSpan = document.getElementById('page-title');
-        if (titleSpan) {
-            titleSpan.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1).replace('-', ' ');
-        }
-
-        // Mobile handling
-        if (window.innerWidth <= 768) {
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar) sidebar.classList.remove('active');
-            const overlay = document.getElementById('sidebar-overlay');
-            if (overlay) overlay.classList.remove('active');
-        }
+        element.classList.add('active');
+    } else {
+        // Try to find the nav item if not passed
+        // This helps when switching from internal links
     }
 
-    // Trigger data loading based on section
-    console.log("Showing section:", sectionId);
-    switch (sectionId) {
-        case 'societies':
-            if (window.refreshSocieties) window.refreshSocieties();
-            break;
-        case 'users':
-            if (window.loadUsers) window.loadUsers(1);
-            break;
-        case 'listings':
-            if (window.loadListings) window.loadListings();
-            break;
-        case 'bookings':
-            if (window.loadOrders) window.loadOrders();
-            break;
-        case 'verifications':
-            if (window.loadVerifications) window.loadVerifications();
-            break;
-        case 'disputes':
-            if (window.loadDisputes) window.loadDisputes();
-            break;
-        case 'reports':
-            if (window.loadReports) window.loadReports();
-            break;
+    // Update page title
+    const titleSpan = document.getElementById('page-title');
+    if (titleSpan) {
+        titleSpan.textContent = sectionId.charAt(0).toUpperCase() + sectionId.slice(1).replace('-', ' ');
     }
+
+    // Mobile handling
+    if (window.innerWidth <= 768) {
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.remove('active');
+        const overlay = document.getElementById('sidebar-overlay');
+        if (overlay) overlay.classList.remove('active');
+    }
+}
+
+// Trigger data loading based on section
+console.log("Showing section:", sectionId);
+switch (sectionId) {
+    case 'societies':
+        if (window.refreshSocieties) window.refreshSocieties();
+        break;
+    case 'users':
+        if (window.loadUsers) window.loadUsers(1);
+        break;
+    case 'listings':
+        if (window.loadListings) window.loadListings();
+        break;
+    case 'bookings':
+        if (window.loadOrders) window.loadOrders();
+        break;
+    case 'verifications':
+        if (window.loadVerifications) window.loadVerifications();
+        break;
+    case 'disputes':
+        if (window.loadDisputes) window.loadDisputes();
+        break;
+    case 'reports':
+        if (window.loadReports) window.loadReports();
+        break;
+}
 };
 
 // ==========================================
