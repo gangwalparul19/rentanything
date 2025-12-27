@@ -2844,7 +2844,7 @@ async function loadSocieties() {
     tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
 
     try {
-        const q = query(collection(db, 'societies'), orderBy('name'));
+        const q = query(collection(db, 'societies')); //, orderBy('name'));
         const querySnapshot = await getDocs(q);
 
         document.getElementById('total-societies-count').textContent = querySnapshot.size;
@@ -2887,7 +2887,7 @@ async function loadSocietyRequests() {
     if (!tableBody) return;
 
     try {
-        const q = query(collection(db, 'society_requests'), where('status', '==', 'pending'), orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'society_requests'), where('status', '==', 'pending')); //, orderBy('createdAt', 'desc'));
 
         // Real-time listener
         onSnapshot(q, (snapshot) => {

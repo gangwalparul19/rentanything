@@ -286,7 +286,7 @@ function announceFormSuccess(message) {
 
 function initAccessibility() {
     // Create skip link
-    createSkipLink();
+    //createSkipLink();
 
     // Enhance ARIA labels
     enhanceARIA();
