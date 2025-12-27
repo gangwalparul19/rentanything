@@ -2891,28 +2891,7 @@ a {
     overflow: hidden;
 }
 
-.founders-grid {
-    display: flex;
-    justify-content: center;
-    gap: 3rem;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.founder-card {
-    background: var(--white);
-    border-radius: 1.5rem;
-    padding: 2rem;
-    text-align: center;
-    box-shadow: var(--shadow-md);
-    transition: all var(--transition-base);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 400px;
-}
+/* Legacy rules removed - see Founders Section Centered Layout below */
 
 .founder-card:hover {
     transform: translateY(-5px);
@@ -3175,51 +3154,33 @@ body {
 }
 
 /* Founders Section Mobile Side-by-Side */
+/* Founders Section - Centered Layout */
 .founders-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+    max-width: 1000px;
+    /* Increased from 500px to allow spreading if more added */
+    margin: 0 auto;
 }
 
 .founder-card {
+    background: var(--white);
+    border-radius: 1.5rem;
+    padding: 2.5rem 2rem;
     text-align: center;
-}
-
-.founder-img-wrapper {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 0.75rem;
-}
-
-.founder-img {
+    box-shadow: var(--shadow-lg);
+    /* Enhanced shadow */
+    transition: all var(--transition-base);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-}
-
-.founder-info h3 {
-    font-size: 1rem;
-    margin-bottom: 0.25rem;
-}
-
-.founder-location {
-    font-size: 0.75rem;
-    color: var(--gray);
-    margin-bottom: 0.25rem;
-}
-
-.founder-role {
-    font-size: 0.8rem;
-    color: var(--primary);
-    font-weight: 500;
-    margin-bottom: 0.5rem;
-}
-
-.founder-bio {
-    font-size: 0.75rem;
-    color: var(--gray);
-    line-height: 1.4;
+    max-width: 450px;
+    /* Increased max width for better presence */
 }
 
 /* Mobile-specific adjustments for founders */
@@ -3228,21 +3189,27 @@ body {
         gap: 1rem;
     }
 
+    .founder-card {
+        padding: 1.5rem;
+    }
+
     .founder-img-wrapper {
-        width: 60px;
-        height: 60px;
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 1rem;
+    }
+
+    .founder-img {
+        border-radius: 50%;
     }
 
     .founder-info h3 {
-        font-size: 0.9rem;
+        font-size: 1.25rem;
     }
 
     .founder-bio {
-        font-size: 0.7rem;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        font-size: 0.9rem;
+        /* Remove line clamp to show full bio on mobile if short */
     }
 }
 
