@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rentanything-v50';
+const CACHE_NAME = 'rentanything-v51';
 const STATIC_ASSETS = [
     '/index.html',
     '/search.html',

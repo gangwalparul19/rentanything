@@ -2832,22 +2832,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 // ===== SOCIETY MANAGEMENT =====
 // Load all approved societies
-window.refreshSocieties = function () {
-    loadSocieties();
-    loadSocietyRequests();
+window.refreshSocieties = async function () {
+    console.log("Refreshing societies...");
+    await Promise.all([
+        window.loadSocieties(),
+        window.loadSocietyRequests()
+    ]);
 };
 
-async function loadSocieties() {
+window.loadSocieties = async function () {
+    console.log("Loading approved societies...");
     const tableBody = document.getElementById('societies-table');
-    if (!tableBody) return;
+    if (!tableBody) {
+        console.error("societies-table not found!");
+        return;
+    }
 
     tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
 
     try {
-        const q = query(collection(db, 'societies')); //, orderBy('name'));
+        const q = query(collection(db, 'societies'));
         const querySnapshot = await getDocs(q);
 
-        document.getElementById('total-societies-count').textContent = querySnapshot.size;
+        console.log(`Found ${querySnapshot.size} societies.`);
+        const totalCountEl = document.getElementById('total-societies-count');
+        if (totalCountEl) totalCountEl.textContent = querySnapshot.size;
 
         if (querySnapshot.empty) {
             tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No societies found.</td></tr>';
@@ -2873,21 +2882,25 @@ async function loadSocieties() {
 
     } catch (error) {
         console.error("Error loading societies:", error);
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error loading societies</td></tr>';
+        tableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error: ${error.message}</td></tr>`;
     }
-}
+};
 
 // Load pending society requests
-async function loadSocietyRequests() {
+window.loadSocietyRequests = async function () {
+    console.log("Loading society requests...");
     const tableBody = document.getElementById('society-requests-table');
     const badge = document.getElementById('society-request-count');
     const badgeSidebar = document.getElementById('badge-society-count'); // Sidebar badge
     const pendingStat = document.getElementById('pending-societies-stat'); // Overview stat
 
-    if (!tableBody) return;
+    if (!tableBody) {
+        console.error("society-requests-table not found");
+        return;
+    }
 
     try {
-        const q = query(collection(db, 'society_requests'), where('status', '==', 'pending')); //, orderBy('createdAt', 'desc'));
+        const q = query(collection(db, 'society_requests'), where('status', '==', 'pending'));
 
         // Real-time listener
         onSnapshot(q, (snapshot) => {
@@ -3037,7 +3050,7 @@ window.refreshSocieties = refreshSocieties;
 // Initialize on load if section active (or just load listeners)
 // We'll call loadSocietyRequests() globally to keep badges updated
 document.addEventListener('DOMContentLoaded', () => {
-    loadSocietyRequests();
+    if (window.loadSocietyRequests) window.loadSocietyRequests();
 });
 
 // Enhance showSection to handle societies refresh and other sections
