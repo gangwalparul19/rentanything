@@ -162,4 +162,6 @@ export class AdminReports {
 
 // Global Export
 window.AdminReports = AdminReports;
-export const reportGenerator = new AdminReports();
+const reportGenerator = new AdminReports();
+window.reportGenerator = reportGenerator;
+export { reportGenerator };

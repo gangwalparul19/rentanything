@@ -1386,10 +1386,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- RENDER CHARTS ---
 function renderCharts() {
-    // Revenue Chart (existing)
+    // Revenue Chart (destory existing if present)
+    if (window.revenueChartInstance) {
+        window.revenueChartInstance.destroy();
+    }
+
     const totalRev = analyticsData.bookings.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
     const ctx = document.getElementById('revenueChart').getContext('2d');
-    new Chart(ctx, {
+    window.revenueChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -1409,7 +1413,11 @@ function renderCharts() {
         }
     });
 
-    // Category Distribution (existing)
+    // Category Distribution (destroy existing if present)
+    if (window.categoryChartInstance) {
+        window.categoryChartInstance.destroy();
+    }
+
     const categoryCounts = {};
     analyticsData.listings.forEach(listing => {
         const cat = listing.category || 'Other';
@@ -1417,7 +1425,7 @@ function renderCharts() {
     });
 
     const ctx2 = document.getElementById('categoryChart').getContext('2d');
-    new Chart(ctx2, {
+    window.categoryChartInstance = new Chart(ctx2, {
         type: 'doughnut',
         data: {
             labels: Object.keys(categoryCounts),

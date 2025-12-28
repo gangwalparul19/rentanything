@@ -1899,7 +1899,9 @@
         });
     }
     // Import Report Generator
-    import './js/admin-reports.js';
+    import('./js/admin-reports.js').then(() => {
+        console.log("Report generator loaded");
+    }).catch(err => console.error("Failed to load report generator:", err));
 </script>
 </body>
 
