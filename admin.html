@@ -1402,6 +1402,12 @@
                 <h1 class="page-title" id="page-title">Admin Dashboard</h1>
             </div>
             <div style="display: flex; align-items: center; gap: 1.5rem;">
+                <!-- Generate Report Button -->
+                <button class="btn btn-primary" onclick="window.reportGenerator.generate()"
+                    style="padding: 0.5rem 1rem; font-size: 0.9rem;">
+                    <i class="fa-solid fa-file-invoice"></i> Generate Report
+                </button>
+
                 <!-- Notification Bell -->
                 <div style="position: relative; cursor: pointer;" id="notification-bell"
                     onclick="toggleNotifications()">
@@ -1892,6 +1898,8 @@
                 });
         });
     }
+    // Import Report Generator
+    import './js/admin-reports.js';
 </script>
 </body>
 

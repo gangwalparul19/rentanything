@@ -1,6 +1,7 @@
 // Push Notification Manager for Admin Panel
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-import { app } from './firebase-config.js';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
+import { app, auth, db } from './firebase-config.js';
 import { showToast } from './toast-enhanced.js';
 import { FCM_CONFIG, NOTIFICATION_SETTINGS } from './fcm-config.js';
 
@@ -14,8 +15,7 @@ try {
 }
 
 // Simple "Ding" sound (Base64 to avoid file dependency)
-const NOTIFICATION_SOUND = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Short placeholder, will replace with better one if needed or user provides file.
-// Actually, let's use a real short beep base64 for better UX.
+// Using a better sound
 const ALERT_SOUND = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
 
 function playNotificationSound() {
@@ -149,9 +149,6 @@ export async function subscribeToPushNotifications(showMessages = true) {
  */
 async function saveFCMToken(token) {
     try {
-        const { auth, db } = await import('./firebase-config.js');
-        const { doc, setDoc } = await import('firebase/firestore');
-
         const user = auth.currentUser;
         if (!user) {
             console.error('No authenticated user');
@@ -229,9 +226,6 @@ export async function unsubscribeFromPushNotifications() {
         if (!messaging) {
             return;
         }
-
-        const { auth, db } = await import('./firebase-config.js');
-        const { doc, deleteDoc } = await import('firebase/firestore');
 
         const user = auth.currentUser;
         if (user) {
