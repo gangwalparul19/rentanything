@@ -8,8 +8,8 @@
  * @param {number} count - Number of skeleton cards
  * @returns {string} HTML string
  */
-export function generateSkeletonCards(count: number = 6): string {
-    const skeletons: string[] = [];
+export function generateSkeletonCards(count = 6) {
+    const skeletons = [];
     for (let i = 0; i < count; i++) {
         skeletons.push(`
             <div class="skeleton-card">
@@ -27,7 +27,7 @@ export function generateSkeletonCards(count: number = 6): string {
  * Generate skeleton details HTML (for Product Details page)
  * @returns {string} HTML string
  */
-export function generateSkeletonDetails(): string {
+export function generateSkeletonDetails() {
     return `
         <div class="skeleton-details">
             <div class="skeleton-image-large" style="height: 400px; width: 100%; border-radius: 1rem; margin-bottom: 2rem;"></div>
@@ -45,7 +45,7 @@ export function generateSkeletonDetails(): string {
  * @param {string|HTMLElement} container - Container element or selector
  * @param {number} count - Number of skeletons
  */
-export function showSkeletonLoader(container: string | HTMLElement, count: number = 6): void {
+export function showSkeletonLoader(container, count = 6) {
     const element = typeof container === 'string' ? document.querySelector(container) : container;
     if (element) {
         element.innerHTML = generateSkeletonCards(count);
@@ -57,7 +57,7 @@ export function showSkeletonLoader(container: string | HTMLElement, count: numbe
  * @param {string|HTMLElement} container - Container element or selector
  * @param {string} content - HTML content to show
  */
-export function hideSkeletonLoader(container: string | HTMLElement, content: string): void {
+export function hideSkeletonLoader(container, content) {
     const element = typeof container === 'string' ? document.querySelector(container) : container;
     if (element) {
         element.innerHTML = content;
