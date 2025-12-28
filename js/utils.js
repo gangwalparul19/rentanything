@@ -6,9 +6,9 @@
 /**
  * Debounce function
  */
-export function debounce<T extends (...args: any[]) => void>(func: T, wait: number = 300): (...args: Parameters<T>) => void {
-    let timeout: ReturnType<typeof setTimeout>;
-    return function executedFunction(...args: Parameters<T>) {
+export function debounce(func, wait = 300) {
+    let timeout;
+    return function executedFunction(...args) {
         const later = () => {
             clearTimeout(timeout);
             func(...args);
@@ -21,11 +21,11 @@ export function debounce<T extends (...args: any[]) => void>(func: T, wait: numb
 /**
  * Debounce for async functions with AbortController support
  */
-export function debounceAsync<T extends (...args: any[]) => Promise<any>>(asyncFunc: T, wait: number = 300): (...args: Parameters<T>) => Promise<ReturnType<T> | null> {
-    let timeout: ReturnType<typeof setTimeout>;
-    let abortController: AbortController | null = null;
+export function debounceAsync(asyncFunc, wait = 300) {
+    let timeout;
+    let abortController = null;
 
-    return function executedFunction(...args: any[]): Promise<any> {
+    return function executedFunction(...args) {
         if (abortController) {
             abortController.abort();
         }
@@ -40,7 +40,7 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(asyncF
                     // Pass signal as last argument
                     const result = await asyncFunc(...args, signal);
                     resolve(result);
-                } catch (error: any) {
+                } catch (error) {
                     if (error.name === 'AbortError') {
                         resolve(null);
                     } else {
@@ -55,16 +55,13 @@ export function debounceAsync<T extends (...args: any[]) => Promise<any>>(asyncF
 /**
  * Simple in-memory cache
  */
-class SimpleCache<T = any> {
-    private cache: Map<string, { value: T; expiry: number }>;
-    private ttl: number;
-
-    constructor(ttlMs: number = 60000) {
+class SimpleCache {
+    constructor(ttlMs = 60000) {
         this.cache = new Map();
         this.ttl = ttlMs;
     }
 
-    get(key: string): T | null {
+    get(key) {
         const item = this.cache.get(key);
         if (!item) return null;
         if (Date.now() > item.expiry) {
@@ -74,23 +71,23 @@ class SimpleCache<T = any> {
         return item.value;
     }
 
-    set(key: string, value: T): void {
+    set(key, value) {
         this.cache.set(key, {
             value,
             expiry: Date.now() + this.ttl
         });
     }
 
-    clear(): void {
+    clear() {
         this.cache.clear();
     }
 }
 
 export const dataCache = new SimpleCache(5 * 60 * 1000);
 
-export function throttle(func: Function, wait: number = 300): Function {
-    let inThrottle: boolean;
-    return function executedFunction(...args: any[]) {
+export function throttle(func, wait = 300) {
+    let inThrottle;
+    return function executedFunction(...args) {
         if (!inThrottle) {
             func(...args);
             inThrottle = true;
@@ -99,7 +96,7 @@ export function throttle(func: Function, wait: number = 300): Function {
     };
 }
 
-export function formatCurrency(amount: number): string {
+export function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
         currency: 'INR',
@@ -107,7 +104,7 @@ export function formatCurrency(amount: number): string {
     }).format(amount);
 }
 
-export function formatDate(date: Date | number | string): string {
+export function formatDate(date) {
     return new Intl.DateTimeFormat('en-IN', {
         year: 'numeric',
         month: 'long',
@@ -115,16 +112,16 @@ export function formatDate(date: Date | number | string): string {
     }).format(new Date(date));
 }
 
-export function truncateText(text: string, maxLength: number = 100): string {
+export function truncateText(text, maxLength = 100) {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
 }
 
-export function generateId(): string {
+export function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
-export function isInViewport(element: HTMLElement): boolean {
+export function isInViewport(element) {
     const rect = element.getBoundingClientRect();
     return (
         rect.top >= 0 &&
@@ -134,14 +131,14 @@ export function isInViewport(element: HTMLElement): boolean {
     );
 }
 
-export function scrollToElement(target: string | HTMLElement): void {
+export function scrollToElement(target) {
     const element = typeof target === 'string' ? document.querySelector(target) : target;
     if (element) {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 }
 
-export async function copyToClipboard(text: string): Promise<boolean> {
+export async function copyToClipboard(text) {
     try {
         await navigator.clipboard.writeText(text);
         return true;
@@ -151,7 +148,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     }
 }
 
-export function escapeHtml(unsafe: string | any): string {
+export function escapeHtml(unsafe) {
     if (typeof unsafe !== 'string') return '';
     return unsafe
         .replace(/&/g, "&amp;")
@@ -161,11 +158,11 @@ export function escapeHtml(unsafe: string | any): string {
         .replace(/'/g, "&#039;");
 }
 
-const pendingRequests = new Map<string, Promise<any>>();
+const pendingRequests = new Map();
 
-export async function dedupedFetch<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
+export async function dedupedFetch(key, fetchFn) {
     if (pendingRequests.has(key)) {
-        return pendingRequests.get(key) as Promise<T>;
+        return pendingRequests.get(key);
     }
 
     const promise = fetchFn().finally(() => {
@@ -176,15 +173,15 @@ export async function dedupedFetch<T>(key: string, fetchFn: () => Promise<T>): P
     return promise;
 }
 
-export async function batchPromises<T>(promiseFns: (() => Promise<T>)[], concurrency: number = 5): Promise<T[]> {
-    const results: Promise<T>[] = [];
-    const executing = new Set<Promise<T>>();
+export async function batchPromises(promiseFns, concurrency = 5) {
+    const results = [];
+    const executing = new Set();
 
     for (const promiseFn of promiseFns) {
         const promise = promiseFn().then(result => {
             executing.delete(promise);
             return result;
-        }) as Promise<T>;
+        });
 
         executing.add(promise);
         results.push(promise);
@@ -197,15 +194,15 @@ export async function batchPromises<T>(promiseFns: (() => Promise<T>)[], concurr
     return Promise.all(results);
 }
 
-export function chunkArray<T>(array: T[], size: number = 10): T[][] {
-    const chunks: T[][] = [];
+export function chunkArray(array, size = 10) {
+    const chunks = [];
     for (let i = 0; i < array.length; i += size) {
         chunks.push(array.slice(i, i + size));
     }
     return chunks;
 }
 
-export async function retryOperation<T>(operation: () => Promise<T>, retries: number = 3, delay: number = 1000, backoff: number = 2): Promise<T> {
+export async function retryOperation(operation, retries = 3, delay = 1000, backoff = 2) {
     try {
         return await operation();
     } catch (error) {

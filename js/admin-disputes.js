@@ -100,7 +100,7 @@ window.dismissDispute = async function (id) {
 };
 
 window.viewDisputeEvidence = function (id) {
-    alert("Full evidence view coming soon for ID: " + id);
+    showToast("Full evidence view coming soon for ID: " + id, "info");
 };
 
 // ==========================================
@@ -149,5 +149,5 @@ window.loadReports = async function () {
 };
 
 window.viewReport = function (id) {
-    alert("Report details for " + id);
+    showToast("Report details for " + id, "info");
 };

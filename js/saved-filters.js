@@ -2,6 +2,7 @@
  * Saved Filters Component
  * Allow users to save and quickly apply filter combinations
  */
+import { showToast } from './toast-enhanced.js';
 
 class SavedFilters {
     constructor(options = {}) {
@@ -100,7 +101,7 @@ class SavedFilters {
         const currentFilters = this.getCurrentFilters();
 
         if (!currentFilters || Object.keys(currentFilters).length === 0) {
-            alert('No filters applied to save');
+            showToast('No filters applied to save', 'warning');
             return false;
         }
 
